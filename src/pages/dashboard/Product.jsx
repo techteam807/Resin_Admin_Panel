@@ -23,7 +23,7 @@ import AddProduct from "./AddProduct";
 
 export function Product() {
   
-const TABLE_HEAD = ["Connector / Distributor", "Resin Type", "Product Code", "Size", "Action"];
+const TABLE_HEAD = ["Connector", "Distributor", "Resin Type", "Product Code", "Size", "Action"];
 
 const dispatch = useDispatch();
 const { products, loading, pagination, delLoading } = useSelector((state) => state.product);
@@ -181,15 +181,19 @@ const TABS = [
                                   >
                                       {product?.connectorType}
                                   </Typography>
+                                  </div>
+                              </div>
+                              </td>
+                              <td className={classes}>
+                              <div className="flex flex-col">
                                   <Typography
                                       variant="small"
                                       color="blue-gray"
-                                      className="font-normal opacity-70"
+                                      className="font-normal"
                                   >
                                       {product?.distributorType}
                                   </Typography>
                                   </div>
-                              </div>
                               </td>
                               <td className={classes}>
                               <div className="flex flex-col">

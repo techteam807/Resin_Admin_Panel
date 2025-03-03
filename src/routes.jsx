@@ -73,7 +73,7 @@ export const routes = [
     ],
   },
   {
-    title: "Logout",
+    // title: "Logout",
     layout: "auth",
     pages: [
       {

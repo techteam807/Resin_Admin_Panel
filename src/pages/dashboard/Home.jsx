@@ -51,7 +51,7 @@ function Home() {
     dispatch(getCustomers({ page, search: searchValue }));
   };
 
-  const TABLE_HEAD = ["Customer", "Number / Email", "Contact Id", "GST Type", "Action"];
+  const TABLE_HEAD = ["Customer", "Number / Email", "Barcode", "GST Type", "Action"];
 
   return (
     <div className="">
