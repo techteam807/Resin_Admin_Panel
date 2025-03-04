@@ -51,7 +51,7 @@ function Home() {
     dispatch(getCustomers({ page, search: searchValue }));
   };
 
-  const TABLE_HEAD = ["Customer", "Number / Email", "Barcode", "GST Type", "Action"];
+  const TABLE_HEAD = ["Customer", "Number / Email", "Barcode", "GST Type"];
 
   return (
     <div className="">
@@ -177,13 +177,13 @@ function Home() {
                        {customer.gst_treatment}
                       </Typography>
                     </td>
-                    <td className={classes}>
+                    {/* <td className={classes}>
                       <Tooltip content="Edit Customer">
                         <IconButton variant="text">
                           <PencilIcon className="h-4 w-4" />
                         </IconButton>
                       </Tooltip>
-                    </td>
+                    </td> */}
                   </tr>
                 );
               },

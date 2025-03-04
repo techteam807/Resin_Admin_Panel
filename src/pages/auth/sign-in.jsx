@@ -16,6 +16,8 @@ export function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const staticEmail = import.meta.env.VITE_APP_EMAIL;
+  const staticPassword = import.meta.env.VITE_APP_PASSWORD;
 
   useEffect(() => {
     if (location.pathname === "/sign-in") {
@@ -31,6 +33,10 @@ export function SignIn() {
     }
     if (password.length < 6) {
       toast.error('Password must be at least 6 characters long.');
+      return;
+    }
+    if (email !== staticEmail || password !== staticPassword) {
+      toast.error("Invalid email or password");
       return;
     }
     // try {
@@ -54,6 +60,7 @@ export function SignIn() {
     // } finally {
     //   setLoading(false);
     // }
+    toast.success("Login successful");
     navigate('/dashboard');
 };
 

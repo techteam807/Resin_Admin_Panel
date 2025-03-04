@@ -15,6 +15,7 @@ const AddProduct = ({open, setOpen, data, setData}) => {
         distributorType: '',
         size: '',
         resinType: '',
+        productStatus: '',
     })
 
     useEffect(() => {
@@ -25,6 +26,7 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                 distributorType: data.distributorType || '',
                 size: data.size || '',
                 resinType: data.resinType || '',
+                productStatus: data.productStatus || '',
             });
         }
     }, [data]);
@@ -96,6 +98,14 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                 <Select variant='standard' label="Resin Type"
                     value={productData.resinType}
                     onChange={(value) => handleSelectChange('resinType', value)}
+                >
+                   <Option value="new">New</Option>
+                    <Option value="exhausted">Exhausted</Option>
+                    <Option value="inuse">Inuse</Option>
+                </Select>
+                <Select variant='standard' label="Product Status"
+                    value={productData.productStatus}
+                    onChange={(value) => handleSelectChange('productStatus', value)}
                 >
                    <Option value="new">New</Option>
                     <Option value="exhausted">Exhausted</Option>

@@ -23,7 +23,7 @@ import AddProduct from "./AddProduct";
 
 export function Product() {
   
-const TABLE_HEAD = ["Connector", "Distributor", "Resin Type", "Product Code", "Size", "Action"];
+  const TABLE_HEAD = ["Connector", "Distributor", "Resin Type", "Product Code", "Product Status", "Size", "Action"];
 
 const dispatch = useDispatch();
 const { products, loading, pagination, delLoading } = useSelector((state) => state.product);
@@ -222,6 +222,15 @@ const TABS = [
                                   color='brown'
                                   />
                               </div>
+                              </td>
+                              <td className={classes}>
+                              <Typography
+                                  variant="small"
+                                  color="blue-gray"
+                                  className="font-normal"
+                              >
+                                  {product?.productStatus}
+                              </Typography>
                               </td>
                               <td className={classes}>
                               <Typography
