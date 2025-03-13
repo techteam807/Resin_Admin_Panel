@@ -1,12 +1,10 @@
-import {
-  HomeIcon,
-  UserCircleIcon,
-  ServerStackIcon,
-} from "@heroicons/react/24/solid";
+import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon} from "@heroicons/react/24/solid";
 import { Company, Product } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 import { HiBuildingOffice } from "react-icons/hi2";
 import Home from "./pages/dashboard/Home";
+import Technician from "./pages/dashboard/Technician";
+import TechnicianLog from "./pages/dashboard/TechnicianLog";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -18,7 +16,7 @@ export const routes = [
     pages: [
       {
         icon: <HomeIcon {...icon} />,
-        name: "Users",
+        name: "Customers",
         path: "/home",
         element: <Home />,
       },
@@ -34,12 +32,18 @@ export const routes = [
         path: "/warehouse",
         element: <Company />,
       },
-      // {
-      //   icon: <MdDiscount {...icon} />,
-      //   name: "Discount",
-      //   path: "/discount",
-      //   element: <Discount />,
-      // },
+      {
+        icon: <CogIcon {...icon} />,
+        name: "Technician",
+        path: "/technician",
+        element: <Technician />,
+      },
+      {
+        icon: <CircleStackIcon {...icon} />,
+        name: "Technician Log",
+        path: "/technicianLog",
+        element: <TechnicianLog />,
+      },
       // {
       //   icon: <IoLogoFirebase {...icon} />,
       //   name: "Emergency",
