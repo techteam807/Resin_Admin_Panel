@@ -74,21 +74,21 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                     value={productData.connectorType}
                     onChange={(value) => handleSelectChange('connectorType', value)}
                 >
-                    <Option value="HTML">Material Tailwind HTML</Option>
-                    <Option value="React">Material Tailwind React</Option>
-                    <Option value="Vue">Material Tailwind Vue</Option>
-                    <Option value="Angular">Material Tailwind Angular</Option>
-                    <Option value="Svelte">Material Tailwind Svelte</Option>
+                    <Option value="HTML">Connector Type 1</Option>
+                    <Option value="React">Connector Type 2</Option>
+                    <Option value="Vue">Connector Type 3</Option>
+                    <Option value="Angular">Connector Type 4</Option>
+                    <Option value="Svelte">Connector Type 5</Option>
                 </Select>
                 <Select variant='standard' label="Distributor Type"
                     value={productData.distributorType}
                     onChange={(value) => handleSelectChange('distributorType', value)}
                 >
-                   <Option value="HTML">Material Tailwind HTML</Option>
-                    <Option value="React">Material Tailwind React</Option>
-                    <Option value="Vue">Material Tailwind Vue</Option>
-                    <Option value="Angular">Material Tailwind Angular</Option>
-                    <Option value="Svelte">Material Tailwind Svelte</Option>
+                   <Option value="HTML">Distributor Type 1</Option>
+                    <Option value="React">Distributor Type 2</Option>
+                    <Option value="Vue">Distributor Type 3</Option>
+                    <Option value="Angular">Distributor Type 4</Option>
+                    <Option value="Svelte">Distributor Type 5</Option>
                 </Select>
                 <Input variant='standard' label='Size' 
                     name="size"
@@ -99,9 +99,9 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                     value={productData.resinType}
                     onChange={(value) => handleSelectChange('resinType', value)}
                 >
-                   <Option value="new">New</Option>
-                    <Option value="exhausted">Exhausted</Option>
-                    <Option value="inuse">Inuse</Option>
+                   <Option value="new">Resin Type 1</Option>
+                    <Option value="exhausted">Resin Type 2</Option>
+                    <Option value="inuse">Resin Type 3</Option>
                 </Select>
                 <Select variant='standard' label="Product Status"
                     value={productData.productStatus}

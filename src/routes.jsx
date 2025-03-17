@@ -5,6 +5,7 @@ import { HiBuildingOffice } from "react-icons/hi2";
 import Home from "./pages/dashboard/Home";
 import Technician from "./pages/dashboard/Technician";
 import TechnicianLog from "./pages/dashboard/TechnicianLog";
+import ProductDesign from "./pages/dashboard/ProductDesign";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -20,18 +21,24 @@ export const routes = [
         path: "/home",
         element: <Home />,
       },
+      // {
+      //   icon: <UserCircleIcon {...icon} />,
+      //   name: "Products",
+      //   path: "/products",
+      //   element: <Product />,
+      // },
       {
         icon: <UserCircleIcon {...icon} />,
         name: "Products",
         path: "/products",
-        element: <Product />,
+        element: <ProductDesign />,
       },
-      {
-        icon: <HiBuildingOffice {...icon} />,
-        name: "Warehouse",
-        path: "/warehouse",
-        element: <Company />,
-      },
+      // {
+      //   icon: <HiBuildingOffice {...icon} />,
+      //   name: "Warehouse",
+      //   path: "/warehouse",
+      //   element: <Company />,
+      // },
       // {
       //   icon: <CogIcon {...icon} />,
       //   name: "Technician",

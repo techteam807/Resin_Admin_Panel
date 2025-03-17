@@ -1,10 +1,9 @@
 import axiosConfig from "@/app/axiosConfig";
 
 
-export const fetchProducts = async (page = 1, search = '', active = true) => {
+export const fetchProducts = async (search = '', active = true) => {
     try {
       const queryParams = new URLSearchParams({
-        page: page,
         active: active
         });
         if (search) {
