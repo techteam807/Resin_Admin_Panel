@@ -32,18 +32,18 @@ export const routes = [
         path: "/warehouse",
         element: <Company />,
       },
-      {
-        icon: <CogIcon {...icon} />,
-        name: "Technician",
-        path: "/technician",
-        element: <Technician />,
-      },
-      {
-        icon: <CircleStackIcon {...icon} />,
-        name: "Technician Log",
-        path: "/technicianLog",
-        element: <TechnicianLog />,
-      },
+      // {
+      //   icon: <CogIcon {...icon} />,
+      //   name: "Technician",
+      //   path: "/technician",
+      //   element: <Technician />,
+      // },
+      // {
+      //   icon: <CircleStackIcon {...icon} />,
+      //   name: "Technician Log",
+      //   path: "/technicianLog",
+      //   element: <TechnicianLog />,
+      // },
       // {
       //   icon: <IoLogoFirebase {...icon} />,
       //   name: "Emergency",
