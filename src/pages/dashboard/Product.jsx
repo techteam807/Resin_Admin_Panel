@@ -124,7 +124,7 @@ const TABS = [
                     </div>
                 </Tab>
               ))}
-            </TabsHeader>
+            </TabsHeader> 
             <div className="w-full md:w-72 relative flex gap-2">
               <Input
                 label="Search"
