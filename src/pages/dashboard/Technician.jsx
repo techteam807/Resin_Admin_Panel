@@ -11,11 +11,21 @@ const Technician = () => {
     const TABLE_HEAD = ["Name", "Number", "Action"];
 
     const dispatch = useDispatch();
-    const { technicians, loading, pagination, delLoading } = useSelector((state) => state.technician);
+    const { loading, pagination, delLoading } = useSelector((state) => state.technician);
     const [searchValue, setSearchValue] = useState("");
     const [user_status, setUser_status] = useState('pending');
     const [deletingTechnicianId, setDeletingTechnicianId] = useState(null);
 
+    const technicians = [
+        {
+            user_name: "Infolanze Tech",
+            mobile_number: "9876543210"
+        },
+        {
+            user_name: "Infolanze Tech",
+            mobile_number: "9876543210"
+        }
+    ]
 
     useEffect(() => {
         dispatch(getTechnicians({ page: 1, user_status: user_status }));
@@ -65,7 +75,6 @@ const Technician = () => {
     }
 
     const TABS = [
-
         {
             label: "Pending",
             value: "pending",
@@ -100,15 +109,6 @@ const Technician = () => {
                                     See information about all technician
                                 </Typography>
                             </div>
-                            <div className="flex shrink-0 gap-2 flex-row">
-                                {/* <Button variant="outlined" className="w-full sm:w-max" size="sm">
-              view all
-            </Button> */}
-                                {/* <Button onClick={() => setOpen(true)} className="flex items-center gap-2 w-full h-max py-3 sm:w-max" size="sm">
-              <SquaresPlusIcon strokeWidth={2} className="h-4 w-4" /> Add Product
-            </Button> */}
-
-                            </div>
                         </div>
                     </CardHeader>
                     <Tabs value="pending" className="w-full pt-2">
@@ -136,9 +136,9 @@ const Technician = () => {
                             </div>
                         </div>
                     </Tabs>
-                    {loading ? (
+                    {/* {loading ? (
                         <div><Loader /></div>) :
-                        (
+                        ( */}
                             <div>
                                 <CardBody className="px-0">
                                     <div className="overflow-x-auto">
@@ -198,6 +198,45 @@ const Technician = () => {
                                                                 {user_status === 'pending' &&
                                                                     <td className={classes}>
                                                                         <Tooltip content="Approve">
+                                                                            <IconButton variant="text">
+                                                                            {delLoading && deletingTechnicianId === technician?.mobile_number ?
+                                                                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                                                                    :
+                                                                                <CheckBadgeIcon className="h-5 w-5" />
+                                                                            }
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    </td>
+                                                                }
+                                                                {user_status === 'approve' &&
+                                                                    <td className={classes}>
+                                                                        <Tooltip content="Delete">
+                                                                            <IconButton  variant="text">
+                                                                                {delLoading && deletingTechnicianId === technician?.mobile_number ?
+                                                                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                                                                    :
+                                                                                    <TrashIcon className="h-4 w-4" />
+                                                                                }
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    </td>
+                                                                }
+                                                                {user_status === 'delete' &&
+                                                                    <td className={classes}>
+                                                                        <Tooltip content="Restore">
+                                                                            <IconButton  variant="text">
+                                                                            {delLoading && deletingTechnicianId === technician?.mobile_number ?
+                                                                             <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                                                             :
+                                                                                <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                                                                            }
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    </td>
+                                                                }
+                                                                {/* {user_status === 'pending' &&
+                                                                    <td className={classes}>
+                                                                        <Tooltip content="Approve">
                                                                             <IconButton onClick={() => handleApprove(technician?.mobile_number)}variant="text">
                                                                             {delLoading && deletingTechnicianId === technician?.mobile_number ?
                                                                                     <ArrowPathIcon className="h-4 w-4 animate-spin" />
@@ -233,7 +272,7 @@ const Technician = () => {
                                                                             </IconButton>
                                                                         </Tooltip>
                                                                     </td>
-                                                                }
+                                                                } */}
                                                             </tr>
                                                         );
                                                     },
@@ -250,7 +289,7 @@ const Technician = () => {
 
                             </div>
 
-                        )}
+                         {/* )} */}
                 </Card>
             </div>
             {/* <AddProduct open={open} setOpen={setOpen} data={data} setData={setDate} /> */}
