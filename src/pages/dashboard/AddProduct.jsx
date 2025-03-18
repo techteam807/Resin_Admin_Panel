@@ -15,7 +15,7 @@ const AddProduct = ({open, setOpen, data, setData}) => {
         distributorType: '',
         size: '',
         resinType: '',
-        productStatus: '',
+        productStatus: 'new',
     })
 
     useEffect(() => {
@@ -103,14 +103,20 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                     <Option value="exhausted">Resin Type 2</Option>
                     <Option value="inuse">Resin Type 3</Option>
                 </Select>
-                <Select variant='standard' label="Product Status"
+                {/* <Select variant='standard' label="Product Status"
                     value={productData.productStatus}
                     onChange={(value) => handleSelectChange('productStatus', value)}
                 >
                    <Option value="new">New</Option>
                     <Option value="exhausted">Exhausted</Option>
                     <Option value="inuse">Inuse</Option>
-                </Select>
+                </Select> */}
+                <Input
+                    variant='standard'
+                    label='Product Status'
+                    value={productData.productStatus}
+                    readOnly
+                />
             </div>
         </DialogBody>
         <DialogFooter className='flex gap-4'>
