@@ -11,21 +11,10 @@ const Technician = () => {
     const TABLE_HEAD = ["Name", "Number", "Action"];
 
     const dispatch = useDispatch();
-    const { loading, pagination, delLoading } = useSelector((state) => state.technician);
+    const { technicians, loading, pagination, delLoading } = useSelector((state) => state.technician);
     const [searchValue, setSearchValue] = useState("");
     const [user_status, setUser_status] = useState('pending');
     const [deletingTechnicianId, setDeletingTechnicianId] = useState(null);
-
-    const technicians = [
-        {
-            user_name: "Infolanze Tech",
-            mobile_number: "9876543210"
-        },
-        {
-            user_name: "Infolanze Tech",
-            mobile_number: "9876543210"
-        }
-    ]
 
     useEffect(() => {
         dispatch(getTechnicians({ page: 1, user_status: user_status }));
@@ -136,9 +125,9 @@ const Technician = () => {
                             </div>
                         </div>
                     </Tabs>
-                    {/* {loading ? (
+                    {loading ? (
                         <div><Loader /></div>) :
-                        ( */}
+                        (
                             <div>
                                 <CardBody className="px-0">
                                     <div className="overflow-x-auto">
@@ -195,7 +184,7 @@ const Technician = () => {
                                                                         </Typography>
                                                                     </div>
                                                                 </td>
-                                                                {user_status === 'pending' &&
+                                                                {/* {user_status === 'pending' &&
                                                                     <td className={classes}>
                                                                         <Tooltip content="Approve">
                                                                             <IconButton variant="text">
@@ -233,8 +222,8 @@ const Technician = () => {
                                                                             </IconButton>
                                                                         </Tooltip>
                                                                     </td>
-                                                                }
-                                                                {/* {user_status === 'pending' &&
+                                                                }*/}
+                                                                 {user_status === 'pending' &&
                                                                     <td className={classes}>
                                                                         <Tooltip content="Approve">
                                                                             <IconButton onClick={() => handleApprove(technician?.mobile_number)}variant="text">
@@ -272,7 +261,7 @@ const Technician = () => {
                                                                             </IconButton>
                                                                         </Tooltip>
                                                                     </td>
-                                                                } */}
+                                                                } 
                                                             </tr>
                                                         );
                                                     },
@@ -289,10 +278,9 @@ const Technician = () => {
 
                             </div>
 
-                         {/* )} */}
+                         )}
                 </Card>
             </div>
-            {/* <AddProduct open={open} setOpen={setOpen} data={data} setData={setDate} /> */}
         </div>
     )
 }

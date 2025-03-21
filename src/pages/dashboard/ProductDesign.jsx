@@ -83,12 +83,6 @@ const ProductDesign = () => {
         },
       ];
 
-      const productSections = [
-        { title: "NEW", products: newProducts },
-        { title: "INUSE", products: inuseProducts },
-        { title: "EXHAUSTED", products: exhaustedProducts },
-      ];
-
   return (
     <div className="">
     <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
@@ -104,7 +98,7 @@ const ProductDesign = () => {
             </Typography>
           </div>
           <div className="flex shrink-0 gap-2 flex-row">
-            <Button onClick={() => {setOpen(true); setDate(null)}} className="flex items-center gap-2 w-full h-max py-3 sm:w-max" size="sm">
+            <Button onClick={() => {setDate(null); setOpen(true) }} className="flex items-center gap-2 w-full h-max py-3 sm:w-max" size="sm">
               <SquaresPlusIcon strokeWidth={2} className="h-4 w-4" /> Add Product
             </Button>
           </div>
@@ -137,63 +131,226 @@ const ProductDesign = () => {
           </Tabs>
           {loading ? <div><Loader /></div> : 
             <div className="grid md:grid-cols-3 gap-7 items-start p-4 border-t mt-5 pt-5 border-blue-gray-100">
-                {productSections.map(({ title, products }) => (
-                    <div key={title} className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md">
-                    <div className="border-b border-blue-gray-100 p-4 text-center">{title}</div>
+                {/* NEW PRODUCTS */}
+                  <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md">
+                    <div className="border-b border-blue-gray-100 p-4 text-center text-blue-600 font-semibold">NEW</div>
                     <div className="space-y-3 p-3">
-                        {products.length > 0 ? (
-                        products.map((product) => (
-                            <Button 
+                      {newProducts.length > 0 ? (
+                        newProducts.map((product) => (
+                          <Button
                             variant="text"
-                            key={product._id} 
-                            className="bg-white p-0 px-3 rounded-md group hover:cursor-pointer w-full flex items-center justify-between"
+                            key={product._id}
+                            color="blue"
+                            className="bg-white rounded-md group hover:cursor-pointer w-full text-start relative p-2 border-l-2 border-blue-600"
                             onClick={() => {
-                                setDate(product);
-                                setDetails(true);
+                              setDate(product);
+                              setDetails(true);
                             }}
-                            >
-                            <p className="font-semibold text-base p-3.5">{product.productCode}</p>
-                            {active === true ? 
-                                <Tooltip content="Delete Product">
-                                <IconButton 
-                                    onClick={(e) => {
+                          >
+                            <div className="flex items-start justify-between">
+                            <div className="p-1.5">
+                            <p className="font-semibold text-base text-black">{product.productCode}</p>
+                            <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                            </div>
+                            {active === true ? (
+                              <Tooltip content="Delete Product">
+                                <IconButton
+                                  onClick={(e) => {
                                     e.stopPropagation();
                                     handleDelete(product._id);
-                                    }} 
-                                    variant="text"
-                                    className="hidden group-hover:block"
+                                  }}
+                                  color="blue"
+                                  variant="text"
+                                  className="hidden group-hover:block"
                                 >
-                                    {delLoading && deletingProductId === product._id ? 
-                                    <ArrowPathIcon className="h-4 w-4 animate-spin" /> 
-                                    : <TrashIcon className="h-4 w-4" />
-                                    }
+                                  {delLoading && deletingProductId === product._id ? (
+                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <TrashIcon className="h-4 w-4" />
+                                  )}
                                 </IconButton>
-                                </Tooltip>
-                            :
-                                <Tooltip content="Restore Product">
-                                    <IconButton 
-                                        onClick={(e) => {
-                                            e.stopPropagation(); 
-                                            handleRestore(product?._id)
-                                        }} 
-                                        variant="text" 
-                                        className="hidden group-hover:block">
-                                    {delLoading && deletingProductId === product?._id ? 
-                                        <ArrowPathIcon className="h-4 w-4 animate-spin" /> 
-                                        :
-                                        <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                              </Tooltip>
+                            ) : 
+                            <Tooltip content="Restore Product">
+                            <IconButton 
+                                onClick={(e) => {
+                                  e.stopPropagation(); 
+                                  handleRestore(product?._id)
+                                }} 
+                                color="blue"
+                                variant="text"
+                                className="hidden group-hover:block"
+                                >
+                                  {delLoading && deletingProductId === product?._id ? 
+                                      <ArrowPathIcon className="h-4 w-4 animate-spin" /> 
+                                      :
+                                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
                                     }
-                                    </IconButton>
-                                </Tooltip>
+                            </IconButton>
+                            </Tooltip>
                             }
-                            </Button>
+                            </div>
+                          </Button>
                         ))
-                        ) : (
-                        <div className="text-center text-gray-500">No {title} Products</div>
-                        )}
+                      ) : (
+                        <div className="text-center text-gray-500">No NEW Products</div>
+                      )}
                     </div>
+                  </div>
+
+                  {/* INUSE PRODUCTS */}
+                  <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md ">
+                    <div className="border-b border-blue-gray-100 p-4 text-center text-green-600 font-semibold">INUSE</div>
+                    <div className="space-y-3 p-3">
+                      {inuseProducts.length > 0 ? (
+                        inuseProducts.map((product) => (
+                          <Button
+                            variant="text"
+                            key={product._id}
+                            color="green"
+                            className="bg-white p-2 rounded-md group hover:cursor-pointer w-full text-start relative border-l-2 border-green-600"
+                            onClick={() => {
+                              setDate(product);
+                              setDetails(true);
+                            }}
+                          >
+                            <div className="flex items-start justify-between">
+                            <div className="p-1.5">
+                            <p className="font-semibold text-base text-black">{product.productCode}</p>
+                            <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                            </div>
+                            {active === true ? (
+                              <Tooltip content="Delete Product">
+                                <IconButton
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(product._id);
+                                  }}
+                                  color="green"
+                                  variant="text"
+                                  className="hidden group-hover:block"
+                                >
+                                  {delLoading && deletingProductId === product._id ? (
+                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <TrashIcon className="h-4 w-4" />
+                                  )}
+                                </IconButton>
+                              </Tooltip>
+                            ) : 
+                            <Tooltip content="Restore Product">
+                            <IconButton 
+                                onClick={(e) => {
+                                    e.stopPropagation(); 
+                                    handleRestore(product?._id)
+                                }} 
+                                  color="green"
+                                  variant="text"
+                                  className="hidden group-hover:block"
+                                >
+                                  {delLoading && deletingProductId === product?._id ? 
+                                      <ArrowPathIcon className="h-4 w-4 animate-spin" /> 
+                                      :
+                                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                                  }
+                            </IconButton>
+                            </Tooltip>
+                            }
+                            </div>
+                            {product?.Customer && (
+                              <div className="m-1.5 p-2.5 rounded-lg bg-green-50 text-xs text-gray-700 font-medium space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Customer Code:</span>
+                                  <span>{product?.Customer?.contact_number || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Name:</span>
+                                  <span>{product?.Customer?.display_name || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Email:</span>
+                                  <span>{product?.Customer?.email || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Number:</span>
+                                  <span>{product?.Customer?.mobile || 'N/A'}</span>
+                                </div>
+                              </div>
+                            )}
+                          </Button>
+                        ))
+                      ) : (
+                        <div className="text-center text-gray-500">No INUSE Products</div>
+                      )}
                     </div>
-                ))}
+                  </div>
+
+                  {/* EXHAUSTED PRODUCTS */}
+                  <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md">
+                    <div className="border-b border-blue-gray-100 p-4 text-center text-red-600 font-semibold">EXHAUSTED</div>
+                    <div className="space-y-3 p-3">
+                      {exhaustedProducts.length > 0 ? (
+                        exhaustedProducts.map((product) => (
+                          <Button
+                            variant="text"
+                            key={product._id}
+                            color="red"
+                            className="bg-white p-2 rounded-md group hover:cursor-pointer w-full text-start relative border-l-2 border-red-600"
+                            onClick={() => {
+                              setDate(product);
+                              setDetails(true);
+                            }}
+                          >
+                            <div className="flex items-start justify-between">
+                            <div className="p-1.5">
+                            <p className="font-semibold text-base text-black">{product.productCode}</p>
+                            <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                            </div>
+                            {active === true ? (
+                              <Tooltip content="Delete Product">
+                                <IconButton
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(product._id);
+                                  }}
+                                  color="red"
+                                  variant="text"
+                                  className="hidden group-hover:block"
+                                >
+                                  {delLoading && deletingProductId === product._id ? (
+                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <TrashIcon className="h-4 w-4" />
+                                  )}
+                                </IconButton>
+                              </Tooltip>
+                            ) : 
+                            <Tooltip content="Restore Product">
+                            <IconButton 
+                                onClick={(e) => {
+                                    e.stopPropagation(); 
+                                    handleRestore(product?._id)
+                                }} 
+                                  color="red"
+                                  variant="text"
+                                  className="hidden group-hover:block"
+                                >
+                                  {delLoading && deletingProductId === product?._id ? 
+                                      <ArrowPathIcon className="h-4 w-4 animate-spin" /> 
+                                      :
+                                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                                  }
+                            </IconButton>
+                            </Tooltip>
+                            }
+                            </div>
+                          </Button>
+                        ))
+                      ) : (
+                        <div className="text-center text-gray-500">No EXHAUSTED Products</div>
+                      )}
+                    </div>
+                  </div>
                 </div>
             }
       </Card>
