@@ -132,11 +132,12 @@ const ProductDesign = () => {
           {loading ? <div><Loader /></div> : 
             <div className="grid md:grid-cols-3 gap-7 items-start p-4 border-t mt-5 pt-5 border-blue-gray-100">
                 {/* NEW PRODUCTS */}
+                {active === true && 
                   <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md">
                     <div className="border-b border-blue-gray-100 p-4 text-center text-blue-600 font-semibold">NEW</div>
                     <div className="space-y-3 p-3">
                       {newProducts.length > 0 ? (
-                        newProducts.map((product) => (
+                        newProducts.map((product, index) => (
                           <Button
                             variant="text"
                             key={product._id}
@@ -148,9 +149,12 @@ const ProductDesign = () => {
                             }}
                           >
                             <div className="flex items-start justify-between">
-                            <div className="p-1.5">
-                            <p className="font-semibold text-base text-black">{product.productCode}</p>
-                            <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                            <div className="p-1.5 flex items-center">
+                              <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
+                              <div className="ps-2">
+                                <p className="font-semibold text-base text-black">{product.productCode}</p>
+                                <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                              </div>
                             </div>
                             {active === true ? (
                               <Tooltip content="Delete Product">
@@ -197,8 +201,9 @@ const ProductDesign = () => {
                       )}
                     </div>
                   </div>
-
+                  }
                   {/* INUSE PRODUCTS */}
+                  {active === true && 
                   <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md ">
                     <div className="border-b border-blue-gray-100 p-4 text-center text-green-600 font-semibold">INUSE</div>
                     <div className="space-y-3 p-3">
@@ -215,9 +220,12 @@ const ProductDesign = () => {
                             }}
                           >
                             <div className="flex items-start justify-between">
-                            <div className="p-1.5">
-                            <p className="font-semibold text-base text-black">{product.productCode}</p>
-                            <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                            <div className="p-1.5 flex items-center">
+                              <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
+                              <div className="ps-2">
+                                <p className="font-semibold text-base text-black">{product.productCode}</p>
+                                <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                              </div>
                             </div>
                             {active === true ? (
                               <Tooltip content="Delete Product">
@@ -283,14 +291,14 @@ const ProductDesign = () => {
                         <div className="text-center text-gray-500">No INUSE Products</div>
                       )}
                     </div>
-                  </div>
-
+                  </div>  
+                  }
                   {/* EXHAUSTED PRODUCTS */}
-                  <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md">
-                    <div className="border-b border-blue-gray-100 p-4 text-center text-red-600 font-semibold">EXHAUSTED</div>
+                  <div className={`border border-blue-gray-100 bg-[#f4f5f7] rounded-md ${active === false ? "col-span-3" : ""}`}>
+                    <div className="border-b border-blue-gray-100 p-4 text-center text-red-600 font-semibold">{active === false ? "DELETED PRODUCTS" : "EXHAUSTED" }</div>
                     <div className="space-y-3 p-3">
                       {exhaustedProducts.length > 0 ? (
-                        exhaustedProducts.map((product) => (
+                        exhaustedProducts.map((product, index) => (
                           <Button
                             variant="text"
                             key={product._id}
@@ -302,9 +310,12 @@ const ProductDesign = () => {
                             }}
                           >
                             <div className="flex items-start justify-between">
-                            <div className="p-1.5">
-                            <p className="font-semibold text-base text-black">{product.productCode}</p>
-                            <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                            <div className="p-1.5 flex items-center">
+                              <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
+                              <div className="ps-2">
+                                <p className="font-semibold text-base text-black">{product.productCode}</p>
+                                <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                              </div>
                             </div>
                             {active === true ? (
                               <Tooltip content="Delete Product">

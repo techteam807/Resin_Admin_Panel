@@ -11,22 +11,26 @@ const AddProduct = ({open, setOpen, data, setData}) => {
     const productId = data?._id
     const [productData, setProductData] = useState({
         productCode: '',
-        connectorType: '',
         distributorType: '',
-        size: '',
         resinType: '',
-        productStatus: 'new',
+        vesselSize: '',
+        adapterSize: ''
+        // connectorType: '',
+        // size: '',
+        // productStatus: 'new',
     })
 
     useEffect(() => {
         if (data) {
             setProductData({
                 productCode: data.productCode || '',
-                connectorType: data.connectorType || '',
                 distributorType: data.distributorType || '',
-                size: data.size || '',
                 resinType: data.resinType || '',
-                productStatus: data.productStatus || '',
+                vesselSize: data.vesselSize || '',
+                adapterSize: data.adapterSize || '',
+                // connectorType: data.connectorType || '',
+                // size: data.size || '',
+                // productStatus: data.productStatus || '',
             });
         }
     }, [data]);
@@ -70,7 +74,16 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                     onChange={handleChange}
                     readOnly={productId}
                 />
-                <Select variant='standard' label="Connector Type"
+
+                <Select variant='standard' label="Distributor Type"
+                    value={productData.distributorType}
+                    onChange={(value) => handleSelectChange('distributorType', value)}
+                >
+                    <Option value="Adhesive">Adhesive</Option>
+                    <Option value="Snap Fit">Snap Fit</Option>
+                </Select>
+
+                {/* <Select variant='standard' label="Connector Type"
                     value={productData.connectorType}
                     onChange={(value) => handleSelectChange('connectorType', value)}
                 >
@@ -79,30 +92,40 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                     <Option value="Vue">Connector Type 3</Option>
                     <Option value="Angular">Connector Type 4</Option>
                     <Option value="Svelte">Connector Type 5</Option>
-                </Select>
-                <Select variant='standard' label="Distributor Type"
-                    value={productData.distributorType}
-                    onChange={(value) => handleSelectChange('distributorType', value)}
-                >
-                   <Option value="HTML">Distributor Type 1</Option>
-                    <Option value="React">Distributor Type 2</Option>
-                    <Option value="Vue">Distributor Type 3</Option>
-                    <Option value="Angular">Distributor Type 4</Option>
-                    <Option value="Svelte">Distributor Type 5</Option>
-                </Select>
-                <Input variant='standard' label='Size' 
+                </Select> */}
+
+                {/* <Input variant='standard' label='Size' 
                     name="size"
                     value={productData.size}
                     onChange={handleChange}
-                />
+                /> */}
+
                 <Select variant='standard' label="Resin Type"
                     value={productData.resinType}
                     onChange={(value) => handleSelectChange('resinType', value)}
                 >
-                   <Option value="new">Resin Type 1</Option>
-                    <Option value="exhausted">Resin Type 2</Option>
-                    <Option value="inuse">Resin Type 3</Option>
+                   <Option value="CSA 9">CSA 9</Option>
+                    <Option value="CSA 9 FG">CSA 9 FG</Option>
+                    <Option value="CSA 29 FG">CSA 29 FG</Option>
                 </Select>
+
+                <Select variant='standard' label="Vessel Size"
+                    value={productData.vesselSize}
+                    onChange={(value) => handleSelectChange('vesselSize', value)}
+                >
+                   <Option value="844">844</Option>
+                    <Option value="1054">1054</Option>
+                </Select>
+
+                <Select variant='standard' label="Adapter Size"
+                    value={productData.adapterSize}
+                    onChange={(value) => handleSelectChange('adapterSize', value)}
+                >
+                   <Option value="1">1</Option>
+                    <Option value="3/4">3/4</Option>
+                    <Option value="1/2">1/2</Option>
+                </Select>
+
                 {/* <Select variant='standard' label="Product Status"
                     value={productData.productStatus}
                     onChange={(value) => handleSelectChange('productStatus', value)}
@@ -111,12 +134,14 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                     <Option value="exhausted">Exhausted</Option>
                     <Option value="inuse">Inuse</Option>
                 </Select> */}
-                <Input
+
+                {/* <Input
                     variant='standard'
                     label='Product Status'
                     value={productData.productStatus}
                     readOnly
-                />
+                /> */}
+
             </div>
         </DialogBody>
         <DialogFooter className='flex gap-4'>
