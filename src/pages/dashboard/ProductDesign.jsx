@@ -208,7 +208,7 @@ const ProductDesign = () => {
                     <div className="border-b border-blue-gray-100 p-4 text-center text-green-600 font-semibold">INUSE</div>
                     <div className="space-y-3 p-3">
                       {inuseProducts.length > 0 ? (
-                        inuseProducts.map((product) => (
+                        inuseProducts.map((product, index) => (
                           <Button
                             variant="text"
                             key={product._id}
