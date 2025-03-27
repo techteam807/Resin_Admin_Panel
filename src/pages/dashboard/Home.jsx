@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { ArrowPathIcon, PencilIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, PencilIcon, XMarkIcon, ClipboardIcon, CheckIcon } from "@heroicons/react/24/solid";
 import {
   Card,
   CardHeader,
@@ -23,7 +23,7 @@ function Home() {
   const dispatch = useDispatch();
   const [searchValue, setSearchValue] = useState("");
   const { customers, loading, pagination } = useSelector((state) => state.customer);
-  console.log('customers', customers);
+  const [copiedCustomerId, setCopiedCustomerId] = useState(null);
   
 
   useEffect(() => {
@@ -41,6 +41,19 @@ function Home() {
       }
     });
   };  
+
+  const handleCopy = (customerId, contactNumber) => {
+    if (contactNumber) {
+      navigator.clipboard.writeText(contactNumber).then(() => {
+        setCopiedCustomerId(customerId);
+        setTimeout(() => {
+          setCopiedCustomerId(null);
+        }, 1000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+  };
 
   const searchClear = () => {
     setSearchValue('')
@@ -113,6 +126,7 @@ function Home() {
                 const classes = isLast
                   ? "p-4"
                   : "p-4 border-b border-blue-gray-50";
+                const isCopied = copiedCustomerId === customer._id;
  
                 return (
                   <tr key={index} className="hover:bg-gray-50">
@@ -159,14 +173,27 @@ function Home() {
                       </div>
                     </td>
                     <td className={classes}>
-                      <div className='w-max'>
-                        <Chip
-                            variant="ghost"
-                            size="sm"
-                            value={customer.contact_number}
-                            color="brown"
-                          />
-                      </div>
+                    <div className="w-max flex items-center gap-2">
+                      <Chip
+                        variant="ghost"
+                        size="sm"
+                        value={customer.contact_number}
+                        color="brown"
+                      />
+                      <Tooltip content={isCopied ? "Copied!" : "Copy"}>
+                        <IconButton
+                          variant="text"
+                          onClick={() => handleCopy(customer._id, customer.contact_number)}
+                          size="sm"
+                        >
+                          {isCopied ? (
+                            <CheckIcon className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <ClipboardIcon className="h-4 w-4 text-gray-600" />
+                          )}
+                        </IconButton>
+                      </Tooltip>
+                    </div>
                     </td>
                     <td className={classes}>
                       <Typography

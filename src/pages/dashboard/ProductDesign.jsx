@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { ArrowPathIcon, ArrowPathRoundedSquareIcon, SquaresPlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, ArrowPathRoundedSquareIcon, CheckIcon, ClipboardIcon, SquaresPlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import {
   Card,
   CardHeader,
@@ -29,6 +29,7 @@ const ProductDesign = () => {
     const [details, setDetails] = useState(false);
     const [data, setDate] = useState(null);
     const [deletingProductId, setDeletingProductId] = useState(null);
+    const [copiedStates, setCopiedStates] = useState({});
     const { newProducts = [], inuseProducts = [], exhaustedProducts = [] } = products || {};
     
     useEffect(() => {
@@ -67,6 +68,19 @@ const ProductDesign = () => {
         setDetails(false);
         setOpen(true)
       }
+
+      const handleCopy = (productId, productCode) => {
+        if (productCode) {
+          navigator.clipboard.writeText(productCode).then(() => {
+            setCopiedStates((prev) => ({ ...prev, [productId]: true }));
+            setTimeout(() => {
+              setCopiedStates((prev) => ({ ...prev, [productId]: false }));
+            }, 1000);
+          }).catch(err => {
+            console.error('Failed to copy text: ', err);
+          });
+        }
+      };
     
     const TABS = [
         {
@@ -152,7 +166,25 @@ const ProductDesign = () => {
                             <div className="p-1.5 flex items-center">
                               <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
                               <div className="ps-2">
-                                <p className="font-semibold text-base text-black">{product.productCode}</p>
+                                <p className="font-semibold text-base text-black ">{product.productCode}
+                                <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
+                                  <IconButton
+                                    variant="text"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCopy(product._id, product.productCode);
+                                    }}
+                                    size='sm'
+                                    color="blue"
+                                  >
+                                    {copiedStates[product._id] ? (
+                                      <CheckIcon className="h-4 w-4 text-green-600" />
+                                    ) : (
+                                      <ClipboardIcon className="h-3.5 w-3.5 text-gray-600" />
+                                    )}
+                                  </IconButton>
+                                </Tooltip>
+                                </p>
                                 <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
                               </div>
                             </div>
@@ -223,7 +255,25 @@ const ProductDesign = () => {
                             <div className="p-1.5 flex items-center">
                               <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
                               <div className="ps-2">
-                                <p className="font-semibold text-base text-black">{product.productCode}</p>
+                                <p className="font-semibold text-base text-black">{product.productCode}
+                                <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
+                                  <IconButton
+                                    variant="text"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCopy(product._id, product.productCode);
+                                    }}
+                                    size='sm'
+                                    color="green"
+                                  >
+                                    {copiedStates[product._id] ? (
+                                      <CheckIcon className="h-4 w-4 text-green-600" />
+                                    ) : (
+                                      <ClipboardIcon className="h-3.5 w-3.5 text-gray-600" />
+                                    )}
+                                  </IconButton>
+                                </Tooltip>
+                                </p>
                                 <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
                               </div>
                             </div>
@@ -313,7 +363,25 @@ const ProductDesign = () => {
                             <div className="p-1.5 flex items-center">
                               <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
                               <div className="ps-2">
-                                <p className="font-semibold text-base text-black">{product.productCode}</p>
+                                <p className="font-semibold text-base text-black">{product.productCode}
+                                <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
+                                  <IconButton
+                                    variant="text"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCopy(product._id, product.productCode);
+                                    }}
+                                    size='sm'
+                                    color="red"
+                                  >
+                                    {copiedStates[product._id] ? (
+                                      <CheckIcon className="h-4 w-4 text-green-600" />
+                                    ) : (
+                                      <ClipboardIcon className="h-3.5 w-3.5 text-gray-600" />
+                                    )}
+                                  </IconButton>
+                                </Tooltip>
+                                </p>
                                 <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
                               </div>
                             </div>

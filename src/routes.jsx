@@ -6,6 +6,7 @@ import Home from "./pages/dashboard/Home";
 import Technician from "./pages/dashboard/Technician";
 import TechnicianLog from "./pages/dashboard/TechnicianLog";
 import ProductDesign from "./pages/dashboard/ProductDesign";
+import WareHouse from "./pages/dashboard/WareHouse";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -33,12 +34,12 @@ export const routes = [
         path: "/products",
         element: <ProductDesign />,
       },
-      // {
-      //   icon: <HiBuildingOffice {...icon} />,
-      //   name: "Warehouse",
-      //   path: "/warehouse",
-      //   element: <Company />,
-      // },
+      {
+        icon: <HiBuildingOffice {...icon} />,
+        name: "Warehouse",
+        path: "/warehouse",
+        element: <WareHouse />,
+      },
       {
         icon: <CogIcon {...icon} />,
         name: "Technician",
