@@ -68,7 +68,6 @@ function Home() {
 
   return (
     <div className="">
-    {loading ? <div className='flex items-center justify-center h-[calc(100vh-100px)] w-full'><Loader /></div> :
     <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
       <Card className="h-full w-full">
       <CardHeader floated={false} shadow={false} className="rounded-none">
@@ -99,6 +98,8 @@ function Home() {
           </div>
         </div>
       </CardHeader>
+    {loading ? <div className=''><Loader /></div> :
+    <div>
       <CardBody className="px-0">
       <div className="overflow-x-auto">
         <table className="w-full min-w-max table-auto text-left">
@@ -220,13 +221,14 @@ function Home() {
         </div>
       </CardBody>
       <Pagination
-        currentPage={pagination.currentPage}
-        totalPages={pagination.totalPages}
-        onChange={handlePaginationChange}
+      currentPage={pagination.currentPage}
+      totalPages={pagination.totalPages}
+      onChange={handlePaginationChange}
       />
+      </div>
+    }
     </Card>
     </div>
-    }
    </div>
   )
 }

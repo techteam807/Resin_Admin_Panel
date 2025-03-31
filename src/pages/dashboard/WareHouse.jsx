@@ -68,7 +68,6 @@ const WareHouse = () => {
 
   return (
     <div>
-      {loading ? <div className='flex items-center justify-center h-[calc(100vh-100px)] w-full'><Loader /></div> :
     <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
       <Card className="h-full w-full">
       <CardHeader floated={false} shadow={false} className="rounded-none">
@@ -89,6 +88,7 @@ const WareHouse = () => {
         </div>
       </CardHeader>
       <CardBody className="px-0">
+      {loading ? <div className=''><Loader /></div> :
       <div className="overflow-x-auto">
         <table className="w-full min-w-max table-auto text-left">
           <thead>
@@ -169,10 +169,10 @@ const WareHouse = () => {
           </tbody>
         </table>
         </div>
+    }
       </CardBody>
     </Card>
     </div>
-    }
     <Dialog
         open={open}
         handler={() => {setOpen(false); setWarehouseData({ wareHouse_code: '' })}}
