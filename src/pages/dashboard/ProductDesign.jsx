@@ -18,6 +18,7 @@ import { deleteProduct, getProducts, restoreProduct } from "@/feature/product/pr
 import Loader from "../Loader";
 import AddProduct from "./AddProduct";
 import ProductDetails from "./ProductDetails";
+import "./Home.css"
 
 const ProductDesign = () => {
 
@@ -148,8 +149,8 @@ const ProductDesign = () => {
                 {/* NEW PRODUCTS */}
                 {active === true && 
                   <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md">
-                    <div className="border-b border-blue-gray-100 p-4 text-center text-blue-600 font-semibold">NEW</div>
-                    <div className="space-y-3 p-3">
+                    <div className="border-b border-blue-gray-100 p-4 text-center text-blue-600 font-semibold">NEW ({newProducts.length})</div>
+                    <div className="space-y-3 p-3 h-[74vh] overflow-y-auto scrollbar-custom-blue">
                       {newProducts.length > 0 ? (
                         newProducts.map((product, index) => (
                           <Button
@@ -229,7 +230,7 @@ const ProductDesign = () => {
                           </Button>
                         ))
                       ) : (
-                        <div className="text-center text-gray-500">No NEW Products</div>
+                        <div className="text-center text-gray-500">NO NEW PRODUCTS</div>
                       )}
                     </div>
                   </div>
@@ -237,8 +238,8 @@ const ProductDesign = () => {
                   {/* INUSE PRODUCTS */}
                   {active === true && 
                   <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md ">
-                    <div className="border-b border-blue-gray-100 p-4 text-center text-green-600 font-semibold">INUSE</div>
-                    <div className="space-y-3 p-3">
+                    <div className="border-b border-blue-gray-100 p-4 text-center text-green-600 font-semibold">INUSE ({inuseProducts.length})</div>
+                    <div className="space-y-3 p-3 h-[74vh] overflow-y-auto scrollbar-custom-green">
                       {inuseProducts.length > 0 ? (
                         inuseProducts.map((product, index) => (
                           <Button
@@ -338,15 +339,15 @@ const ProductDesign = () => {
                           </Button>
                         ))
                       ) : (
-                        <div className="text-center text-gray-500">No INUSE Products</div>
+                        <div className="text-center text-gray-500">NO INUSE PRODUCTS</div>
                       )}
                     </div>
                   </div>  
                   }
                   {/* EXHAUSTED PRODUCTS */}
                   <div className={`border border-blue-gray-100 bg-[#f4f5f7] rounded-md ${active === false ? "col-span-3" : ""}`}>
-                    <div className="border-b border-blue-gray-100 p-4 text-center text-red-600 font-semibold">{active === false ? "DELETED PRODUCTS" : "EXHAUSTED" }</div>
-                    <div className="space-y-3 p-3">
+                    <div className="border-b border-blue-gray-100 p-4 text-center text-red-600 font-semibold">{active === false ? "DELETED PRODUCTS" : "EXHAUSTED" } ({exhaustedProducts.length})</div>
+                    <div className="space-y-3 p-3 h-[74vh] overflow-y-auto scrollbar-custom-red">
                       {exhaustedProducts.length > 0 ? (
                         exhaustedProducts.map((product, index) => (
                           <Button
@@ -426,7 +427,7 @@ const ProductDesign = () => {
                           </Button>
                         ))
                       ) : (
-                        <div className="text-center text-gray-500">No EXHAUSTED Products</div>
+                        <div className="text-center text-gray-500">{active === false ? " NO DELETED PRODUCTS" : "NO EXHAUSTED PRODUCTS" }</div>
                       )}
                     </div>
                   </div>

@@ -36,7 +36,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
       style={{ scrollbarWidth: "none", /* Firefox */ overflow: "-ms-autohide-scrollbar" /* Edge */ }}
     >
       <div className={`relative `}>
-        <Link to="/" className="py-6 px-8 text-center">
+        <Link to="/dashboard/home" className="py-6 px-8 text-center">
           <Typography
             variant="h6"
             color="white"
@@ -111,7 +111,7 @@ export function Sidenav({ brandImg, brandName, routes }) {
 
 Sidenav.defaultProps = {
   brandImg: "/img/logo-ct.png",
-  brandName: "Resin Product",
+  brandName: "BW Scan App",
 };
 
 Sidenav.propTypes = {
