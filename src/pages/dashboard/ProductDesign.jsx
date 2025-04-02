@@ -19,6 +19,7 @@ import Loader from "../Loader";
 import AddProduct from "./AddProduct";
 import ProductDetails from "./ProductDetails";
 import "./Home.css"
+import AddXL from "./AddXL";
 
 const ProductDesign = () => {
 
@@ -27,6 +28,7 @@ const ProductDesign = () => {
     const [searchValue, setSearchValue] = useState("");
     const [active, setActive] = useState(true);
     const [open, setOpen] = useState(false);
+    const [open1, setOpen1] = useState(false);
     const [details, setDetails] = useState(false);
     const [data, setDate] = useState(null);
     const [deletingProductId, setDeletingProductId] = useState(null);
@@ -70,6 +72,10 @@ const ProductDesign = () => {
         setOpen(true)
       }
 
+      const XLOpen = () => {
+        setOpen1(true)
+      }
+
       const handleCopy = (productId, productCode) => {
         if (productCode) {
           navigator.clipboard.writeText(productCode).then(() => {
@@ -82,6 +88,19 @@ const ProductDesign = () => {
           });
         }
       };
+
+      const groupedProducts = inuseProducts.reduce((acc, product) => {
+        const contactNumber = product?.Customer?.contact_number || "N/A";
+        if (!acc[contactNumber]) {
+          acc[contactNumber] = { contactNumber, products: [] };
+        }
+        acc[contactNumber].products.push(product);
+        return acc;
+      }, {});
+      
+      const groupedProductArray = Object.values(groupedProducts);
+      
+      let indexCounter = 1;
     
     const TABS = [
         {
@@ -113,6 +132,9 @@ const ProductDesign = () => {
             </Typography>
           </div>
           <div className="flex shrink-0 gap-2 flex-row">
+            <Button onClick={XLOpen} className="flex items-center gap-2 w-full h-max py-3 sm:w-max" size="sm">
+              <SquaresPlusIcon strokeWidth={2} className="h-4 w-4" /> Add XL File
+            </Button>
             <Button onClick={() => {setDate(null); setOpen(true) }} className="flex items-center gap-2 w-full h-max py-3 sm:w-max" size="sm">
               <SquaresPlusIcon strokeWidth={2} className="h-4 w-4" /> Add Product
             </Button>
@@ -167,7 +189,7 @@ const ProductDesign = () => {
                             <div className="p-1.5 flex items-center">
                               <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
                               <div className="ps-2">
-                                <p className="font-semibold text-base text-black ">{product.productCode}
+                                <p className="font-semibold text-base text-black flex items-center gap-0.5">{product.productCode}
                                 <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
                                   <IconButton
                                     variant="text"
@@ -238,111 +260,125 @@ const ProductDesign = () => {
                   {/* INUSE PRODUCTS */}
                   {active === true && 
                   <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md ">
-                    <div className="border-b border-blue-gray-100 p-4 text-center text-green-600 font-semibold">INUSE ({inuseProducts.length})</div>
-                    <div className="space-y-3 p-3 h-[74vh] overflow-y-auto scrollbar-custom-green">
-                      {inuseProducts.length > 0 ? (
-                        inuseProducts.map((product, index) => (
-                          <Button
-                            variant="text"
-                            key={product._id}
-                            color="green"
-                            className="bg-white p-2 rounded-md group hover:cursor-pointer w-full text-start relative border-l-2 border-green-600"
-                            onClick={() => {
-                              setDate(product);
-                              setDetails(true);
-                            }}
-                          >
-                            <div className="flex items-start justify-between">
-                            <div className="p-1.5 flex items-center">
-                              <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
-                              <div className="ps-2">
-                                <p className="font-semibold text-base text-black">{product.productCode}
-                                <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
+                  <div className="border-b border-blue-gray-100 p-4 text-center text-green-600 font-semibold">
+                    INUSE ({inuseProducts.length})
+                  </div>
+                  <div className="space-y-3 p-3 h-[74vh] overflow-y-auto scrollbar-custom-green">
+                    {groupedProductArray.length > 0 ? (
+                      groupedProductArray.map(({ contactNumber, products }) => (
+                        <Button
+                          key={contactNumber}
+                          variant="text"
+                          color="green"
+                          className="bg-white p-2 rounded-md group hover:cursor-pointer w-full text-start relative border-l-2 border-green-600"
+                          
+                        >
+                          {/* Product List */}
+                          {products.map((product, index) => (
+                            <div key={product._id} className={`flex items-center justify-between p-2 ${
+                              index !== products.length - 1 ? "border-b border-gray-200" : ""
+                            }`}>
+                              <div className="flex items-center" onClick={() => {
+                                setDate(product); 
+                                setDetails(true);
+                              }}>
+                                <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">
+                                  {indexCounter++} 
+                                </div>
+                                <div className="ps-2">
+                                  <p className="font-semibold text-base text-black flex items-center gap-0.5">
+                                    {product.productCode}
+                                    <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
+                                      <IconButton
+                                        variant="text"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleCopy(product._id, product.productCode);
+                                        }}
+                                        size="sm"
+                                        color="green"
+                                      >
+                                        {copiedStates[product._id] ? (
+                                          <CheckIcon className="h-4 w-4 text-green-600" />
+                                        ) : (
+                                          <ClipboardIcon className="h-3.5 w-3.5 text-gray-600" />
+                                        )}
+                                      </IconButton>
+                                    </Tooltip>
+                                  </p>
+                                  <p className="pt-1 text-gray-600">
+                                    {new Date(product?.updatedAt).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+              
+                              {/* Individual Delete Button */}
+                              {active ? (
+                                <Tooltip content="Delete">
                                   <IconButton
-                                    variant="text"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleCopy(product._id, product.productCode);
+                                      handleDelete(product._id);
                                     }}
-                                    size='sm'
                                     color="green"
+                                    variant="text"
                                   >
-                                    {copiedStates[product._id] ? (
-                                      <CheckIcon className="h-4 w-4 text-green-600" />
+                                    {delLoading && deletingProductId === product._id ? (
+                                      <ArrowPathIcon className="h-4 w-4 animate-spin" />
                                     ) : (
-                                      <ClipboardIcon className="h-3.5 w-3.5 text-gray-600" />
+                                      <TrashIcon className="h-4 w-4" />
                                     )}
                                   </IconButton>
                                 </Tooltip>
-                                </p>
-                                <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
-                              </div>
-                            </div>
-                            {active === true ? (
-                              <Tooltip content="Delete Product">
-                                <IconButton
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDelete(product._id);
-                                  }}
-                                  color="green"
-                                  variant="text"
-                                  className="hidden group-hover:block"
-                                >
-                                  {delLoading && deletingProductId === product._id ? (
-                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <TrashIcon className="h-4 w-4" />
-                                  )}
-                                </IconButton>
-                              </Tooltip>
-                            ) : 
-                            <Tooltip content="Restore Product">
-                            <IconButton 
-                                onClick={(e) => {
-                                    e.stopPropagation(); 
-                                    handleRestore(product?._id)
-                                }} 
-                                  color="green"
-                                  variant="text"
-                                  className="hidden group-hover:block"
-                                >
-                                  {delLoading && deletingProductId === product?._id ? 
-                                      <ArrowPathIcon className="h-4 w-4 animate-spin" /> 
-                                      :
+                              ) : (
+                                <Tooltip content="Restore">
+                                  <IconButton
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRestore(product._id);
+                                    }}
+                                    color="green"
+                                    variant="text"
+                                  >
+                                    {delLoading && deletingProductId === product._id ? (
+                                      <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                    ) : (
                                       <ArrowPathRoundedSquareIcon className="h-4 w-4" />
-                                  }
-                            </IconButton>
-                            </Tooltip>
-                            }
+                                    )}
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                             </div>
-                            {product?.Customer && (
-                              <div className="m-1.5 p-2.5 rounded-lg bg-green-50 text-xs text-gray-700 font-medium space-y-1">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Customer Code:</span>
-                                  <span>{product?.Customer?.contact_number || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Name:</span>
-                                  <span>{product?.Customer?.display_name || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Email:</span>
-                                  <span>{product?.Customer?.email || 'N/A'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Number:</span>
-                                  <span>{product?.Customer?.mobile || 'N/A'}</span>
-                                </div>
+                          ))}
+              
+                          {/* Customer Details (Once per Group) */}
+                          {products[0]?.Customer && (
+                            <div className="m-1.5 p-2.5 rounded-lg bg-green-50 text-xs text-gray-700 font-medium space-y-1">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Customer Code:</span>
+                                <span>{products[0]?.Customer?.contact_number || "N/A"}</span>
                               </div>
-                            )}
-                          </Button>
-                        ))
-                      ) : (
-                        <div className="text-center text-gray-500">NO INUSE PRODUCTS</div>
-                      )}
-                    </div>
-                  </div>  
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Name:</span>
+                                <span>{products[0]?.Customer?.display_name || "N/A"}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Email:</span>
+                                <span>{products[0]?.Customer?.email || "N/A"}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Number:</span>
+                                <span>{products[0]?.Customer?.mobile || "N/A"}</span>
+                              </div>
+                            </div>
+                          )}
+                        </Button>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-500">NO INUSE PRODUCTS</div>
+                    )}
+                  </div>
+                </div>
                   }
                   {/* EXHAUSTED PRODUCTS */}
                   <div className={`border border-blue-gray-100 bg-[#f4f5f7] rounded-md ${active === false ? "col-span-3" : ""}`}>
@@ -364,7 +400,7 @@ const ProductDesign = () => {
                             <div className="p-1.5 flex items-center">
                               <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
                               <div className="ps-2">
-                                <p className="font-semibold text-base text-black">{product.productCode}
+                                <p className="font-semibold text-base text-black flex items-center gap-0.5">{product.productCode}
                                 <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
                                   <IconButton
                                     variant="text"
@@ -436,6 +472,7 @@ const ProductDesign = () => {
       </Card>
     </div>
     <AddProduct open={open} setOpen={setOpen} data={data} setData={setDate} />
+    <AddXL open1={open1} setOpen1={setOpen1} />
     <ProductDetails details={details} setDetails={setDetails} handleEditProduct={handleEditProduct} data={data} setData={setDate} />
    </div>
   )
