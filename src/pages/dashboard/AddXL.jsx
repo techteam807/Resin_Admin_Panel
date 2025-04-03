@@ -1,9 +1,12 @@
+import { getProducts } from '@/feature/product/productSlice';
 import { ArrowPathIcon } from '@heroicons/react/24/solid';
 import { Button, Dialog, DialogBody, DialogFooter, DialogHeader, Input } from '@material-tailwind/react'
 import React, { useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import * as XLSX from "xlsx";
 
-const AddXL = ({open1, setOpen1}) => {
+const AddXL = ({open1, setOpen1, active}) => {
+    const dispatch = useDispatch();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
@@ -71,6 +74,7 @@ const AddXL = ({open1, setOpen1}) => {
 
           setLoading(false);
           setAlertMessage(result.message);
+          dispatch(getProducts({active: active }));
           console.log(result);
           if (fileInputRef.current) fileInputRef.current.value = "";
           setUsers([]);
@@ -90,7 +94,7 @@ const AddXL = ({open1, setOpen1}) => {
         data-dialog-transition="transition-opacity"
         className="max-h-screen overflow-y-auto"
       >
-        <DialogHeader className='justify-center'>Add XL File</DialogHeader>
+        <DialogHeader className='justify-center'>Add Excel File</DialogHeader>
         <DialogBody>
             <div className='text-center'>
                 <Input variant='standard' label='Upload File' type="file" accept=".xlsx, .xls" onChange={handleFileUpload} inputRef={fileInputRef} />
@@ -102,11 +106,11 @@ const AddXL = ({open1, setOpen1}) => {
                   <div>Added Product Count: {alertMessage.insertedCount}</div>
                 )}
 
-                {Array.isArray(alertMessage?.addedProducts) && alertMessage.addedProducts.length > 0 && (
+                {Array.isArray(alertMessage?.insertedProductCodes) && alertMessage.insertedProductCodes.length > 0 && (
                   <div className='flex gap-x-5'>
                     <span>Added Product Code:</span>
                     <ul className="list-disc grid lg:grid-cols-4 md:grid-cols-4 grid-cols-2 gap-x-5 gap-y-1">
-                      {alertMessage.addedProducts.map((product, index) => (
+                      {alertMessage.insertedProductCodes.map((product, index) => (
                         <li key={index} className="break-words">{product}</li>
                       ))}
                     </ul>

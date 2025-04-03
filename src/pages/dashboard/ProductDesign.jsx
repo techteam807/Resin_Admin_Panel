@@ -153,7 +153,7 @@ const ProductDesign = () => {
           </div>
           <div className="flex shrink-0 gap-2 flex-row">
             <Button onClick={XLOpen} className="flex items-center gap-2 w-full h-max py-3 sm:w-max" size="sm">
-              <SquaresPlusIcon strokeWidth={2} className="h-4 w-4" /> Add XL File
+              <SquaresPlusIcon strokeWidth={2} className="h-4 w-4" /> Add Excel File
             </Button>
             <Button onClick={() => {setDate(null); setOpen(true) }} className="flex items-center gap-2 w-full h-max py-3 sm:w-max" size="sm">
               <SquaresPlusIcon strokeWidth={2} className="h-4 w-4" /> Add Product
@@ -492,7 +492,7 @@ const ProductDesign = () => {
       </Card>
     </div>
     <AddProduct open={open} setOpen={setOpen} data={data} setData={setDate} />
-    <AddXL open1={open1} setOpen1={setOpen1} />
+    <AddXL open1={open1} setOpen1={setOpen1} active={active} />
     <ProductDetails details={details} setDetails={setDetails} handleEditProduct={handleEditProduct} data={data} setData={setDate} />
       <Dialog size='xs' open={alertOpen} handler={() => setAlertOpen(false)}>
         <DialogHeader className="flex items-center gap-2">
