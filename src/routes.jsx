@@ -60,12 +60,12 @@ export const routes = [
       //   path: "/technicianLog",
       //   element: <TechnicianLog />,
       // },
-      // {
-      //   icon: <PresentationChartBarIcon {...icon} />,
-      //   name: "Product Log",
-      //   path: "/product-log",
-      //   element: <ProductLog />,
-      // },
+      {
+        icon: <PresentationChartBarIcon {...icon} />,
+        name: "Product Log",
+        path: "/product-log",
+        element: <ProductLog />,
+      },
     ],
   },
   {
