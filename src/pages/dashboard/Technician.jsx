@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircleIcon, MagnifyingGlassIcon, PauseCircleIcon } from "@heroicons/react/24/outline";
 import { ArrowPathIcon, ArrowPathRoundedSquareIcon, CheckBadgeIcon, PencilIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { Card, CardHeader, Input, Typography, Button, CardBody, Tabs, TabsHeader, Tab, Tooltip, IconButton } from "@material-tailwind/react";
+import { Card, CardHeader, Input, Typography, Button, CardBody, Tabs, TabsHeader, Tab, Tooltip, IconButton, Dialog, DialogHeader, DialogBody, DialogFooter } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { approveTechnician, deleteTechnician, getTechnicians, restoreTechnician } from "@/feature/technician/technicianSlice";
 import Loader from "../Loader";
@@ -15,6 +15,12 @@ const Technician = () => {
     const [searchValue, setSearchValue] = useState("");
     const [user_status, setUser_status] = useState('pending');
     const [deletingTechnicianId, setDeletingTechnicianId] = useState(null);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [technicianToDelete, setTechnicianToDelete] = useState(null);
+    const [approveOpen, setApproveOpen] = useState(false);
+    const [technicianToApprove, setTechnicianToApprove] = useState(null);
+    const [restoreOpen, setRestoreOpen] = useState(false);
+    const [technicianToRestore, setTechnicianToRestore] = useState(null);
 
     useEffect(() => {
         dispatch(getTechnicians({ page: 1, user_status: user_status }));
@@ -33,32 +39,50 @@ const Technician = () => {
         dispatch(getTechnicians({ page, user_status: user_status, search: searchValue }));
     };
 
-    const handleDelete = (technicianId) => {
-        const mobile_number = { mobile_number: technicianId}
-        if (technicianId) {
-            setDeletingTechnicianId(technicianId);
+    const confirmDelete = (technicianId) => {
+        setTechnicianToDelete(technicianId);
+        setAlertOpen(true);
+    };
+
+    const handleDelete = () => {
+        const mobile_number = { mobile_number: technicianToDelete}
+        if (technicianToDelete) {
+            setDeletingTechnicianId(technicianToDelete);
             dispatch(deleteTechnician( mobile_number )).then(() => {
                 setDeletingTechnicianId(null);
+                setAlertOpen(false);
             });
         }
     }
 
-    const handleRestore = (technicianId) => {
-        const mobile_number = { mobile_number: technicianId}
-        if (technicianId) {
-            setDeletingTechnicianId(technicianId);
+    const confirmRestore = (technicianId) => {
+        setTechnicianToRestore(technicianId);
+        setRestoreOpen(true);
+    };
+
+    const handleRestore = () => {
+        const mobile_number = { mobile_number: technicianToRestore}
+        if (technicianToRestore) {
+            setDeletingTechnicianId(technicianToRestore);
             dispatch(restoreTechnician( mobile_number )).then(() => {
                 setDeletingTechnicianId(null);
+                setRestoreOpen(false);
             });
         }
     }
 
-    const handleApprove = (technicianId) => {
-        const mobile_number = { mobile_number: technicianId}
-        if (technicianId) {
-            setDeletingTechnicianId(technicianId);
+    const confirmApprove = (technicianId) => {
+        setTechnicianToApprove(technicianId);
+        setApproveOpen(true);
+    };
+
+    const handleApprove = () => {
+        const mobile_number = { mobile_number: technicianToApprove}
+        if (technicianToApprove) {
+            setDeletingTechnicianId(technicianToApprove);
             dispatch(approveTechnician( mobile_number )).then(() => {
                 setDeletingTechnicianId(null);
+                setApproveOpen(false);
             });
         }
     }
@@ -184,49 +208,10 @@ const Technician = () => {
                                                                         </Typography>
                                                                     </div>
                                                                 </td>
-                                                                {/* {user_status === 'pending' &&
-                                                                    <td className={classes}>
-                                                                        <Tooltip content="Approve">
-                                                                            <IconButton variant="text">
-                                                                            {delLoading && deletingTechnicianId === technician?.mobile_number ?
-                                                                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                                                                    :
-                                                                                <CheckBadgeIcon className="h-5 w-5" />
-                                                                            }
-                                                                            </IconButton>
-                                                                        </Tooltip>
-                                                                    </td>
-                                                                }
-                                                                {user_status === 'approve' &&
-                                                                    <td className={classes}>
-                                                                        <Tooltip content="Delete">
-                                                                            <IconButton  variant="text">
-                                                                                {delLoading && deletingTechnicianId === technician?.mobile_number ?
-                                                                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                                                                    :
-                                                                                    <TrashIcon className="h-4 w-4" />
-                                                                                }
-                                                                            </IconButton>
-                                                                        </Tooltip>
-                                                                    </td>
-                                                                }
-                                                                {user_status === 'delete' &&
-                                                                    <td className={classes}>
-                                                                        <Tooltip content="Restore">
-                                                                            <IconButton  variant="text">
-                                                                            {delLoading && deletingTechnicianId === technician?.mobile_number ?
-                                                                             <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                                                             :
-                                                                                <ArrowPathRoundedSquareIcon className="h-4 w-4" />
-                                                                            }
-                                                                            </IconButton>
-                                                                        </Tooltip>
-                                                                    </td>
-                                                                }*/}
                                                                  {user_status === 'pending' &&
                                                                     <td className={classes}>
                                                                         <Tooltip content="Approve">
-                                                                            <IconButton onClick={() => handleApprove(technician?.mobile_number)}variant="text">
+                                                                            <IconButton onClick={() => confirmApprove(technician?.mobile_number)}variant="text">
                                                                             {delLoading && deletingTechnicianId === technician?.mobile_number ?
                                                                                     <ArrowPathIcon className="h-4 w-4 animate-spin" />
                                                                                     :
@@ -239,7 +224,7 @@ const Technician = () => {
                                                                 {user_status === 'approve' &&
                                                                     <td className={classes}>
                                                                         <Tooltip content="Delete">
-                                                                            <IconButton onClick={() => handleDelete(technician?.mobile_number)} variant="text">
+                                                                            <IconButton onClick={() => confirmDelete(technician?.mobile_number)} variant="text">
                                                                                 {delLoading && deletingTechnicianId === technician?.mobile_number ?
                                                                                     <ArrowPathIcon className="h-4 w-4 animate-spin" />
                                                                                     :
@@ -252,7 +237,7 @@ const Technician = () => {
                                                                 {user_status === 'delete' &&
                                                                     <td className={classes}>
                                                                         <Tooltip content="Restore">
-                                                                            <IconButton onClick={() => handleRestore(technician?.mobile_number)} variant="text">
+                                                                            <IconButton onClick={() => confirmRestore(technician?.mobile_number)} variant="text">
                                                                             {delLoading && deletingTechnicianId === technician?.mobile_number ?
                                                                              <ArrowPathIcon className="h-4 w-4 animate-spin" />
                                                                              :
@@ -281,6 +266,87 @@ const Technician = () => {
                          )}
                 </Card>
             </div>
+            <Dialog size='xs' open={alertOpen} handler={() => setAlertOpen(false)}>
+                <DialogHeader className="flex items-center gap-2">
+                    <div className="bg-red-100 p-2 rounded-full">
+                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
+                        </svg>
+                    </div>
+                    <Typography variant="h6" className="text-red-600 font-semibold">
+                        Confirm Deletion
+                    </Typography>
+                </DialogHeader>
+                <DialogBody>
+                    <Typography variant="small" className="text-gray-700">
+                        Are you sure you want to delete this Technician? This action cannot be undone.
+                    </Typography>
+                </DialogBody>
+                <DialogFooter className="flex justify-end gap-2">
+                    <Button variant="outlined" color="gray" onClick={() => setAlertOpen(false)}>Cancel</Button>
+                    <Button color="red" onClick={handleDelete}>
+                        {delLoading && deletingTechnicianId === technicianToDelete ? (
+                            <div className='px-[13px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
+                        ) : (
+                            "Delete"
+                        )}
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+            <Dialog size='xs' open={restoreOpen} handler={() => setRestoreOpen(false)}>
+                <DialogHeader className="flex items-center gap-2">
+                    <div className="bg-red-100 p-2 rounded-full">
+                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
+                        </svg>
+                    </div>
+                    <Typography variant="h6" className="text-red-600 font-semibold">
+                        Confirm Restore
+                    </Typography>
+                </DialogHeader>
+                <DialogBody>
+                    <Typography variant="small" className="text-gray-700">
+                        Are you sure you want to restore this Technician? This action cannot be undone.
+                    </Typography>
+                </DialogBody>
+                <DialogFooter className="flex justify-end gap-2">
+                    <Button variant="outlined" color="gray" onClick={() => setRestoreOpen(false)}>Cancel</Button>
+                    <Button color="red" onClick={handleRestore}>
+                        {delLoading && deletingTechnicianId === technicianToRestore ? (
+                            <div className='px-[18px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
+                        ) : (
+                            "Restore"
+                        )}
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+            <Dialog size='xs' open={approveOpen} handler={() => setApproveOpen(false)}>
+                <DialogHeader className="flex items-center gap-2">
+                    <div className="bg-red-100 p-2 rounded-full">
+                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
+                        </svg>
+                    </div>
+                    <Typography variant="h6" className="text-red-600 font-semibold">
+                        Confirm Approve
+                    </Typography>
+                </DialogHeader>
+                <DialogBody>
+                    <Typography variant="small" className="text-gray-700">
+                        Are you sure you want to approve this Technician? This action cannot be undone.
+                    </Typography>
+                </DialogBody>
+                <DialogFooter className="flex justify-end gap-2">
+                    <Button variant="outlined" color="gray" onClick={() => setApproveOpen(false)}>Cancel</Button>
+                    <Button color="red" onClick={handleApprove}>
+                        {delLoading && deletingTechnicianId === technicianToApprove ? (
+                            <div className='px-[19px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
+                        ) : (
+                            "Approve"
+                        )}
+                    </Button>
+                </DialogFooter>
+            </Dialog>
         </div>
     )
 }

@@ -12,6 +12,10 @@ import {
   Tab,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
 } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteProduct, getProducts, restoreProduct } from "@/feature/product/productSlice";
@@ -32,6 +36,10 @@ const ProductDesign = () => {
     const [details, setDetails] = useState(false);
     const [data, setDate] = useState(null);
     const [deletingProductId, setDeletingProductId] = useState(null);
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState(null);
+    const [restoreOpen, setRestoreOpen] = useState(false);
+    const [productToRestore, setProductToRestore] = useState(null);
     const [copiedStates, setCopiedStates] = useState({});
     const { newProducts = [], inuseProducts = [], exhaustedProducts = [] } = products || {};
     
@@ -47,21 +55,33 @@ const ProductDesign = () => {
         setSearchValue('')
         dispatch(getProducts({ active: active }));
       }
+
+      const confirmDelete = (productId) => {
+        setProductToDelete(productId);
+        setAlertOpen(true);
+    };
     
-      const handleDelete = (productId) => {
-        if (productId) {
-          setDeletingProductId(productId);
-          dispatch(deleteProduct(productId)).then(() => {
+      const handleDelete = () => {
+        if (productToDelete) {
+          setDeletingProductId(productToDelete);
+          dispatch(deleteProduct(productToDelete)).then(() => {
             setDeletingProductId(null);
+            setAlertOpen(false);
           });
         }
       }
+
+      const confirmRestore = (productId) => {
+        setProductToRestore(productId);
+        setRestoreOpen(true);
+    };
     
-      const handleRestore = (productId) => {
-        if (productId) {
-          setDeletingProductId(productId);
-          dispatch(restoreProduct(productId)).then(() => {
+      const handleRestore = () => {
+        if (productToRestore) {
+          setDeletingProductId(productToRestore);
+          dispatch(restoreProduct(productToRestore)).then(() => {
             setDeletingProductId(null);
+            setRestoreOpen(false);
           });
         }
       }
@@ -216,7 +236,7 @@ const ProductDesign = () => {
                                 <IconButton
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDelete(product._id);
+                                    confirmDelete(product._id);
                                   }}
                                   color="blue"
                                   variant="text"
@@ -234,7 +254,7 @@ const ProductDesign = () => {
                             <IconButton 
                                 onClick={(e) => {
                                   e.stopPropagation(); 
-                                  handleRestore(product?._id)
+                                  confirmRestore(product?._id)
                                 }} 
                                 color="blue"
                                 variant="text"
@@ -318,7 +338,7 @@ const ProductDesign = () => {
                                   <IconButton
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDelete(product._id);
+                                      confirmDelete(product._id);
                                     }}
                                     color="green"
                                     variant="text"
@@ -335,7 +355,7 @@ const ProductDesign = () => {
                                   <IconButton
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleRestore(product._id);
+                                      confirmRestore(product._id);
                                     }}
                                     color="green"
                                     variant="text"
@@ -427,7 +447,7 @@ const ProductDesign = () => {
                                 <IconButton
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDelete(product._id);
+                                    confirmDelete(product._id);
                                   }}
                                   color="red"
                                   variant="text"
@@ -445,7 +465,7 @@ const ProductDesign = () => {
                             <IconButton 
                                 onClick={(e) => {
                                     e.stopPropagation(); 
-                                    handleRestore(product?._id)
+                                    confirmRestore(product?._id)
                                 }} 
                                   color="red"
                                   variant="text"
@@ -474,6 +494,60 @@ const ProductDesign = () => {
     <AddProduct open={open} setOpen={setOpen} data={data} setData={setDate} />
     <AddXL open1={open1} setOpen1={setOpen1} />
     <ProductDetails details={details} setDetails={setDetails} handleEditProduct={handleEditProduct} data={data} setData={setDate} />
+      <Dialog size='xs' open={alertOpen} handler={() => setAlertOpen(false)}>
+        <DialogHeader className="flex items-center gap-2">
+            <div className="bg-red-100 p-2 rounded-full">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
+                </svg>
+            </div>
+            <Typography variant="h6" className="text-red-600 font-semibold">
+                Confirm Deletion
+            </Typography>
+        </DialogHeader>
+        <DialogBody>
+            <Typography variant="small" className="text-gray-700">
+                Are you sure you want to delete this Product? This action cannot be undone.
+            </Typography>
+        </DialogBody>
+        <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outlined" color="gray" onClick={() => setAlertOpen(false)}>Cancel</Button>
+            <Button color="red" onClick={handleDelete}>
+                {delLoading && deletingProductId  === productToDelete ? (
+                    <div className='px-[13px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
+                ) : (
+                    "Delete"
+                )}
+            </Button>
+        </DialogFooter>
+      </Dialog>
+      <Dialog size='xs' open={restoreOpen} handler={() => setRestoreOpen(false)}>
+        <DialogHeader className="flex items-center gap-2">
+            <div className="bg-red-100 p-2 rounded-full">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
+                </svg>
+            </div>
+            <Typography variant="h6" className="text-red-600 font-semibold">
+                Confirm Restore
+            </Typography>
+        </DialogHeader>
+        <DialogBody>
+            <Typography variant="small" className="text-gray-700">
+                Are you sure you want to restore this Product? This action cannot be undone.
+            </Typography>
+        </DialogBody>
+        <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outlined" color="gray" onClick={() => setRestoreOpen(false)}>Cancel</Button>
+            <Button color="red" onClick={handleRestore}>
+                {delLoading && deletingProductId === productToRestore ? (
+                    <div className='px-[18px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
+                ) : (
+                    "Restore"
+                )}
+            </Button>
+        </DialogFooter>
+    </Dialog>
    </div>
   )
 }

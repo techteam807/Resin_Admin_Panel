@@ -1,5 +1,5 @@
 import { createWarehouse, deleteWarehouse, getWarehouse } from '@/feature/warehouse/warehouseSlice';
-import { Button, Card, CardBody, CardHeader, Chip, Dialog, DialogBody, DialogFooter, DialogHeader, IconButton, Input, Tooltip, Typography } from '@material-tailwind/react';
+import { Alert, Button, Card, CardBody, CardHeader, Chip, Dialog, DialogBody, DialogFooter, DialogHeader, IconButton, Input, Tooltip, Typography } from '@material-tailwind/react';
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from '../Loader';
@@ -13,19 +13,27 @@ const WareHouse = () => {
     const [copiedStates, setCopiedStates] = useState({});
     const [open, setOpen] = useState(false);
     const [warehouseData, setWarehouseData] = useState({ wareHouse_code: '' });
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [warehouseToDelete, setWarehouseToDelete] = useState(null);
 
     useEffect(() => {
         dispatch(getWarehouse());
       }, [dispatch]);
 
-    const handleDelete = (warehouseId) => {
-        if (warehouseId) {
-            setDeletingWarehouseId(warehouseId);
-            dispatch(deleteWarehouse(warehouseId)).then(() => {
-                setDeletingWarehouseId(null);
-            });
-        }
-    }
+      const confirmDelete = (warehouseId) => {
+        setWarehouseToDelete(warehouseId);
+        setAlertOpen(true);
+    };
+
+    const handleDelete = () => {
+      if (warehouseToDelete) {
+          setDeletingWarehouseId(warehouseToDelete);
+          dispatch(deleteWarehouse(warehouseToDelete)).then(() => {
+              setDeletingWarehouseId(null);
+              setAlertOpen(false);
+          });
+      }
+  };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -153,7 +161,7 @@ const WareHouse = () => {
                     </td>
                     <td className={classes}>
                     <Tooltip content="Delete">
-                        <IconButton onClick={() => handleDelete(warehouse?._id)} variant="text">
+                        <IconButton onClick={() => confirmDelete(warehouse?._id)} variant="text">
                             {deleteLoading && deletingWarehouseId === warehouse?._id ?
                                 <ArrowPathIcon className="h-4 w-4 animate-spin" />
                                     :
@@ -201,7 +209,35 @@ const WareHouse = () => {
                 {createLoading ? <div className='px-[7px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /> </div> : "Save"}
             </Button>
         </DialogFooter>
-    </Dialog>
+        </Dialog>
+        <Dialog size='xs' open={alertOpen} handler={() => setAlertOpen(false)}>
+          <DialogHeader className="flex items-center gap-2">
+              <div className="bg-red-100 p-2 rounded-full">
+                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
+                  </svg>
+              </div>
+              <Typography variant="h6" className="text-red-600 font-semibold">
+                  Confirm Deletion
+              </Typography>
+          </DialogHeader>
+          <DialogBody>
+              <Typography variant="small" className="text-gray-700">
+                  Are you sure you want to delete this warehouse? This action cannot be undone.
+              </Typography>
+          </DialogBody>
+          <DialogFooter className="flex justify-end gap-2">
+              <Button variant="outlined" color="gray" onClick={() => setAlertOpen(false)}>Cancel</Button>
+              <Button color="red" onClick={handleDelete}>
+                  {deleteLoading && deletingWarehouseId === warehouseToDelete ? (
+                      <div className='px-[13px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
+                  ) : (
+                      "Delete"
+                  )}
+              </Button>
+          </DialogFooter>
+        </Dialog>
+
     </div>
   )
 }

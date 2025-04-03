@@ -96,30 +96,39 @@ const AddXL = ({open1, setOpen1}) => {
                 <Input variant='standard' label='Upload File' type="file" accept=".xlsx, .xls" onChange={handleFileUpload} inputRef={fileInputRef} />
                 <div className='text-left text-[10px] pt-2 text-red-600'>* Duplicate products are skipped automatically.</div>
             </div>
-            {alertMessage && <div className='pt-3 text-xs'>
-                <div>Added Product Count : {alertMessage?.insertedCount}</div>
-                {alertMessage?.addedProducts?.length > 0 && 
-                <div className='flex gap-x-5'>
-                    Added Product Code :
+            {alertMessage && Object.keys(alertMessage).length > 0 && (
+              <div className='pt-3 text-xs'>
+                {alertMessage?.insertedCount > 0 && (
+                  <div>Added Product Count: {alertMessage.insertedCount}</div>
+                )}
+
+                {Array.isArray(alertMessage?.addedProducts) && alertMessage.addedProducts.length > 0 && (
+                  <div className='flex gap-x-5'>
+                    <span>Added Product Code:</span>
                     <ul className="list-disc grid lg:grid-cols-4 md:grid-cols-4 grid-cols-2 gap-x-5 gap-y-1">
-                        {alertMessage?.addedProducts?.map((product, index) => (
-                            <li key={index} className="break-words">{product}</li>
-                        ))}
+                      {alertMessage.addedProducts.map((product, index) => (
+                        <li key={index} className="break-words">{product}</li>
+                      ))}
                     </ul>
-                </div>
-                }
-                <div>Duplicate Product Count : {alertMessage?.duplicateCount}</div>
-                {alertMessage?.duplicateProductCodes?.length > 0  &&
-                <div className='flex gap-x-5'>
-                    Duplicate Product Code :
+                  </div>
+                )}
+
+                {alertMessage?.duplicateCount > 0 && (
+                  <div>Duplicate Product Count: {alertMessage.duplicateCount}</div>
+                )}
+
+                {Array.isArray(alertMessage?.duplicateProductCodes) && alertMessage.duplicateProductCodes.length > 0 && (
+                  <div className='flex gap-x-5'>
+                    <span>Duplicate Product Code:</span>
                     <ul className="list-disc grid lg:grid-cols-4 md:grid-cols-4 grid-cols-2 gap-x-5 gap-y-1">
-                        {alertMessage?.duplicateProductCodes?.map((product, index) => (
-                            <li key={index} className="break-words">{product}</li>
-                        ))}
+                      {alertMessage.duplicateProductCodes.map((product, index) => (
+                        <li key={index} className="break-words">{product}</li>
+                      ))}
                     </ul>
-                </div>
-                    }
-                </div>}
+                  </div>
+                )}
+              </div>
+            )}
         </DialogBody>
         <DialogFooter className='flex gap-4'>
             <Button variant="outlined" onClick={() => {setOpen1(false); setUsers([]); setAlertMessage('')}}>
