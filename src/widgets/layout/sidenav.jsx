@@ -9,6 +9,7 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { useMaterialTailwindController, setOpenSidenav } from "@/context";
+import logo from "../../../public/img/BetterwaterTM_White.png"
 
 export function Sidenav({ brandImg, brandName, routes }) {
   const [controller, dispatch] = useMaterialTailwindController();
@@ -35,13 +36,14 @@ export function Sidenav({ brandImg, brandName, routes }) {
       } fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 rounded-xl transition-transform duration-300 xl:translate-x-0 border border-blue-gray-100 overflow-y-auto`}
       style={{ scrollbarWidth: "none", /* Firefox */ overflow: "-ms-autohide-scrollbar" /* Edge */ }}
     >
-      <div className={`relative `}>
+      <div className={`relative border-b`}>
         <Link to="/dashboard/home" className="py-6 px-8 text-center">
           <Typography
             variant="h6"
             color="white"
           >
-            {brandName}
+            {/* {brandName} */}
+            <img src={logo} className="w-40 mx-auto" alt="Better Water"></img>
           </Typography>
         </Link>
         <IconButton
