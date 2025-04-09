@@ -1,4 +1,4 @@
-import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon, PresentationChartBarIcon, MapPinIcon} from "@heroicons/react/24/solid";
+import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon, PresentationChartBarIcon, MapPinIcon, ShieldCheckIcon} from "@heroicons/react/24/solid";
 import { Company, Product } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 import { HiBuildingOffice } from "react-icons/hi2";
@@ -9,6 +9,7 @@ import ProductDesign from "./pages/dashboard/ProductDesign";
 import WareHouse from "./pages/dashboard/WareHouse";
 import ProductLog from "./pages/dashboard/ProductLog";
 import Map from "./pages/dashboard/Map";
+import MasterAdmin from "./pages/dashboard/MasterAdmin";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -60,12 +61,18 @@ export const routes = [
       //   path: "/technicianLog",
       //   element: <TechnicianLog />,
       // },
-      // {
-      //   icon: <PresentationChartBarIcon {...icon} />,
-      //   name: "Product Log",
-      //   path: "/product-log",
-      //   element: <ProductLog />,
-      // },
+      {
+        icon: <PresentationChartBarIcon {...icon} />,
+        name: "Product Log",
+        path: "/product-log",
+        element: <ProductLog />,
+      },
+      {
+        icon: <ShieldCheckIcon {...icon} />,
+        name: "Master Admin",
+        path: "/master-admin",
+        element: <MasterAdmin />,
+      },
     ],
   },
   {
