@@ -1,4 +1,4 @@
-import { getAllProducts, getProductsByProductId, getProductsLogList } from '@/feature/productLog/productLogSlice';
+import { getAllProducts, getProductsLogList } from '@/feature/productLog/productLogSlice';
 import { BellIcon, CurrencyDollarIcon, HomeIcon } from '@heroicons/react/24/solid'
 import { Button, Card, CardBody, CardHeader, Typography, Input, Chip } from '@material-tailwind/react'
 import React, { useEffect, useRef, useState } from 'react'
@@ -23,7 +23,7 @@ const ProductLog = () => {
   const dispatch = useDispatch();
   const dropdownRef = useRef();
   const { productsLogList, productsData, productLoading } = useSelector((state) => state.productLog);
-  console.log("productsData", productsData)
+  // console.log("productsData", productsData)
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -60,32 +60,12 @@ const ProductLog = () => {
     setSelectedProduct(product);
     setSearchTerm(product.productCode);
     setShowDropdown(false);
-    console.log("startDate", startDate)
   };
 
-  const filteredLogs = productsData.filter(log => {
-    const logDate = new Date(log.timestamp);
-    const from = startDate ? new Date(startDate) : null;
-    const to = endDate ? new Date(endDate) : null;
-
-    return (
-      log.products.some(p => p._id === selectedProduct?._id) &&
-      (!from || logDate >= from) &&
-      (!to || logDate <= to)
-    );
-  });
-
   const handleSearch = () => {
-    if (!selectedProduct) return;
   
-    console.log('Searching with:', {
-      productId: selectedProduct._id,
-      startDate,
-      endDate
-    });
-  
-    dispatch(getProductsByProductId({
-      productId: selectedProduct._id,
+    dispatch(getAllProducts({
+      productId: selectedProduct?._id,
       startDate,
       endDate
     }));
@@ -99,7 +79,6 @@ const ProductLog = () => {
     setEndDate(defaultEnd);
     setSelectedProduct(null);
     setShowDropdown(false);
-    dispatch(getProductsLogList());
     dispatch(getAllProducts({ startDate: defaultStart, endDate: defaultEnd }));
   };
   

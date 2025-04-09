@@ -29,20 +29,23 @@ export const fetchProductsLogList = async () => {
     }
   };
 
-  export const fetchAllLogs = async ({startDate, endDate}) => {
+  export const fetchAllLogs = async ({ startDate, endDate, productId }) => {
     try {
-      const response = await axiosConfig.get(
-        `logsManagement/logs`,
-        {
-          params: {
-            startDate,  
-            endDate   
-          }
-        }
-      );
+      const params = {
+        startDate,
+        endDate,
+        ...(productId && { productId }),
+      };
+  
+      console.log("params", params);
+  
+      const response = await axiosConfig.get('logsManagement/logs', {
+        params,
+      });
       return response.data;
-  } catch (error) {
-    console.error('Error fetching products by ProductsId:', error);
-    throw error;
-  }
-};
+    } catch (error) {
+      console.error('Error fetching products by ProductsId:', error);
+      throw error;
+    }
+  };
+  

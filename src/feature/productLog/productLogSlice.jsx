@@ -24,11 +24,11 @@ export const getProductsLogList = createAsyncThunk("productLog/getProductsLogLis
     }
   });
 
-  export const getAllProducts= createAsyncThunk("productLog/getAllProducts", async ({startDate, endDate}) => {
+  export const getAllProducts= createAsyncThunk("productLog/getAllProducts", async ({startDate, endDate, productId}) => {
     try {
       console.log("startDateSlice", startDate)
       console.log("endDateSlice", endDate)
-      const data = await fetchAllLogs({startDate, endDate});
+      const data = await fetchAllLogs({startDate, endDate, productId});
       return data;
     } catch (error) {
       console.error("Error in getAllProducts thunk:", error);
