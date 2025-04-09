@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, refrestCustom } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -29,7 +29,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
 
   export const getCustomersDropdown = createAsyncThunk("customer/getCustomersDropdown", async () => {
     try {
-      const data = await fetchCustomers();
+      const data = await fetchCustomersDropdown();
       return data;
     } catch (error) {
       console.error("Error in getCustomersDropdown thunk:", error);
