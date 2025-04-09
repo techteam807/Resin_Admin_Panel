@@ -1,26 +1,29 @@
 import { getAllProducts, getProductsByProductId, getProductsLogList } from '@/feature/productLog/productLogSlice';
 import { BellIcon, CurrencyDollarIcon, HomeIcon } from '@heroicons/react/24/solid'
-import { Button, Card, CardBody, CardHeader, Typography, Input } from '@material-tailwind/react'
+import { Button, Card, CardBody, CardHeader, Typography, Input, Chip } from '@material-tailwind/react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import Loader from '../Loader';
+
 const getDefaultDateRange = () => {
   const today = new Date();
   const currentMonth = today.getMonth(); 
   const currentYear = today.getFullYear();
 
+  const start = new Date(currentYear, currentMonth, 1); 
   const end = new Date(currentYear, currentMonth + 1, 0);
-  const start = new Date(currentYear, currentMonth - 2, 1);
 
   return {
-    startDate: start.toISOString().split('T')[0],
-    endDate: end.toISOString().split('T')[0],
+    startDate: start.toLocaleDateString('en-CA'), 
+    endDate: end.toLocaleDateString('en-CA'),
   };
 };
 
 const ProductLog = () => {
   const dispatch = useDispatch();
   const dropdownRef = useRef();
-  const { productsLogList, productsData } = useSelector((state) => state.productLog);
+  const { productsLogList, productsData, productLoading } = useSelector((state) => state.productLog);
+  console.log("productsData", productsData)
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -58,11 +61,6 @@ const ProductLog = () => {
     setSearchTerm(product.productCode);
     setShowDropdown(false);
     console.log("startDate", startDate)
-    dispatch(getProductsByProductId({
-      productId: product._id,
-      startDate,
-      endDate
-    }));   
   };
 
   const filteredLogs = productsData.filter(log => {
@@ -77,81 +75,113 @@ const ProductLog = () => {
     );
   });
 
+  const handleSearch = () => {
+    if (!selectedProduct) return;
+  
+    console.log('Searching with:', {
+      productId: selectedProduct._id,
+      startDate,
+      endDate
+    });
+  
+    dispatch(getProductsByProductId({
+      productId: selectedProduct._id,
+      startDate,
+      endDate
+    }));
+  };
+  
+  
+  const handleClear = () => {
+    const { startDate: defaultStart, endDate: defaultEnd } = getDefaultDateRange();
+    setSearchTerm('');
+    setStartDate(defaultStart);
+    setEndDate(defaultEnd);
+    setSelectedProduct(null);
+    setShowDropdown(false);
+    dispatch(getProductsLogList());
+    dispatch(getAllProducts({ startDate: defaultStart, endDate: defaultEnd }));
+  };
+  
+
   return (
     <div>
       <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
         <Card className="h-full w-full">
-          <CardHeader floated={false} shadow={false} className="rounded-none pb-5 overflow-visible">
-            <div className="flex md:flex-row flex-col md:items-center justify-between md:gap-8 gap-4">
-              <div>
-                <Typography variant="h5" color="blue-gray">
-                  Product Log
-                </Typography>
-                <Typography color="gray" variant='small' className="mt-1 font-normal">
-                  See information about product
-                </Typography>
+        <CardHeader floated={false} shadow={false} className="rounded-none pb-5 overflow-visible">
+          <div className="flex md:flex-row flex-col md:items-center justify-between md:gap-8 gap-4">
+            <div>
+              <Typography variant="h5" color="blue-gray">
+                Product Log
+              </Typography>
+              <Typography color="gray" variant="small" className="mt-1 font-normal">
+                See information about product
+              </Typography>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-4">
+              {/* Search input with dropdown */}
+              <div className="relative w-48" ref={dropdownRef}>
+                <Input
+                  label="Search product code"
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  crossOrigin=""
+                />
+                {showDropdown && (
+                  <ul className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-100 rounded-md shadow-md max-h-60 overflow-auto">
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.map((product) => (
+                        <li
+                          key={product._id}
+                          className="px-3 py-2 cursor-pointer hover:bg-blue-50"
+                          onClick={() => handleSelect(product)}
+                        >
+                          {product.productCode}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="px-3 py-2 text-gray-400">No results found</li>
+                    )}
+                  </ul>
+                )}
               </div>
 
-             
+              {/* Date inputs */}
+              <div className="w-48">
+                <Input
+                  type="date"
+                  label="Start Date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
 
-<div className="flex flex-wrap items-end gap-4">
-  <div className="relative w-48" ref={dropdownRef}>
-    <Input
-      label="Search product code"
-      type="text"
-      value={searchTerm}
-      onChange={(e) => {
-        setSearchTerm(e.target.value);
-        setShowDropdown(true);
-      }}
-      onFocus={() => setShowDropdown(true)}
-      crossOrigin="" // Suppress warning if needed
-    />
-    {showDropdown && (
-      <ul className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-100 rounded-md shadow-md max-h-60 overflow-auto">
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map((product) => (
-            <li
-              key={product._id}
-              className="px-3 py-2 cursor-pointer hover:bg-blue-50"
-              onClick={() => handleSelect(product)}
-            >
-              {product.productCode}
-            </li>
-          ))
-        ) : (
-          <li className="px-3 py-2 text-gray-400">No results found</li>
-        )}
-      </ul>
-    )}
-  </div>
+              <div className="w-48">
+                <Input
+                  type="date"
+                  label="End Date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
 
-<div className="flex flex-col gap-1">
-  <label className="text-sm text-gray-700">Start Date</label>
-  <input
-    type="date"
-    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-    value={startDate}
-    onChange={(e) => setStartDate(e.target.value)}
-  />
-</div>
-
-<div className="flex flex-col gap-1">
-  <label className="text-sm text-gray-700">End Date</label>
-  <input
-    type="date"
-    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-    value={endDate}
-    onChange={(e) => setEndDate(e.target.value)}
-  />
-</div>
-
-
-
-</div>
+              <Button variant='gradient' onClick={handleSearch} >
+                Search
+              </Button>
+              <Button variant="outlined" onClick={handleClear}>
+                Clear
+              </Button>
             </div>
-          </CardHeader>
+          </div>
+        </CardHeader>
 
+         {productLoading ? <div className=''><Loader /></div> :
           <CardBody className='border-t border-blue-gray-100'>
             <div className='px-10'>
               <ol className="relative border-s border-blue-gray-100 dark:border-gray-700 mt-5">
@@ -179,6 +209,24 @@ const ProductLog = () => {
                         </div>
                       </div>
 
+                      {log.products?.length > 0 && (
+                        <div className="text-sm text-gray-600 dark:text-gray-300 items-center flex flex-wrap gap-2">
+                          <span className="font-medium">Product Code:</span>
+                          {log.products.map((p) => (
+                            <Chip
+                              key={p._id}
+                              className="w-max"
+                              variant="ghost"
+                              size="sm"
+                              color="brown"
+                              value={p.productCode}
+                            />
+                            
+                          ))}
+                        </div>
+                      )}
+
+
                       {log.customerId && log.status === 'inuse' && (
                         <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 space-y-1">
                           <div>
@@ -186,7 +234,7 @@ const ProductLog = () => {
                             {log.customerId.display_name || "N/A"}
                           </div>
                           <div>
-                            <span className="font-medium">Contact Number:</span>{' '}
+                            <span className="font-medium">Contact Code:</span>{' '}
                             {log.customerId.contact_number || 'N/A'}
                           </div>
                           <div>
@@ -205,6 +253,7 @@ const ProductLog = () => {
               </ol>
             </div>
           </CardBody>
+          }
         </Card>
       </div>
     </div>

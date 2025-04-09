@@ -26,8 +26,8 @@ export const getProductsLogList = createAsyncThunk("productLog/getProductsLogLis
 
   export const getAllProducts= createAsyncThunk("productLog/getAllProducts", async ({startDate, endDate}) => {
     try {
-      console.log("startDate", startDate)
-      console.log("endDate", endDate)
+      console.log("startDateSlice", startDate)
+      console.log("endDateSlice", endDate)
       const data = await fetchAllLogs({startDate, endDate});
       return data;
     } catch (error) {
@@ -79,7 +79,6 @@ export const getProductsLogList = createAsyncThunk("productLog/getProductsLogLis
       .addCase(getAllProducts.fulfilled, (state, action) => {
         state.productLoading = false;
         state.productsData = action.payload.logs;
-        console.log("getAllProducts", action.payload.logs)
         state.message = action.payload.message;
       })
       .addCase(getAllProducts.rejected, (state, action) => {
