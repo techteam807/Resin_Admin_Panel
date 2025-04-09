@@ -162,10 +162,10 @@ const ProductLog = () => {
 
          {productLoading ? <div className=''><Loader /></div> :
           <CardBody className='border-t border-blue-gray-100'>
-            <div className='px-10'>
-              <ol className="relative border-s border-blue-gray-100 dark:border-gray-700 mt-5">
+            <div className='md:px-10'>
+              <ol className="relative border-s border-blue-gray-100 dark:border-gray-700 md:mt-5">
                 {productsData.map((log, idx) => (
-                  <li key={log._id} className="mb-10 ms-8">
+                  <li key={log._id} className="md:mb-10 mb-5 ms-8">
                     <span className="absolute flex items-center justify-center w-8 h-8 bg-[#212121] rounded-full -start-4 ring-8 ring-white">
                       {log.status === 'inuse' ? (
                         <CurrencyDollarIcon className="h-4 w-4 text-white" />
