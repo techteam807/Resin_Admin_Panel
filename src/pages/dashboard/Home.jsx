@@ -23,6 +23,8 @@ function Home() {
   const dispatch = useDispatch();
   const [searchValue, setSearchValue] = useState("");
   const { customers, loading, pagination } = useSelector((state) => state.customer);
+  console.log("customers", customers)
+  console.log("pagination", pagination)
   const [copiedCustomerId, setCopiedCustomerId] = useState(null);
   
 
@@ -64,7 +66,7 @@ function Home() {
     dispatch(getCustomers({ page, search: searchValue }));
   };
 
-  const TABLE_HEAD = ["Customer", "Number / Email", "Barcode", "GST Type"];
+  const TABLE_HEAD = ["Index", "Customer", "Number / Email", "Barcode", "Product Count"];
 
   return (
     <div className="">
@@ -77,7 +79,7 @@ function Home() {
               Customer list
             </Typography>
             <Typography color="gray" variant='small' className="mt-1 font-normal">
-              See information about all customers
+              See information about all <span className='font-semibold'>{pagination?.totalData || 0} </span> customers
             </Typography>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
@@ -128,16 +130,30 @@ function Home() {
                   ? "p-4"
                   : "p-4 border-b border-blue-gray-50";
                 const isCopied = copiedCustomerId === customer._id;
+
+                const currentPage = pagination?.currentPage || 1;
+                const perPage = pagination?.perPage || 10;
+                const globalIndex = (currentPage - 1) * perPage + index + 1;
+
  
                 return (
-                  <tr key={index} className="hover:bg-gray-50">
+                  // <tr key={index} className="hover:bg-gray-50">
+                    <tr key={index} className="hover:bg-gray-50">
+  {/* Index column */}
+  <td className={classes}>
+    <Typography
+      variant="small"
+      color="blue-gray"
+      className="font-normal ps-2"
+    >
+      {globalIndex}
+    </Typography>
+  </td>
                     <td className={classes}>
                       <div className="flex items-center gap-3">
-                        {/* <Avatar src={'https://via.placeholder.com/40'} alt={customer?.customer_name} size="sm" /> */}
-                        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 text-gray-700 font-medium">
-                          {customer?.first_name?.charAt(0).toUpperCase()}
-                        </div>
+
                         <div className="flex flex-col">
+                          
                           <Typography
                             variant="small"
                             color="blue-gray"
@@ -200,9 +216,9 @@ function Home() {
                       <Typography
                         variant="small"
                         color="blue-gray"
-                        className="font-normal"
+                        className="font-normal text-center"
                         >
-                       {customer.gst_treatment}
+                       {customer?.cf_cartridge_qty || "1"}
                       </Typography>
                     </td>
                     {/* <td className={classes}>

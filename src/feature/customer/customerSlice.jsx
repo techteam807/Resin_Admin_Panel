@@ -27,10 +27,21 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
     }
   );
 
+  export const getCustomersDropdown = createAsyncThunk("customer/getCustomersDropdown", async () => {
+    try {
+      const data = await fetchCustomers();
+      return data;
+    } catch (error) {
+      console.error("Error in getCustomersDropdown thunk:", error);
+      throw error.response?.data?.error || error.message;
+    }
+  });
+
   const customerSlice = createSlice({
     name: "customer",
     initialState: {
       customers: [],
+      customersDropdown: [],
       loading: false,
       create: null,
       error: null,
@@ -70,6 +81,19 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
           toast.success(state.message);
         })
         .addCase(refreshcustomers.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.error.message;
+          toast.error(state.error);
+        })
+        .addCase(getCustomersDropdown.pending, (state) => {
+          state.loading = true;
+        })
+        .addCase(getCustomersDropdown.fulfilled, (state, action) => {
+          state.loading = false;
+          state.customersDropdown = action.payload.data;
+          state.message = action.payload.message;
+        })
+        .addCase(getCustomersDropdown.rejected, (state, action) => {
           state.loading = false;
           state.error = action.error.message;
           toast.error(state.error);

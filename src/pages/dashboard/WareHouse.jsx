@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from '../Loader';
 import { ArrowPathIcon, CheckIcon, ClipboardIcon, SquaresPlusIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { HiStar } from 'react-icons/hi2';
 
 const WareHouse = () => {
 
@@ -200,6 +201,7 @@ const WareHouse = () => {
                 />
 
             </div>
+            <div className='text-[10px] font-bold px-0 md:px-5 text-red-600 flex gap-1'> <HiStar className='pt-1' />AB-ABCD-01</div>
         </DialogBody>
         <DialogFooter className='flex gap-4'>
             <Button variant="outlined" onClick={() => {setOpen(false); setWarehouseData({ wareHouse_code: '' })}}>

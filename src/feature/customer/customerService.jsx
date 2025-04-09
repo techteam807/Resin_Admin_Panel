@@ -26,3 +26,13 @@ export const fetchCustomers = async (page = 1, search = '') => {
       throw error;
     }
   };
+
+  export const fetchCustomersDropdown = async () => {
+    try {
+      const response = await axiosConfig.get(`customers/customerDropdown`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching customer dropdown:', error);
+      throw error;
+    }
+  };
