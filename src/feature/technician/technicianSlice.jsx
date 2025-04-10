@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { appTechnician, delTechnician, fetchTechnicians, resTechnician } from "./technicianService";
+import { appTechnician, delTechnician, fetchTechnicianDropdown, fetchTechnicians, resTechnician } from "./technicianService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -54,10 +54,21 @@ export const approveTechnician = createAsyncThunk(
     }
 );
 
+export const getTechnicianDropDown = createAsyncThunk("technician/getTechnicianDropDown", async () => {
+    try {
+      const data = await fetchTechnicianDropdown();
+      return data;
+    } catch (error) {
+      console.error("Error in getTechnicianDropDown thunk:", error);
+      throw error.response?.data?.error || error.message;
+    }
+  });
+
 const technicianSlice = createSlice({
     name: "technician",
     initialState: {
         technicians: [],
+        technicianDrop: [],
         delete: null,
         restore: null,
         approve: null,
@@ -67,6 +78,7 @@ const technicianSlice = createSlice({
             totalPages: 1,
         },
         loading: false,
+        dropLoading: false,
         delLoading: false,
         error: null,
     },
@@ -140,6 +152,18 @@ const technicianSlice = createSlice({
                 state.delLoading = false;
                 state.error = action.error.message;
                 toast.error(state.error);
+            })
+            .addCase(getTechnicianDropDown.pending, (state) => {
+                state.dropLoading = true;
+            })
+            .addCase(getTechnicianDropDown.fulfilled, (state, action) => {
+                state.dropLoading = false;
+                state.technicianDrop = action.payload.data;
+                state.message = action.payload.message;
+            })
+            .addCase(getTechnicianDropDown.rejected, (state, action) => {
+                state.dropLoading = false;
+                state.error = action.error.message;
             })
     },
 });

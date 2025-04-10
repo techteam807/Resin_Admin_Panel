@@ -46,3 +46,13 @@ export const fetchTechnicians = async (page = 1, search = '', user_status = "") 
       throw error;
     }
   };
+
+  export const fetchTechnicianDropdown = async () => {
+    try {
+      const response = await axiosConfig.get(`users/getUsersDropdown`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Technician Dropdown:', error);
+      throw error;
+    }
+  };
