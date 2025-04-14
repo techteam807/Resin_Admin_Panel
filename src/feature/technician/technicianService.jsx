@@ -47,6 +47,16 @@ export const fetchTechnicians = async (page = 1, search = '', user_status = "") 
     }
   };
 
+  export const delPerTechnician = async (mobile_number) => {
+    try {
+      const response = await axiosConfig.delete(`users/deleteUsers`, { data: mobile_number });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching permanent delete Technician :", error);
+      throw error;
+    }
+  };
+
   export const fetchTechnicianDropdown = async () => {
     try {
       const response = await axiosConfig.get(`users/getUsersDropdown`);
