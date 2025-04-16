@@ -192,9 +192,11 @@ const CustomerLog = () => {
 
                     {/* Main card */}
                     <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow p-4 hover:shadow-md transition-shadow duration-300">
-                        <p className="text-xs text-gray-400 mb-2">
-                        {new Date(log.timestamp).toLocaleString()}
+                       <p className="text-xs text-gray-400 mb-2">
+                        {new Date(log.timestamp).toLocaleDateString('en-GB')}{" "}
+                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </p>
+
 
                         {log.customerId && (
                             <div className="mb-3 text-xs text-gray-800 space-y-1 border-b pb-3 rounded-md bg-green-50 border-green-300 px-3 py-2 shadow-sm">

@@ -212,7 +212,10 @@ const TechnicianLog = () => {
                                         </div>
                                       
                                         <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow p-4 hover:shadow-md transition-shadow duration-300">
-                                            <p className="text-xs text-gray-400 mb-2">{new Date(log.timestamp).toLocaleString()}</p>
+                                            <p className="text-xs text-gray-400 mb-2">
+                                            {new Date(log.timestamp).toLocaleDateString('en-GB')}{" "}
+                                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </p>
                                             <p className="text-sm text-gray-800">
                                             <span className="font-semibold">{log.user_name || log.userId?.user_name}</span> updated status to
                                             <span className={`ml-1 px-2 py-0.5 rounded-md text-white text-xs ${iconClass}`}>

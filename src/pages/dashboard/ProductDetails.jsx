@@ -42,7 +42,10 @@ const ProductDetails = ({details, setDetails, handleEditProduct, data, setData})
                 </div>
                 <div className="flex justify-between py-2.5 px-4">
                     <span className="font-semibold">Date / Time:</span>
-                    <span>{new Date(data?.updatedAt).toLocaleString()}</span>
+                    <span>
+                        {new Date(data?.updatedAt).toLocaleDateString('en-GB')}{" "}
+                        {new Date(data?.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
                 </div>
             </div>
         </DialogBody>

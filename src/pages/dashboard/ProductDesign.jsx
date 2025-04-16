@@ -228,7 +228,10 @@ const ProductDesign = () => {
                                   </IconButton>
                                 </Tooltip>
                                 </p>
-                                <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                                <p className="pt-1 text-gray-600">
+                                  {new Date(product?.updatedAt).toLocaleDateString('en-GB')}{" "}
+                                  {new Date(product?.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                  </p>
                               </div>
                             </div>
                             {active === true ? (
@@ -327,7 +330,8 @@ const ProductDesign = () => {
                                     </Tooltip>
                                   </p>
                                   <p className="pt-1 text-gray-600">
-                                    {new Date(product?.updatedAt).toLocaleString()}
+                                    {new Date(product?.updatedAt).toLocaleDateString('en-GB')}{" "}
+                                    {new Date(product?.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                   </p>
                                 </div>
                               </div>
@@ -439,7 +443,10 @@ const ProductDesign = () => {
                                   </IconButton>
                                 </Tooltip>
                                 </p>
-                                <p className="pt-1 text-gray-600">{new Date(product?.updatedAt).toLocaleString()}</p>
+                                <p className="pt-1 text-gray-600">
+                                {new Date(product?.updatedAt).toLocaleDateString('en-GB')}{" "}
+                                {new Date(product?.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                  </p>
                               </div>
                             </div>
                             {active === true ? (
