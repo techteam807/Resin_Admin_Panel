@@ -69,6 +69,7 @@ const Map = () => {
     const dispatch = useDispatch();
     const { products, loading } = useSelector((state) => state.product);
 
+
     const [locations, setLocations] = useState([]);
     const [userLocation, setUserLocation] = useState(null);
     const [destination, setDestination] = useState(null);
@@ -106,19 +107,40 @@ const Map = () => {
 
     useEffect(() => {
         if (products?.inuseProducts?.length > 0) {
-            const updatedLocations = products.inuseProducts
-                .filter(p => p.geoCoordinates && p.geoCoordinates.coordinates?.length === 2)
-                .map(p => ({
-                    _id: p._id,
-                    name: p.productCode,
-                    lat: p.geoCoordinates.coordinates[1], // Latitude comes second
-                    lng: p.geoCoordinates.coordinates[0], // Longitude comes first
-                }));
-                console.log("updatedLocations", updatedLocations)
+          const updatedLocations = products.inuseProducts
+            .filter(p => p.geoCoordinates && p.geoCoordinates.coordinates?.length === 2)
+            .map(p => ({
+              _id: p._id,
+              name: p.productCode,
+              lat: p.geoCoordinates.coordinates[1],
+              lng: p.geoCoordinates.coordinates[0],
+            }));
     
-            setLocations(updatedLocations);
+          // Group products by the same coordinates
+          const groupedLocations = updatedLocations.reduce((acc, loc) => {
+            const key = `${loc.lat},${loc.lng}`;
+            if (!acc[key]) {
+              acc[key] = [];
+            }
+            acc[key].push(loc);
+            return acc;
+          }, {});
+    
+          // Convert the grouped locations into an array
+          const finalLocations = Object.keys(groupedLocations).map(key => {
+            const group = groupedLocations[key];
+            return {
+              _id: group[0]._id, // Use the first product's ID (just for uniqueness)
+              lat: group[0].lat,
+              lng: group[0].lng,
+              name: group.map(product => product.name).join(', '), // Join all names
+              products: group,
+            };
+          });
+    
+          setLocations(finalLocations);
         }
-    }, [products]);
+      }, [products]);
     
 
   return (
@@ -130,11 +152,11 @@ const Map = () => {
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     <FitBounds locations={[...locations, userLocation].filter(Boolean)} />
 
-                    {userLocation && (
+                    {/* {userLocation && (
                         <Marker position={[userLocation.lat, userLocation.lng]} icon={userLocationIcon}>
                             <Popup>My Current Location</Popup>
                         </Marker>
-                    )}
+                    )} */}
 
                     {locations.map((location) => (
                         <Marker
@@ -149,9 +171,9 @@ const Map = () => {
                         </Marker>
                     ))}
 
-                    {userLocation && destination && (
+                    {/* {userLocation && destination && (
                         <RouteLayer userLocation={userLocation} destination={destination} />
-                    )}
+                    )} */}
                 </MapContainer>
             </div>
         </div>
