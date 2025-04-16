@@ -187,7 +187,8 @@ const ProductLog = () => {
                     <div className="p-4 bg-white border border-blue-gray-100 rounded-lg shadow-xs dark:bg-gray-700 dark:border-gray-600">
                       <div className="items-center justify-between mb-3 sm:flex">
                         <time className="mb-1 text-xs font-semibold text-gray-600 sm:order-last sm:mb-0">
-                          {new Date(log.timestamp).toLocaleString()}
+                          {new Date(log?.timestamp).toLocaleDateString('en-GB')}{" "}
+                          {new Date(log?.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </time>
                         <div className="text-sm font-normal text-gray-500 dark:text-gray-300">
                           <span className="font-medium">{log.user_name || log.userId?.user_name}</span>{' '}
