@@ -1,6 +1,6 @@
 import { getAllProducts, getProductsLogList } from '@/feature/productLog/productLogSlice';
-import { BellIcon, CurrencyDollarIcon, HomeIcon } from '@heroicons/react/24/solid'
-import { Button, Card, CardBody, CardHeader, Typography, Input, Chip } from '@material-tailwind/react'
+import { BriefcaseIcon, CheckIcon, ClipboardIcon, ExclamationTriangleIcon, FolderPlusIcon, FunnelIcon } from '@heroicons/react/24/solid'
+import { Button, Card, CardBody, CardHeader, Typography, Input, Chip, Tooltip, IconButton } from '@material-tailwind/react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from '../Loader';
@@ -23,11 +23,10 @@ const ProductLog = () => {
   const dispatch = useDispatch();
   const dropdownRef = useRef();
   const { productsLogList, productsData, productLoading } = useSelector((state) => state.productLog);
-  // console.log("productsData", productsData)
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-
+  const [copiedId, setCopiedId] = useState(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -63,7 +62,6 @@ const ProductLog = () => {
   };
 
   const handleSearch = () => {
-  
     dispatch(getAllProducts({
       productId: selectedProduct?._id,
       startDate,
@@ -81,7 +79,15 @@ const ProductLog = () => {
     setShowDropdown(false);
     dispatch(getAllProducts({ startDate: defaultStart, endDate: defaultEnd }));
   };
-  
+
+  const handleCopy = (uniqueKey, textToCopy) => {
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setCopiedId(uniqueKey);
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 2000);
+    });
+  };  
 
   return (
     <div>
@@ -94,13 +100,13 @@ const ProductLog = () => {
                 Product Log
               </Typography>
               <Typography color="gray" variant="small" className="mt-1 font-normal">
-                See information about product
+                See information about product log
               </Typography>
             </div>
 
-            <div className="flex flex-wrap items-end gap-4">
+            <div className="flex md:flex-row flex-col flex-wrap lg:flex-nowrap items-end gap-3">
               {/* Search input with dropdown */}
-              <div className="relative w-48" ref={dropdownRef}>
+              <div className="relative w-full" ref={dropdownRef}>
                 <Input
                   label="Search product code"
                   type="text"
@@ -132,7 +138,7 @@ const ProductLog = () => {
               </div>
 
               {/* Date inputs */}
-              <div className="w-48">
+              <div className="w-full">
                 <Input
                   type="date"
                   label="Start Date"
@@ -141,7 +147,7 @@ const ProductLog = () => {
                 />
               </div>
 
-              <div className="w-48">
+              <div className="w-full">
                 <Input
                   type="date"
                   label="End Date"
@@ -149,13 +155,15 @@ const ProductLog = () => {
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
-
-              <Button variant='gradient' onClick={handleSearch} >
-                Search
+              <div className='flex items-center gap-3'>
+              <Button variant="gradient" className="px-4 py-3 flex items-center gap-2" onClick={handleSearch}>
+                  <FunnelIcon className="h-4 w-4 text-white" />
+                  <span className="text-white">Apply</span>
               </Button>
               <Button variant="outlined" onClick={handleClear}>
                 Clear
               </Button>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -168,18 +176,19 @@ const ProductLog = () => {
                   <li key={log._id} className="md:mb-10 mb-5 ms-8">
                     <span className="absolute flex items-center justify-center w-8 h-8 bg-[#212121] rounded-full -start-4 ring-8 ring-white">
                       {log.status === 'inuse' ? (
-                        <CurrencyDollarIcon className="h-4 w-4 text-white" />
+                        <BriefcaseIcon className="h-4 w-4 text-white" />
                       ) : log.status === 'new' ? (
-                        <HomeIcon className="h-4 w-4 text-white" />
+                        <FolderPlusIcon className="h-4 w-4 text-white" />
                       ) : (
-                        <BellIcon className="h-4 w-4 text-white" />
+                        <ExclamationTriangleIcon className="h-4 w-4 text-white" />
                       )}
                     </span>
 
                     <div className="p-4 bg-white border border-blue-gray-100 rounded-lg shadow-xs dark:bg-gray-700 dark:border-gray-600">
                       <div className="items-center justify-between mb-3 sm:flex">
                         <time className="mb-1 text-xs font-semibold text-gray-600 sm:order-last sm:mb-0">
-                          {new Date(log.timestamp).toLocaleString()}
+                          {new Date(log?.timestamp).toLocaleDateString('en-GB')}{" "}
+                          {new Date(log?.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </time>
                         <div className="text-sm font-normal text-gray-500 dark:text-gray-300">
                           <span className="font-medium">{log.user_name || log.userId?.user_name}</span>{' '}
@@ -191,17 +200,33 @@ const ProductLog = () => {
                       {log.products?.length > 0 && (
                         <div className="text-sm text-gray-600 dark:text-gray-300 items-center flex flex-wrap gap-2">
                           <span className="font-medium">Product Code:</span>
-                          {log.products.map((p) => (
-                            <Chip
-                              key={p._id}
-                              className="w-max"
-                              variant="ghost"
-                              size="sm"
-                              color="brown"
-                              value={p.productCode}
-                            />
-                            
-                          ))}
+                          {log.products.map((p) => {
+                            const uniqueKey = `${log._id}-${p._id}`;
+                            return (
+                              <div key={p._id} className="flex items-center gap-0.5">
+                                <Chip
+                                  className="w-max"
+                                  variant="ghost"
+                                  size="sm"
+                                  color="brown"
+                                  value={p.productCode}
+                                />
+                                <Tooltip content={copiedId === uniqueKey ? "Copied" : "Copy"}>
+                                  <IconButton
+                                    variant="text"
+                                    size="sm"
+                                    onClick={() => handleCopy(uniqueKey, p.productCode)}
+                                  >
+                                    {copiedId === uniqueKey ? (
+                                      <CheckIcon className="h-4 w-4 text-green-600" />
+                                    ) : (
+                                      <ClipboardIcon className="h-4 w-4 text-gray-600" />
+                                    )}
+                                  </IconButton>
+                                </Tooltip>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
@@ -213,7 +238,7 @@ const ProductLog = () => {
                             {log.customerId.display_name || "N/A"}
                           </div>
                           <div>
-                            <span className="font-medium">Contact Code:</span>{' '}
+                            <span className="font-medium">Customer Code:</span>{' '}
                             {log.customerId.contact_number || 'N/A'}
                           </div>
                           <div>

@@ -29,15 +29,18 @@ export const fetchProductsLogList = async () => {
     }
   };
 
-  export const fetchAllLogs = async ({ startDate, endDate, productId }) => {
+  export const fetchAllLogs = async ({ startDate, endDate, productId, customerId, status, userId }) => {
     try {
       const params = {
         startDate,
         endDate,
         ...(productId && { productId }),
+        ...(customerId && { customerId }),
+        ...(status && { status }),
+        ...(userId && { userId }),
       };
   
-      console.log("params", params);
+      // console.log("params", params);
   
       const response = await axiosConfig.get('logsManagement/logs', {
         params,

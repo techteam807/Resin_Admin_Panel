@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
     Card,
     CardHeader,
@@ -6,277 +6,268 @@ import {
     Typography,
     Button,
     CardBody,
-    Chip,
-    Tabs,
-    TabsHeader,
-    Tab,
     IconButton,
     Tooltip,
-    Popover,
-    PopoverHandler,
-    PopoverContent,
+    Chip,
 } from "@material-tailwind/react";
+import { BriefcaseIcon, CheckIcon, ClipboardIcon, ExclamationTriangleIcon, FolderPlusIcon, FunnelIcon } from '@heroicons/react/24/solid';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllProducts } from '@/feature/productLog/productLogSlice';
+import { getTechnicianDropDown } from '@/feature/technician/technicianSlice';
 import Loader from '../Loader';
-import { FunnelIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { format } from "date-fns";
-import { DayPicker } from "react-day-picker";
-import { ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
+
+const getDefaultDateRange = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth(); 
+    const currentYear = today.getFullYear();
+  
+    const start = new Date(currentYear, currentMonth, 1); 
+    const end = new Date(currentYear, currentMonth + 1, 0);
+  
+    return {
+      startDate: start.toLocaleDateString('en-CA'), 
+      endDate: end.toLocaleDateString('en-CA'),
+    };
+  };
 
 
 const TechnicianLog = () => {
-    const TABLE_HEAD = ["Name", "Number", "Date", "Location", "Action"];
 
-    const [date, setDate] = useState(null);
+    const dispatch = useDispatch();
+    const dropdownRef = useRef();
+    const { productsData, productLoading } = useSelector((state) => state.productLog);
+    const { technicianDrop } = useSelector((state) => state.technician);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [selectedTechnician, setSelectedTechnician] = useState(null);
+    const [copiedId, setCopiedId] = useState(null);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    // console.log("productsData", productsData);
+    
+    
 
-    // const handleSearch = () => {
-    //     dispatch(getTechnicians({ page: 1, user_status: user_status, search: searchValue }));
-    //             }
+    useEffect(() => {
+        dispatch(getTechnicianDropDown());
+        const { startDate, endDate } = getDefaultDateRange();
+        setStartDate(startDate);
+        setEndDate(endDate);
+        dispatch(getAllProducts({startDate, endDate}))
+    }, []);
 
-    //  const searchClear = () => {
-    //     setSearchValue('')
-    //     dispatch(getTechnicians({ page: 1, user_status: user_status }));
-    //             }
+    useEffect(() => {
+        function handleClickOutside(event) {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            setShowDropdown(false);
+        }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [dropdownRef]);
 
+    const filteredTechnicians = technicianDrop.filter(technician =>
+        technician.user_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const handleSelect = (product) => {
+        setSelectedTechnician(product);
+        setSearchTerm(product.user_name);
+        setShowDropdown(false);
+    };
+          
+    const handleSearch = () => {
+        dispatch(getAllProducts({
+        userId: selectedTechnician?._id,
+        startDate,
+        endDate,
+        }));
+    };
+    
+    const handleCopy = (key, value) => {
+        navigator.clipboard.writeText(value);
+        setCopiedId(key);
+        setTimeout(() => setCopiedId(null), 2000);
+      };
+    
+    const handleClear = () => {
+        const { startDate: defaultStart, endDate: defaultEnd } = getDefaultDateRange();
+        setSearchTerm('');
+        setStartDate(defaultStart);
+        setEndDate(defaultEnd);
+        setSelectedTechnician(null);
+        setShowDropdown(false);
+        dispatch(getAllProducts({ startDate: defaultStart, endDate: defaultEnd }));
+    };
 
     return (
         <div className="">
             <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
                 <Card className="h-full w-full">
-                    <CardHeader floated={false} shadow={false} className="rounded-none">
-                        <div className="mb-3 flex flex-row md:items-center justify-between md:gap-8">
+                    <CardHeader floated={false} shadow={false} className="rounded-none  overflow-visible">
+                        <div className="flex md:flex-row flex-col md:items-center justify-between md:gap-8 gap-4 mb-5">
                             <div>
                                 <Typography variant="h5" color="blue-gray">
-                                    TechnicianLog list
+                                    Technician Log
                                 </Typography>
                                 <Typography color="gray" variant="small" className="mt-1 font-normal">
                                     See information about all technician log
                                 </Typography>
                             </div>
-                            <div className="flex shrink-0 gap-2 flex-row">
-                                {/* <Button variant="outlined" className="w-full sm:w-max" size="sm">
-              view all
-            </Button> */}
-                                {/* <Button onClick={() => setOpen(true)} className="flex items-center gap-2 w-full h-max py-3 sm:w-max" size="sm">
-              <SquaresPlusIcon strokeWidth={2} className="h-4 w-4" /> Add Product
-            </Button> */}
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <Tabs value="all" className="w-full pt-2">
-                        <div className="flex flex-col items-center justify-between gap-4 md:flex-row px-4">
-                            {/* {TABS.map(({ label, value, icon, condition }) => (
-                // <Tab key={value} value={value} onClick={() => setActive(condition)}>
-                //     <div className="flex items-center gap-2 whitespace-nowrap">
-                //         {React.createElement(icon, { className: "w-4 h-4" })}
-                //         {label}
-                //     </div>
-                // </Tab>
-              ))} */}
-                            <div className="flex items-center gap-2">
-                                <Popover placement="bottom">
-                                    <PopoverHandler>
-                                        <Input
-                                            label="Select a Date"
-                                            onChange={() => null}
-                                            value={date instanceof Date ? format(date, "PPP") : ""}
-                                            className='bg-white '
-                                        />
-                                    </PopoverHandler>
-                                    <PopoverContent>
-                                        <DayPicker
-                                            mode="single"
-                                            selected={date instanceof Date ? date : undefined}
-                                            onSelect={setDate}
-                                            showOutsideDays
-                                            className="border-0"
-                                            classNames={{
-                                                caption: "flex justify-center py-2 mb-4 relative items-center",
-                                                caption_label: "text-sm font-medium text-gray-900",
-                                                nav: "flex items-center",
-                                                nav_button:
-                                                    "h-6 w-6 bg-transparent hover:bg-blue-gray-50 p-1 rounded-md transition-colors duration-300",
-                                                nav_button_previous: "absolute left-1.5",
-                                                nav_button_next: "absolute right-1.5",
-                                                table: "w-full border-collapse",
-                                                head_row: "flex font-medium text-gray-900",
-                                                head_cell: "m-0.5 w-9 font-normal text-sm",
-                                                row: "flex w-full mt-2",
-                                                cell: "text-gray-600 rounded-md h-9 w-9 text-center text-sm p-0 m-0.5 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-gray-900/20 [&:has([aria-selected].day-outside)]:text-white [&:has([aria-selected])]:bg-gray-900/50 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                                day: "h-9 w-9 p-0 font-normal",
-                                                day_range_end: "day-range-end",
-                                                day_selected:
-                                                    "rounded-md bg-white text-white hover:bg-white-900 hover:text-white focus:bg-gray-900 focus:text-white",
-                                                day_today: "rounded-md bg-gray-200 text-gray-900",
-                                                day_outside:
-                                                    "day-outside text-gray-500 opacity-50 aria-selected:bg-gray-500 aria-selected:text-gray-900 aria-selected:bg-opacity-10",
-                                                day_disabled: "text-gray-500 opacity-50",
-                                                day_hidden: "invisible",
-                                            }}
-                                            components={{
-                                                IconLeft: ({ ...props }) => (
-                                                    <ChevronLeftIcon {...props} className="h-4 w-4 stroke-2" />
-                                                ),
-                                                IconRight: ({ ...props }) => (
-                                                    <ChevronRightIcon {...props} className="h-4 w-4 stroke-2" />
-                                                ),
-                                            }}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                                <Button variant="gradient" className="px-4 py-3 flex items-center gap-2 w-full h-full" size="sm">
+                            <div className="flex md:flex-row flex-col flex-wrap lg:flex-nowrap items-end gap-3">
+                                <div className="relative w-full" ref={dropdownRef}>
+                                <Input
+                                    label="Search Technician"
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setShowDropdown(true);
+                                    }}
+                                    onFocus={() => setShowDropdown(true)}
+                                    crossOrigin=""
+                                />
+                                {showDropdown && (
+                                    <ul className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-100 rounded-md shadow-md max-h-60 overflow-auto">
+                                    {filteredTechnicians?.length > 0 ? (
+                                        filteredTechnicians?.map((technician) => (
+                                        <li
+                                            key={technician?._id}
+                                            className="px-3 py-2 cursor-pointer hover:bg-blue-50"
+                                            onClick={() => handleSelect(technician)}
+                                        >
+                                            {technician?.user_name}
+                                        </li>
+                                        ))
+                                    ) : (
+                                        <li className="px-3 py-2 text-gray-400">No results found</li>
+                                    )}
+                                    </ul>
+                                )}
+                                </div>
+                
+                                <div className="w-full">
+                                <Input
+                                    type="date"
+                                    label="Start Date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
+                                </div>
+                
+                                <div className="w-full">
+                                <Input
+                                    type="date"
+                                    label="End Date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                />
+                                </div>
+                                <div className='flex items-center gap-3'>
+                                <Button variant="gradient" className="px-4 py-3 flex items-center gap-2" onClick={handleSearch}>
                                     <FunnelIcon className="h-4 w-4 text-white" />
                                     <span className="text-white">Apply</span>
                                 </Button>
-                            </div>
-
-
-                            <div className="w-full md:w-72 relative flex gap-2">
-                                <Input
-                                    label="Search"
-                                // value={}
-                                // onChange={(e) => setSearchValue(e.target.value)}
-                                // icon=<XMarkIcon  className="h-5 w-5 cursor-pointer" />
-                                />
-                                <Button variant="gradient" className="px-2.5" size="sm">
-                                    <MagnifyingGlassIcon className="h-5 w-5" />
+                                <Button variant="outlined" onClick={handleClear}>
+                                    Clear
                                 </Button>
+                                </div>
                             </div>
                         </div>
-                    </Tabs>
-                    {/* <div><Loader /></div> */}
+                    </CardHeader>
                     <div>
-                        <CardBody className="px-0">
-                            <div className="overflow-x-auto">
-                                <table className="mt-0 w-full min-w-max table-auto text-left">
-                                    <thead>
-                                        <tr>
-                                            {TABLE_HEAD.map((head) => (
-                                                <th
-                                                    key={head}
-                                                    className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
-                                                >
-                                                    <Typography
-                                                        variant="small"
-                                                        color="blue-gray"
-                                                        className="font-normal leading-none opacity-70"
-                                                    >
-                                                        {head}
-                                                    </Typography>
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {/* {products?.map(
-                      (product, index) => {
-                          const isLast = index === products?.length - 1;
-                          const classes = isLast
-                          ? "p-4"
-                          : "p-4 border-b border-blue-gray-50";
-          
-                          return (
-                          <tr key={index} className="hover:bg-gray-50">
-                              <td className={classes}>
-                              <div className="flex items-center gap-3">
-                                  <div className="flex flex-col">
-                                  <Typography
-                                      variant="small"
-                                      color="blue-gray"
-                                      className="font-normal"
-                                  >
-                                      {product?.connectorType}
-                                  </Typography>
-                                  </div>
-                              </div>
-                              </td>
-                              <td className={classes}>
-                              <div className="flex flex-col">
-                                  <Typography
-                                      variant="small"
-                                      color="blue-gray"
-                                      className="font-normal"
-                                  >
-                                      {product?.distributorType}
-                                  </Typography>
-                                  </div>
-                              </td>
-                              <td className={classes}>
-                              <div className="flex flex-col">
-                                  <Typography
-                                  variant="small"
-                                  color="blue-gray"
-                                  className="font-normal"
-                                  >
-                                  {product?.resinType}
-                                  </Typography>
-                                  <Typography
-                                  variant="small"
-                                  color="blue-gray"
-                                  className="font-normal opacity-70"
-                                  >
-                                  </Typography>
-                              </div>
-                              </td>
-                              <td className={classes}>
-                              <div className="w-max">
-                                  <Chip
-                                  variant="ghost"
-                                  size="sm"
-                                  value={product?.productCode}
-                                  color='brown'
-                                  />
-                              </div>
-                              </td>
-                              <td className={classes}>
-                              <Typography
-                                  variant="small"
-                                  color="blue-gray"
-                                  className="font-normal"
-                              >
-                                  {product?.productStatus}
-                              </Typography>
-                              </td>
-                              <td className={classes}>
-                              <Typography
-                                  variant="small"
-                                  color="blue-gray"
-                                  className="font-normal"
-                              >
-                                  {product?.size}
-                              </Typography>
-                              </td>
-                              <td className={classes}>
-                                <Tooltip content="Edit Product">
-                                    <IconButton  variant="text">
-                                    <PencilIcon className="h-4 w-4" />
-                                    </IconButton>
-                                </Tooltip>
-                                <Tooltip content="Delete Product">
-                                    <IconButton  variant="text">
-                                        <TrashIcon className="h-4 w-4" />
-                                    </IconButton>
-                                </Tooltip>
-                              </td>
-                              <td className={classes}>
-                                <Tooltip content="Restore Product">
-                                    <IconButton variant="text">
-                                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
-                                    </IconButton>
-                                </Tooltip>
-                              </td>
-                          </tr>
-                          );
-                      },
-                      )} */}
-                                    </tbody>
-                                </table>
+                    <CardBody className="border-t border-blue-gray-100 md:p-6 p-4">
+                        {productLoading ? (
+                            <div className="flex justify-center items-center min-h-[200px]">
+                            <Loader />
                             </div>
-                        </CardBody>
+                        ) : (
+                            <div className="md:py-4">
+                                <div className="flex flex-col gap-6 md:px-5">
+                                    {productsData.map((log, index) => {
+                                    const iconClass =
+                                        log.status === 'inuse'
+                                        ? 'bg-green-500'
+                                        : log.status === 'new'
+                                        ? 'bg-blue-500'
+                                        : 'bg-red-500';
+                                    const Icon =
+                                        log.status === 'inuse'
+                                        ? BriefcaseIcon
+                                        : log.status === 'new'
+                                        ? FolderPlusIcon
+                                        : ExclamationTriangleIcon;
 
+                                    return (
+                                        <div key={log._id} className="flex gap-4 relative">
+                                        <div className="flex flex-col items-center">
+                                        <div className={`flex items-center justify-center w-12 h-12 rounded-full ${iconClass} text-white shadow-md z-10`}>
+                                            <Icon className="w-6 h-6" />
+                                          </div>
+
+                                            {index < productsData.length - 1 && (
+                                            <div className="flex-1 w-px bg-gray-300 mt-2 rounded-full" />
+                                            )}
+                                        </div>
+                                      
+                                        <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow p-4 hover:shadow-md transition-shadow duration-300">
+                                            <p className="text-xs text-gray-400 mb-2">
+                                            {new Date(log.timestamp).toLocaleDateString('en-GB')}{" "}
+                                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </p>
+                                            <p className="text-sm text-gray-800">
+                                            <span className="font-semibold">{log.user_name || log.userId?.user_name}</span> updated status to
+                                            <span className={`ml-1 px-2 py-0.5 rounded-md text-white text-xs ${iconClass}`}>
+                                                {log.status}
+                                            </span>
+                                            </p>
+
+                                            {log.products?.length > 0 && (
+                                            <div className="mt-3 flex flex-wrap gap-2">
+                                                {log.products.map((p) => {
+                                                const uniqueKey = `${log._id}-${p._id}`;
+                                                return (
+                                                    <div key={p._id} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg shadow-sm">
+                                                    <span className="text-xs ps-2 font-medium text-gray-700">{p.productCode}</span>
+                                                    <Tooltip content={copiedId === uniqueKey ? 'Copied' : 'Copy'}>
+                                                        <IconButton
+                                                        variant="text"
+                                                        size="sm"
+                                                        onClick={() => handleCopy(uniqueKey, p.productCode)}
+                                                        >
+                                                        {copiedId === uniqueKey ? (
+                                                            <CheckIcon className="h-4 w-4 text-green-600" />
+                                                        ) : (
+                                                            <ClipboardIcon className="h-4 w-4 text-gray-600" />
+                                                        )}
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    </div>
+                                                );
+                                                })}
+                                            </div>
+                                            )}
+
+                                            {log.customerId && log.status === 'inuse' && (
+                                            <div className="mt-3 text-xs text-gray-600 space-y-1 border-t pt-2">
+                                                <p><span className="font-medium">Customer:</span> {log.customerId.display_name || 'N/A'}</p>
+                                                <p><span className="font-medium">Customer Code:</span> {log.customerId.contact_number || 'N/A'}</p>
+                                                <p><span className="font-medium">Mobile:</span> {log.customerId.mobile || 'N/A'}</p>
+                                                <p><span className="font-medium">Email:</span> {log.customerId.email || 'N/A'}</p>
+                                            </div>
+                                            )}
+                                        </div>
+                                        </div>
+                                    );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                        </CardBody>
                     </div>
                 </Card>
             </div>
-            {/* <AddProduct open={open} setOpen={setOpen} data={data} setData={setDate} /> */}
         </div>
     )
 }

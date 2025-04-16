@@ -3,7 +3,7 @@ import { CheckCircleIcon, MagnifyingGlassIcon, PauseCircleIcon } from "@heroicon
 import { ArrowPathIcon, ArrowPathRoundedSquareIcon, CheckBadgeIcon, PencilIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { Card, CardHeader, Input, Typography, Button, CardBody, Tabs, TabsHeader, Tab, Tooltip, IconButton, Dialog, DialogHeader, DialogBody, DialogFooter } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { approveTechnician, deleteTechnician, getTechnicians, restoreTechnician } from "@/feature/technician/technicianSlice";
+import { approveTechnician, deletePerTechnician, deleteTechnician, getTechnicians, restoreTechnician } from "@/feature/technician/technicianSlice";
 import Loader from "../Loader";
 import Pagination from "@/common/Pagination";
 
@@ -21,6 +21,8 @@ const Technician = () => {
     const [technicianToApprove, setTechnicianToApprove] = useState(null);
     const [restoreOpen, setRestoreOpen] = useState(false);
     const [technicianToRestore, setTechnicianToRestore] = useState(null);
+    const [perDeleteOpen, setPerDeleteOpen] = useState(false);
+    const [technicianToPerDelete, setTechnicianToPerDelete] = useState(null);
 
     useEffect(() => {
         dispatch(getTechnicians({ page: 1, user_status: user_status }));
@@ -51,6 +53,23 @@ const Technician = () => {
             dispatch(deleteTechnician( mobile_number )).then(() => {
                 setDeletingTechnicianId(null);
                 setAlertOpen(false);
+            });
+        }
+    }
+
+    const confirmPerDelete = (technicianId) => {
+        setTechnicianToPerDelete(technicianId);
+        setPerDeleteOpen(true);
+    };
+
+    const handlePerDelete = () => {
+        const mobile_number = { mobile_number: technicianToPerDelete}
+        if (technicianToPerDelete) {
+            setDeletingTechnicianId(technicianToPerDelete);
+            dispatch(deletePerTechnician( mobile_number ))
+            .then(() => {
+                setDeletingTechnicianId(null);
+                setPerDeleteOpen(false);
             });
         }
     }
@@ -245,6 +264,15 @@ const Technician = () => {
                                                                             }
                                                                             </IconButton>
                                                                         </Tooltip>
+                                                                        <Tooltip content="Permanent Delete">
+                                                                            <IconButton onClick={() => confirmPerDelete(technician?.mobile_number)} variant="text">
+                                                                            {delLoading && deletingTechnicianId === technician?.mobile_number ?
+                                                                             <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                                                             :
+                                                                                <TrashIcon className="h-4 w-4" />
+                                                                            }
+                                                                            </IconButton>
+                                                                        </Tooltip>
                                                                     </td>
                                                                 } 
                                                             </tr>
@@ -343,6 +371,33 @@ const Technician = () => {
                             <div className='px-[19px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
                         ) : (
                             "Approve"
+                        )}
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+            <Dialog size='xs' open={perDeleteOpen} handler={() => setPerDeleteOpen(false)}>
+                <DialogHeader className="flex items-center gap-2">
+                    <div className="bg-red-100 p-2 rounded-full">
+                        <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
+                        </svg>
+                    </div>
+                    <Typography variant="h6" className="text-red-600 font-semibold">
+                        Confirm Permanent Delete
+                    </Typography>
+                </DialogHeader>
+                <DialogBody>
+                    <Typography variant="small" className="text-gray-700">
+                        Are you sure you want to permanent delete this Technician? This action cannot be undone.
+                    </Typography>
+                </DialogBody>
+                <DialogFooter className="flex justify-end gap-2">
+                    <Button variant="outlined" color="gray" onClick={() => setPerDeleteOpen(false)}>Cancel</Button>
+                    <Button color="red" onClick={handlePerDelete}>
+                        {delLoading && deletingTechnicianId === technicianToPerDelete ? (
+                            <div className='px-[13px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
+                        ) : (
+                            "Delete"
                         )}
                     </Button>
                 </DialogFooter>
