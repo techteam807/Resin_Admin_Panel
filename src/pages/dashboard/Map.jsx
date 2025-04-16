@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useDispatch, useSelector } from "react-redux";
 import "leaflet-routing-machine";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import { getProducts } from '@/feature/product/productSlice';
 
 const locationIcon = new L.Icon({
     iconUrl: "https://png.pngtree.com/png-vector/20230413/ourmid/pngtree-3d-location-icon-clipart-in-transparent-background-vector-png-image_6704161.png",
@@ -64,12 +66,10 @@ const RouteLayer = ({ userLocation, destination }) => {
 };
 
 const Map = () => {
+    const dispatch = useDispatch();
+    const { products, loading } = useSelector((state) => state.product);
 
-    const [locations, setLocations] = useState  ([
-        { _id: 1, name: "Location A", lat: 23.0258, lng: 72.5873 },
-        { _id: 2, name: "Location B", lat: 23.0307, lng: 72.5625 },
-        { _id: 3, name: "Location C", lat: 23.0186, lng: 72.5370 },
-    ]);
+    const [locations, setLocations] = useState([]);
     const [userLocation, setUserLocation] = useState(null);
     const [destination, setDestination] = useState(null);
 
@@ -98,6 +98,28 @@ const Map = () => {
             if (watchId) navigator.geolocation.clearWatch(watchId);
         };
     }, []);
+
+    useEffect(() => {
+        dispatch(getProducts({ search: '', active: true }));
+    }, [dispatch]);
+    
+
+    useEffect(() => {
+        if (products?.inuseProducts?.length > 0) {
+            const updatedLocations = products.inuseProducts
+                .filter(p => p.geoCoordinates && p.geoCoordinates.coordinates?.length === 2)
+                .map(p => ({
+                    _id: p._id,
+                    name: p.productCode,
+                    lat: p.geoCoordinates.coordinates[1], // Latitude comes second
+                    lng: p.geoCoordinates.coordinates[0], // Longitude comes first
+                }));
+                console.log("updatedLocations", updatedLocations)
+    
+            setLocations(updatedLocations);
+        }
+    }, [products]);
+    
 
   return (
     <div>
