@@ -4,9 +4,9 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
-export const getProducts = createAsyncThunk("product/getProducts", async ({ search = '', active = true }) => {
+export const getProducts = createAsyncThunk("product/getProducts", async ({ search = '', active = true, productStatus= '' }) => {
     try {
-      const data = await fetchProducts(search, active);
+      const data = await fetchProducts(search, active, productStatus);
       return data;
     } catch (error) {
       console.error("Error in getProducts thunk:", error);

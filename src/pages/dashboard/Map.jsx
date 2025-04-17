@@ -68,6 +68,7 @@ const RouteLayer = ({ userLocation, destination }) => {
 const Map = () => {
     const dispatch = useDispatch();
     const { products, loading } = useSelector((state) => state.product);
+    console.log("p:",products)
 
 
     const [locations, setLocations] = useState([]);
@@ -101,7 +102,7 @@ const Map = () => {
     }, []);
 
     useEffect(() => {
-        dispatch(getProducts({ search: '', active: true }));
+        dispatch(getProducts({ search: '', active: true, productStatus:"inuse" }));
     }, [dispatch]);
     
 
