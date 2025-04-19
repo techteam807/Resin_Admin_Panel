@@ -59,3 +59,13 @@ export const fetchProducts = async (search = '', active = true, productStatus= '
       throw error;
     }
   };
+
+  export const fetchProductsMap = async () => {
+    try {
+      const response = await axiosConfig.get(`location/geoLocations`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching products map:', error);
+      throw error;
+    }
+  };

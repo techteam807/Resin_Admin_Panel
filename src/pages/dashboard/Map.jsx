@@ -5,7 +5,7 @@ import L from "leaflet";
 import { useDispatch, useSelector } from "react-redux";
 import "leaflet-routing-machine";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
-import { getProducts } from '@/feature/product/productSlice';
+import { getProducts, getProductsMap } from '@/feature/product/productSlice';
 
 const locationIcon = new L.Icon({
     iconUrl: "https://png.pngtree.com/png-vector/20230413/ourmid/pngtree-3d-location-icon-clipart-in-transparent-background-vector-png-image_6704161.png",
@@ -67,8 +67,8 @@ const RouteLayer = ({ userLocation, destination }) => {
 
 const Map = () => {
     const dispatch = useDispatch();
-    const { products, loading } = useSelector((state) => state.product);
-    console.log("p:",products)
+    const { productsMap, loading } = useSelector((state) => state.product);
+    console.log("p:",productsMap)
 
 
     const [locations, setLocations] = useState([]);
@@ -102,47 +102,47 @@ const Map = () => {
     }, []);
 
     useEffect(() => {
-        dispatch(getProducts({ search: '', active: true, productStatus:"inuse" }));
+        dispatch(getProductsMap());
     }, [dispatch]);
-    
 
     useEffect(() => {
-        if (products?.inuseProducts?.length > 0) {
-          const updatedLocations = products.inuseProducts
-            .filter(p => p.geoCoordinates && p.geoCoordinates.coordinates?.length === 2)
-            .map(p => ({
-              _id: p._id,
-              name: p.productCode,
-              lat: p.geoCoordinates.coordinates[1],
-              lng: p.geoCoordinates.coordinates[0],
-            }));
+        if (productsMap?.length > 0) {
+            const updatedLocations = productsMap
+                .filter(item => item.geoCoordinates && item.geoCoordinates.coordinates?.length === 2)
+                .map(item => {
+                    const { coordinates } = item.geoCoordinates;
+                    const productNames = item.customer.products.map(p => p.productCode).join(", ");
+                    return {
+                        id: item.customer.id,
+                        name: productNames,
+                        lat: coordinates[1], // [lng, lat]
+                        lng: coordinates[0],
+                    };
+                });
     
-          // Group products by the same coordinates
-          const groupedLocations = updatedLocations.reduce((acc, loc) => {
-            const key = `${loc.lat},${loc.lng}`;
-            if (!acc[key]) {
-              acc[key] = [];
-            }
-            acc[key].push(loc);
-            return acc;
-          }, {});
+            // Optional: Group by lat/lng if you want to cluster or avoid marker overlap
+            const grouped = updatedLocations.reduce((acc, loc) => {
+                const key = `${loc.lat},${loc.lng}`;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(loc);
+                return acc;
+            }, {});
     
-          // Convert the grouped locations into an array
-          const finalLocations = Object.keys(groupedLocations).map(key => {
-            const group = groupedLocations[key];
-            return {
-              _id: group[0]._id, // Use the first product's ID (just for uniqueness)
-              lat: group[0].lat,
-              lng: group[0].lng,
-              name: group.map(product => product.name).join(', '), // Join all names
-              products: group,
-            };
-          });
+            const finalLocations = Object.keys(grouped).map(key => {
+                const group = grouped[key];
+                return {
+                    id: group[0].id,
+                    lat: group[0].lat,
+                    lng: group[0].lng,
+                    name: group.map(g => g.name).join(', '),
+                    allProducts: group,
+                };
+            });
     
-          setLocations(finalLocations);
+            setLocations(finalLocations);
         }
-      }, [products]);
-    
+    }, [productsMap]);
+
 
   return (
     <div>
@@ -159,17 +159,21 @@ const Map = () => {
                         </Marker>
                     )} */}
 
-                    {locations.map((location) => (
+                        {locations.map((loc, index) => (
+                     
+
                         <Marker
-                            key={location._id}
-                            position={[location.lat, location.lng]}
-                            icon={locationIcon}
-                            eventHandlers={{ click: () => setDestination(location),
-                                             popupclose: () => setDestination(null)
-                                            }}
-                        >
-                            <Popup>{location.name}</Popup>
-                        </Marker>
+                        key={index}
+                        position={[loc.lat, loc.lng]}
+                        icon={locationIcon}
+                        eventHandlers={{
+                            click: () => setDestination({ lat: loc.lat, lng: loc.lng }),
+                        }}
+                    >
+                        <Popup>
+                            <strong></strong> {loc.name}
+                        </Popup>
+                    </Marker>
                     ))}
 
                     {/* {userLocation && destination && (
