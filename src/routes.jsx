@@ -50,12 +50,12 @@ export const routes = [
         path: "/technician",
         element: <Technician />,
       },
-      // {
-      //   icon: <MapPinIcon {...icon} />,
-      //   name: "Location",
-      //   path: "/location",
-      //   element: <Map />,
-      // },
+      {
+        icon: <MapPinIcon {...icon} />,
+        name: "Location",
+        path: "/location",
+        element: <Map />,
+      },
       {
         icon: <PresentationChartBarIcon {...icon} />,
         name: "Product Log",

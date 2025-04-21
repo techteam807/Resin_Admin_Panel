@@ -1,13 +1,16 @@
 import axiosConfig from "@/app/axiosConfig";
 
 
-export const fetchProducts = async (search = '', active = true) => {
+export const fetchProducts = async (search = '', active = true, productStatus= '') => {
     try {
       const queryParams = new URLSearchParams({
         active: active
         });
         if (search) {
         queryParams.append('search', search);
+        }
+        if (productStatus) {
+          queryParams.append('productStatus',productStatus);
         }
       const response = await axiosConfig.get(`products?${queryParams}`);
       return response.data;
@@ -53,6 +56,16 @@ export const fetchProducts = async (search = '', active = true) => {
       return response.data;
     } catch (error) {
       console.error("Error update product:", error);
+      throw error;
+    }
+  };
+
+  export const fetchProductsMap = async () => {
+    try {
+      const response = await axiosConfig.get(`location/geoLocations`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching products map:', error);
       throw error;
     }
   };
