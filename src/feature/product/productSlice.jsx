@@ -1,15 +1,25 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { createProd, delProduct, fetchProducts, resProduct, updateProd } from "./productService";
+import { createProd, delProduct, fetchProducts, fetchProductsMap, resProduct, updateProd } from "./productService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
-export const getProducts = createAsyncThunk("product/getProducts", async ({ search = '', active = true }) => {
+export const getProducts = createAsyncThunk("product/getProducts", async ({ search = '', active = true, productStatus= '' }) => {
     try {
-      const data = await fetchProducts(search, active);
+      const data = await fetchProducts(search, active, productStatus);
       return data;
     } catch (error) {
       console.error("Error in getProducts thunk:", error);
+      throw error.response?.data?.error || error.message;
+    }
+  });
+
+  export const getProductsMap = createAsyncThunk("product/getProductsMap", async () => {
+    try {
+      const data = await fetchProductsMap();
+      return data;
+    } catch (error) {
+      console.error("Error in getProductsMap thunk:", error);
       throw error.response?.data?.error || error.message;
     }
   });
@@ -70,6 +80,7 @@ export const getProducts = createAsyncThunk("product/getProducts", async ({ sear
     name: "product",
     initialState: {
       products: [],
+      productsMap: [],
       delete: null,
       restore: null,
       create: null,
@@ -91,6 +102,18 @@ export const getProducts = createAsyncThunk("product/getProducts", async ({ sear
           state.message = action.payload.message;
         })
         .addCase(getProducts.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.error.message;
+        })
+        .addCase(getProductsMap.pending, (state) => {
+          state.loading = true;
+        })
+        .addCase(getProductsMap.fulfilled, (state, action) => {
+          state.loading = false;
+          state.productsMap = action.payload.data;
+          state.message = action.payload.message;
+        })
+        .addCase(getProductsMap.rejected, (state, action) => {
           state.loading = false;
           state.error = action.error.message;
         })
