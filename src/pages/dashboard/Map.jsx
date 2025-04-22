@@ -6,13 +6,26 @@ import { useDispatch, useSelector } from "react-redux";
 import "leaflet-routing-machine";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
 import { getProducts, getProductsMap } from '@/feature/product/productSlice';
+import { getCustomersMap } from '@/feature/customer/customerSlice';
+import customer_icon from '../../../public/img/customer.png';
+import product_icon from '../../../public/img/product.png';
+
+
 
 const locationIcon = new L.Icon({
-    iconUrl: "https://png.pngtree.com/png-vector/20230413/ourmid/pngtree-3d-location-icon-clipart-in-transparent-background-vector-png-image_6704161.png",
-    iconSize: [40, 40],
+    iconUrl: product_icon,
+    iconSize: [20, 30],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40],
 });
+
+const customerIcon  = new L.Icon({
+    iconUrl:customer_icon,
+    iconSize: [20, 30],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40],
+});
+
 
 const userLocationIcon = new L.Icon({
     iconUrl: "https://www.iconpacks.net/icons/2/free-location-icon-2955-thumb.png",
@@ -67,11 +80,16 @@ const RouteLayer = ({ userLocation, destination }) => {
 
 const Map = () => {
     const dispatch = useDispatch();
-    const { productsMap, loading } = useSelector((state) => state.product);
+    const { productsMap , loading } = useSelector((state) => state.product);
+    const { customersMap } = useSelector((state) => state.customer);
+
     console.log("p:",productsMap)
+    console.log(customersMap);
+    
 
 
     const [locations, setLocations] = useState([]);
+    const [customers, setCustomers] = useState([]);
     const [userLocation, setUserLocation] = useState(null);
     const [destination, setDestination] = useState(null);
 
@@ -103,8 +121,10 @@ const Map = () => {
 
     useEffect(() => {
         dispatch(getProductsMap());
+        dispatch(getCustomersMap());
     }, [dispatch]);
 
+    //for product icons
     useEffect(() => {
         if (productsMap?.length > 0) {
             const updatedLocations = productsMap
@@ -143,12 +163,36 @@ const Map = () => {
         }
     }, [productsMap]);
 
+    //for customer icons
+    useEffect(() => {
+        if (customersMap?.length > 0) {
+            const customerLocations = customersMap
+                .filter(item => item.geoCoordinates?.coordinates?.length === 2)
+                .map(item => ({
+                    id: item._id,
+                    name: item.display_name,
+                    lat: item.geoCoordinates.coordinates[1],
+                    lng: item.geoCoordinates.coordinates[0],
+                }));
+            setCustomers(customerLocations);
+        }
+    }, [customersMap]);
 
   return (
     <div>
       <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
-      <div className='flex h-[80vh]'>
-            <div className='flex-1' >
+      <div className="p-2 absolute z-20 m-3 bg-white shadow-md rounded-lg right-4 font-medium">
+    <div className="flex gap-4">
+        <div className="flex items-center">
+            Customer: <img src={customer_icon} alt="Customer Icon" className="w-4 h-6 ml-2" />
+        </div>
+        <div className="flex items-center">
+            Product: <img src={product_icon} alt="Product Icon" className="w-4 h-6 ml-2" />
+        </div>
+    </div>
+</div>
+      <div className='flex h-[80vh] -z-10'>
+            <div className='flex-1 z-10' >
                 <MapContainer center={[23.0225, 72.5714]} zoom={12} className='rounded-xl' style={{ height: "100%", width: "100%" }}>
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     <FitBounds locations={[...locations, userLocation].filter(Boolean)} />
@@ -176,14 +220,28 @@ const Map = () => {
                     </Marker>
                     ))}
 
+{customers.map((customer, index) => (
+    <Marker
+        key={`cust-${index}`}
+        position={[customer.lat, customer.lng]}
+        icon={customerIcon}
+    >
+        <Popup>
+            <strong>{customer.name}</strong>
+        </Popup>
+    </Marker>
+))}
+
                     {/* {userLocation && destination && (
                         <RouteLayer userLocation={userLocation} destination={destination} />
                     )} */}
                 </MapContainer>
             </div>
         </div>
+
+
+        </div>
       </div>
-    </div>
   )
 }
 

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -13,6 +13,16 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
       throw error.response?.data?.error || error.message;
     }
   });
+
+    export const getCustomersMap = createAsyncThunk("customer/getCustomersMap", async () => {
+      try {
+        const data = await fetchCustomersMap();
+        return data;
+      } catch (error) {
+        console.error("Error in getProductsMap thunk:", error);
+        throw error.response?.data?.error || error.message;
+      }
+    });
 
   export const refreshcustomers = createAsyncThunk(
     "customer/refreshcustomers",
@@ -41,6 +51,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
     name: "customer",
     initialState: {
       customers: [],
+      customersMap: [],
       customersDropdown: [],
       loading: false,
       create: null,
@@ -68,6 +79,18 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
           state.message = action.payload.message;
         })
         .addCase(getCustomers.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.error.message;
+        })
+        .addCase(getCustomersMap.pending, (state) => {
+          state.loading = true;
+        })
+        .addCase(getCustomersMap.fulfilled, (state, action) => {
+          state.loading = false;
+          state.customersMap = action.payload.data;
+          state.message = action.payload.message;
+        })
+        .addCase(getCustomersMap.rejected, (state, action) => {
           state.loading = false;
           state.error = action.error.message;
         })

@@ -36,3 +36,13 @@ export const fetchCustomers = async (page = 1, search = '') => {
       throw error;
     }
   };
+
+  export const fetchCustomersMap = async () => {
+    try {
+      const response = await axiosConfig.get(`customers/customerLocation`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching products map:', error);
+      throw error;
+    }
+  };
