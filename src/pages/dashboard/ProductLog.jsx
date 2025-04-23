@@ -190,14 +190,26 @@ const ProductLog = () => {
                           {new Date(log?.timestamp).toLocaleDateString('en-GB')}{" "}
                           {new Date(log?.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </time>
-                        <div className="text-sm font-normal text-gray-500 dark:text-gray-300">
-                          <span className="font-medium">{log.user_name || log.userId?.user_name}</span>{' '}
-                          updated status to{' '}
+                        <div className="text-sm font-normal text-gray-500 dark:text-gray-300 flex gap-1">
+                          <span className="font-medium">{log.user_name || log.userId?.user_name}</span>
+                          Updated status to
                           <span className="font-semibold text-blue-600">{log.status}</span>
+                          {log.status === "exhausted" && log.isActive === false && 
+                          <span>
+                            <Chip
+                              className="w-max"
+                              variant="ghost"
+                              size="sm"
+                              color="red"
+                              value="Deleted"
+                            />
+                          </span>
+                          }
                         </div>
                       </div>
 
                       {log.products?.length > 0 && (
+                        <>
                         <div className="text-sm text-gray-600 dark:text-gray-300 items-center flex flex-wrap gap-2">
                           <span className="font-medium">Product Code:</span>
                           {log.products.map((p) => {
@@ -228,6 +240,13 @@ const ProductLog = () => {
                             );
                           })}
                         </div>
+                        { log?.productNotes &&
+                          <div className='text-sm text-gray-600 dark:text-gray-300 items-center flex flex-wrap gap-2'>
+                            <span className="font-medium">Note:</span>
+                            <span className='text-sm font-normal text-gray-500 dark:text-gray-300'>{log?.productNotes}</span>
+                          </div>
+                        }
+                        </>
                       )}
 
 

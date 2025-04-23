@@ -9,6 +9,7 @@ import { getProducts, getProductsMap } from '@/feature/product/productSlice';
 import { getCustomersMap } from '@/feature/customer/customerSlice';
 import customer_icon from '../../../public/img/customer.png';
 import product_icon from '../../../public/img/product.png';
+import Loader from '../Loader';
 
 
 
@@ -80,8 +81,8 @@ const RouteLayer = ({ userLocation, destination }) => {
 
 const Map = () => {
     const dispatch = useDispatch();
-    const { productsMap , loading } = useSelector((state) => state.product);
-    const { customersMap } = useSelector((state) => state.customer);
+    const { productsMap, loading } = useSelector((state) => state.product);
+    const { customersMap, mapLoading } = useSelector((state) => state.customer);
 
     console.log("p:",productsMap)
     console.log(customersMap);
@@ -128,7 +129,7 @@ const Map = () => {
     useEffect(() => {
         if (productsMap?.length > 0) {
             const updatedLocations = productsMap
-                .filter(item => item.geoCoordinates && item.geoCoordinates.coordinates?.length === 2)
+                .filter(item => item.geoCoordinates && item.geoCoordinates.coordinates?.length === 2 && item.customer?.products?.length > 0)
                 .map(item => {
                     const { coordinates } = item.geoCoordinates;
                     const productNames = item.customer.products.map(p => p.productCode).join(", ");
@@ -181,16 +182,22 @@ const Map = () => {
   return (
     <div>
       <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
+      {loading || mapLoading ? (
+          <div className='flex h-[80vh] items-center justify-center'>
+            <Loader />
+          </div>
+          ) : (
+      <div>
       <div className="p-2 absolute z-20 m-3 bg-white shadow-md rounded-lg right-4 font-medium">
-    <div className="flex gap-4">
-        <div className="flex items-center">
-            Customer: <img src={customer_icon} alt="Customer Icon" className="w-4 h-6 ml-2" />
+        <div className="flex gap-4">
+            <div className="flex items-center">
+                Customer: <img src={customer_icon} alt="Customer Icon" className="w-4 h-6 ml-2" />
+            </div>
+            <div className="flex items-center">
+                Product: <img src={product_icon} alt="Product Icon" className="w-4 h-6 ml-2" />
+            </div>
         </div>
-        <div className="flex items-center">
-            Product: <img src={product_icon} alt="Product Icon" className="w-4 h-6 ml-2" />
-        </div>
-    </div>
-</div>
+      </div>
       <div className='flex h-[80vh] -z-10'>
             <div className='flex-1 z-10' >
                 <MapContainer center={[23.0225, 72.5714]} zoom={12} className='rounded-xl' style={{ height: "100%", width: "100%" }}>
@@ -220,17 +227,17 @@ const Map = () => {
                     </Marker>
                     ))}
 
-{customers.map((customer, index) => (
-    <Marker
-        key={`cust-${index}`}
-        position={[customer.lat, customer.lng]}
-        icon={customerIcon}
-    >
-        <Popup>
-            <strong>{customer.name}</strong>
-        </Popup>
-    </Marker>
-))}
+                    {customers.map((customer, index) => (
+                        <Marker
+                            key={`cust-${index}`}
+                            position={[customer.lat, customer.lng]}
+                            icon={customerIcon}
+                        >
+                            <Popup>
+                                <strong>{customer.name}</strong>
+                            </Popup>
+                        </Marker>
+                    ))}
 
                     {/* {userLocation && destination && (
                         <RouteLayer userLocation={userLocation} destination={destination} />
@@ -238,8 +245,8 @@ const Map = () => {
                 </MapContainer>
             </div>
         </div>
-
-
+        </div>
+        )}
         </div>
       </div>
   )

@@ -26,9 +26,9 @@ export const getProducts = createAsyncThunk("product/getProducts", async ({ sear
 
   export const deleteProduct = createAsyncThunk(
     "product/deleteProduct",
-    async (productId) => {
+    async ({productId, productData}) => {
       try {
-        const data = await delProduct(productId);
+        const data = await delProduct(productId, productData);
         return data;
       } catch (error) {
         console.error("Error in delete product thunk:", error);
