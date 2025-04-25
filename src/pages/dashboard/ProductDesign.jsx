@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogBody,
   DialogFooter,
+  Textarea,
 } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteProduct, getProducts, restoreProduct } from "@/feature/product/productSlice";
@@ -41,7 +42,11 @@ const ProductDesign = () => {
     const [restoreOpen, setRestoreOpen] = useState(false);
     const [productToRestore, setProductToRestore] = useState(null);
     const [copiedStates, setCopiedStates] = useState({});
+    const [productNotes, setProductNotes] = useState(null);
+    const [error, setError] = useState('');
     const { newProducts = [], inuseProducts = [], exhaustedProducts = [] } = products || {};
+    // const productNot = { productNotes : productNotes}
+    console.log("productNotes", productNotes);
     
     useEffect(() => {
       dispatch(getProducts({active: active }));
@@ -62,10 +67,17 @@ const ProductDesign = () => {
     };
     
       const handleDelete = () => {
+        if (!productNotes || productNotes.trim() === "") {
+          setError("Please enter a note before deleting the product.");
+          return;
+        }
+        
         if (productToDelete) {
           setDeletingProductId(productToDelete);
-          dispatch(deleteProduct(productToDelete)).then(() => {
+          dispatch(deleteProduct({productId : productToDelete, productData : { productNotes: productNotes} })).then(() => {
             setDeletingProductId(null);
+            setProductNotes(null);
+            setError('')
             setAlertOpen(false);
           });
         }
@@ -293,12 +305,12 @@ const ProductDesign = () => {
                           key={contactNumber}
                           variant="text"
                           color="green"
-                          className="bg-white p-2 rounded-md group hover:cursor-pointer w-full text-start relative border-l-2 border-green-600"
+                          className="bg-white p-2 rounded-md hover:cursor-pointer w-full text-start relative border-l-2 border-green-600"
                           
                         >
                           {/* Product List */}
                           {products.map((product, index) => (
-                            <div key={product._id} className={`flex items-center justify-between p-2 ${
+                            <div key={product._id} className={`flex group items-center justify-between p-2 ${
                               index !== products.length - 1 ? "border-b border-gray-200" : ""
                             }`}>
                               <div className="flex items-center" onClick={() => {
@@ -346,6 +358,7 @@ const ProductDesign = () => {
                                     }}
                                     color="green"
                                     variant="text"
+                                    className="hidden group-hover:block"
                                   >
                                     {delLoading && deletingProductId === product._id ? (
                                       <ArrowPathIcon className="h-4 w-4 animate-spin" />
@@ -447,6 +460,11 @@ const ProductDesign = () => {
                                 {new Date(product?.updatedAt).toLocaleDateString('en-GB')}{" "}
                                 {new Date(product?.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                   </p>
+                                {active === false && product?.productNotes &&
+                                <p className="pt-2">
+                                  Note : <span className="text-gray-600">{product?.productNotes}</span>
+                                </p>
+                                }
                               </div>
                             </div>
                             {active === true ? (
@@ -501,7 +519,7 @@ const ProductDesign = () => {
     <AddProduct open={open} setOpen={setOpen} data={data} setData={setDate} />
     <AddXL open1={open1} setOpen1={setOpen1} active={active} />
     <ProductDetails details={details} setDetails={setDetails} handleEditProduct={handleEditProduct} data={data} setData={setDate} />
-      <Dialog size='xs' open={alertOpen} handler={() => setAlertOpen(false)}>
+      <Dialog size='xs' open={alertOpen} handler={() => {setAlertOpen(false); setError('');}}>
         <DialogHeader className="flex items-center gap-2">
             <div className="bg-red-100 p-2 rounded-full">
                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -516,9 +534,13 @@ const ProductDesign = () => {
             <Typography variant="small" className="text-gray-700">
                 Are you sure you want to delete this Product? This action cannot be undone.
             </Typography>
+            <Typography variant="small" className="text-gray-700 pt-3 relative">
+              <Textarea variant="outlined" size="md" label="Note" onChange={(e) => setProductNotes(e.target.value)} error={error} />
+              {error && <div className="text-red-500 text-[11px] absolute -bottom-3 right-0">{error}</div>}
+            </Typography>
         </DialogBody>
         <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outlined" color="gray" onClick={() => setAlertOpen(false)}>Cancel</Button>
+            <Button variant="outlined" color="gray" onClick={() => {setAlertOpen(false); setError('');}}>Cancel</Button>
             <Button color="red" onClick={handleDelete}>
                 {delLoading && deletingProductId  === productToDelete ? (
                     <div className='px-[13px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>

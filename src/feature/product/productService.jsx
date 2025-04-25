@@ -20,9 +20,11 @@ export const fetchProducts = async (search = '', active = true, productStatus= '
     }
   };
 
-  export const delProduct = async (productId) => {
+  export const delProduct = async (productId, productData) => {
     try {
-      const response = await axiosConfig.put(`products/delete/${productId}`);
+      console.log("productData", productData);
+      
+      const response = await axiosConfig.put(`products/delete/${productId}`, productData);
       return response.data;
     } catch (error) {
       console.error("Error fetching delete Product :", error);

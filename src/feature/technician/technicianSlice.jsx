@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { appTechnician, delPerTechnician, delTechnician, fetchTechnicianDropdown, fetchTechnicians, resTechnician } from "./technicianService";
+import { appTechnician, delPerTechnician, delTechnician, fetchTechnicianDropdown, fetchTechnicians, fetchTechnicianScoreLogs, resTechnician } from "./technicianService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -77,11 +77,24 @@ export const getTechnicianDropDown = createAsyncThunk("technician/getTechnicianD
     }
   });
 
+ export const getTechnicianScoreLogs= createAsyncThunk("technician/getTechnicianScoreLogs", async ({startDate, endDate, userId}) => {
+    try {
+      // console.log("startDateSlice", startDate)
+      // console.log("endDateSlice", endDate)
+      const data = await fetchTechnicianScoreLogs({startDate, endDate, userId});
+      return data;
+    } catch (error) {
+      console.error("Error in technician score logs thunk:", error);
+      throw error.response?.data?.error || error.message;
+    }
+  });
+
 const technicianSlice = createSlice({
     name: "technician",
     initialState: {
         technicians: [],
         technicianDrop: [],
+        technicianScoreData: [],
         delete: null,
         restore: null,
         approve: null,
@@ -92,6 +105,7 @@ const technicianSlice = createSlice({
             totalPages: 1,
         },
         loading: false,
+        tecnicianLoading: false,
         dropLoading: false,
         delLoading: false,
         error: null,
@@ -195,6 +209,18 @@ const technicianSlice = createSlice({
                 state.delLoading = false;
                 state.error = action.error.message;
                 toast.error(state.error);
+            })
+            .addCase(getTechnicianScoreLogs.pending, (state) => {
+                state.tecnicianLoading = true;
+            })
+            .addCase(getTechnicianScoreLogs.fulfilled, (state, action) => {
+                state.tecnicianLoading = false;
+                state.technicianScoreData = action.payload.result;
+                state.message = action.payload.message;
+            })
+            .addCase(getTechnicianScoreLogs.rejected, (state, action) => {
+                state.tecnicianLoading = false;
+                state.error = action.error.message;
             })
     },
 });

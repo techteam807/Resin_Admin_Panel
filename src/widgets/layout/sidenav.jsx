@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Link, NavLink } from "react-router-dom";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -14,6 +14,7 @@ import logo from "../../../public/img/BetterwaterTM_White.png"
 export function Sidenav({ brandImg, brandName, routes }) {
   const [controller, dispatch] = useMaterialTailwindController();
   const { sidenavType, openSidenav } = controller;
+  const [openDropdowns, setOpenDropdowns] = useState({});
   const sidenavTypes = {
     dark: "bg-gradient-to-br from-gray-800 to-gray-900",
     white: "bg-white shadow-sm",
@@ -27,6 +28,13 @@ export function Sidenav({ brandImg, brandName, routes }) {
     if (openSidenav) {
       setOpenSidenav(dispatch, false);
     }
+  };
+
+  const toggleDropdown = (name) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
   };
 
   return (
@@ -72,35 +80,75 @@ export function Sidenav({ brandImg, brandName, routes }) {
                   </Typography>
                 </li>
               )}
-              {pages.map(({ icon, name, path }) => (
+              {pages.map(({ icon, name, path, children }) => (
                 <li key={name}>
-                  <NavLink
-                    to={`/${layout}${path}`}
-                    onClick={handleNavLinkClick}
-                  >
-                    {({ isActive }) => (
+                  {children ? (
+                    <div className="group">
                       <Button
-                        variant={isActive ? "gradient" : "text"}
-                        color={
-                          isActive
-                            ? "white"
-                            : sidenavType === "dark"
-                            ? "white"
-                            : "white"
-                        }
-                        className="flex items-center gap-4 px-4 capitalize"
+                        variant="text"
+                        color="white"
+                        onClick={() => toggleDropdown(name)}
+                        className="flex items-center justify-between w-full gap-4 px-4 capitalize"
                         fullWidth
                       >
-                        {icon}
-                        <Typography
-                          color="inherit"
-                          className="font-medium capitalize"
+                        <div className="flex items-center gap-4">
+                          {icon}
+                          <Typography color="inherit" className="font-medium capitalize">
+                            {name}
+                          </Typography>
+                        </div>
+                        <span
+                          className={`transition-transform ${
+                            openDropdowns[name] ? "rotate-90" : ""
+                          }`}
                         >
-                          {name}
-                        </Typography>
+                          &#x25B6;
+                        </span>
                       </Button>
-                    )}
-                  </NavLink>
+                      {openDropdowns[name] && (
+                        <ul className="ml-6 mt-1 flex flex-col gap-1">
+                          {children.map(({ icon, name, path }) => (
+                            <li key={name}>
+                              <NavLink to={`/dashboard${path}`} onClick={handleNavLinkClick}>
+                                {({ isActive }) => (
+                                  <Button
+                                    variant={isActive ? "gradient" : "text"}
+                                    color="white"
+                                    className="flex items-center gap-4 px-4 capitalize"
+                                    fullWidth
+                                  >
+                                    {icon}
+                                    <Typography
+                                      color="inherit"
+                                      className="font-medium capitalize"
+                                    >
+                                      {name}
+                                    </Typography>
+                                  </Button>
+                                )}
+                              </NavLink>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ) : (
+                    <NavLink to={`/${layout}${path}`} onClick={handleNavLinkClick}>
+                      {({ isActive }) => (
+                        <Button
+                          variant={isActive ? "gradient" : "text"}
+                          color="white"
+                          className="flex items-center gap-4 px-4 capitalize"
+                          fullWidth
+                        >
+                          {icon}
+                          <Typography color="inherit" className="font-medium capitalize">
+                            {name}
+                          </Typography>
+                        </Button>
+                      )}
+                    </NavLink>
+                  )}
                 </li>
               ))}
             </ul>
