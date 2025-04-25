@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { ArrowPathIcon, PencilIcon, XMarkIcon, ClipboardIcon, CheckIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, PencilIcon, XMarkIcon, ClipboardIcon, CheckIcon, FlagIcon } from "@heroicons/react/24/solid";
 import {
   Card,
   CardHeader,
@@ -9,23 +9,27 @@ import {
   Button,
   CardBody,
   Chip,
-  CardFooter,
-  Avatar,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
 } from "@material-tailwind/react";
 import { useDispatch, useSelector } from "react-redux";
-import { getCustomers, refreshcustomers } from '@/feature/customer/customerSlice';
+import { getCustomers, refreshcustomers, sendMissedDelivery } from '@/feature/customer/customerSlice';
 import Loader from '../Loader';
 import Pagination from '@/common/Pagination';
 
 function Home() {
   const dispatch = useDispatch();
   const [searchValue, setSearchValue] = useState("");
-  const { customers, loading, pagination } = useSelector((state) => state.customer);
+  const { customers, loading, pagination, sendLoading } = useSelector((state) => state.customer);
   console.log("customers", customers)
   console.log("pagination", pagination)
   const [copiedCustomerId, setCopiedCustomerId] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [customerId, setCustomerId] = useState(null);
   
 
   useEffect(() => {
@@ -42,7 +46,15 @@ function Home() {
         dispatch(getCustomers({ page: 1 }));
       }
     });
-  };  
+  }; 
+  
+  const sendMissDelivery = () => {
+    dispatch(sendMissedDelivery({ customer_id: customerId }))
+      .then(() => {
+        setCustomerId(null);
+        setOpen(false);
+      });
+  }  
 
   const handleCopy = (customerId, contactNumber) => {
     if (contactNumber) {
@@ -66,7 +78,7 @@ function Home() {
     dispatch(getCustomers({ page, search: searchValue }));
   };
 
-  const TABLE_HEAD = ["Index", "Customer", "Number / Email", "Barcode", "No. of Cartridge"];
+  const TABLE_HEAD = ["Index", "Customer", "Number / Email", "Barcode", "Missed Delivery", "No. of Cartridge"];
 
   return (
     <div className="">
@@ -139,16 +151,16 @@ function Home() {
                 return (
                   // <tr key={index} className="hover:bg-gray-50">
                     <tr key={index} className="hover:bg-gray-50">
-  {/* Index column */}
-  <td className={classes}>
-    <Typography
-      variant="small"
-      color="blue-gray"
-      className="font-normal ps-2"
-    >
-      {globalIndex}
-    </Typography>
-  </td>
+                    {/* Index column */}
+                    <td className={classes}>
+                      <Typography
+                        variant="small"
+                        color="blue-gray"
+                        className="font-normal ps-2"
+                      >
+                        {globalIndex}
+                      </Typography>
+                    </td>
                     <td className={classes}>
                       <div className="flex items-center gap-3">
 
@@ -213,6 +225,13 @@ function Home() {
                     </div>
                     </td>
                     <td className={classes}>
+                      <Tooltip content="Missed Delivery">
+                        <IconButton size='sm' variant="outlined" color='red' onClick={() => {setOpen(true); setCustomerId(customer?._id)}}>
+                          <FlagIcon className="h-4 w-4" />
+                        </IconButton>
+                      </Tooltip>
+                    </td>
+                    <td className={classes}>
                       <Typography
                         variant="small"
                         color="blue-gray"
@@ -236,6 +255,33 @@ function Home() {
         </table>
         </div>
       </CardBody>
+      <Dialog size='xs' open={open} handler={() => {setOpen(false); setCustomerId(null)}}>
+        <DialogHeader className="flex items-center gap-2">
+            <div className="bg-red-100 p-2 rounded-full">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
+                </svg>
+            </div>
+            <Typography variant="h6" className="text-red-600 font-semibold">
+                Send Missed Delivery
+            </Typography>
+        </DialogHeader>
+        <DialogBody>
+            <Typography variant="small" className="text-gray-700">
+                Are you sure you want to send missed delivery notification? This action cannot be undone.
+            </Typography>
+        </DialogBody>
+        <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outlined" color="gray" onClick={() => {setOpen(false); setCustomerId(null)}}>Cancel</Button>
+            <Button color="red" onClick={sendMissDelivery}>
+                {sendLoading ? (
+                    <div className='px-[8px]'><ArrowPathIcon className="h-4 w-4 animate-spin" /></div>
+                ) : (
+                    "Send"
+                )}
+            </Button>
+        </DialogFooter>
+      </Dialog>
       <Pagination
       currentPage={pagination.currentPage}
       totalPages={pagination.totalPages}

@@ -93,7 +93,8 @@ const Map = () => {
     const [customers, setCustomers] = useState([]);
     const [userLocation, setUserLocation] = useState(null);
     const [destination, setDestination] = useState(null);
-
+    console.log("locations", locations);
+    
     // useEffect(() => {
     //     axios.get(`${BACKEND_URL}/admin/locations`)
     //         .then(response => setLocations([...locations, ...response.data]))
@@ -133,11 +134,13 @@ const Map = () => {
                 .map(item => {
                     const { coordinates } = item.geoCoordinates;
                     const productNames = item.customer.products.map(p => p.productCode).join(", ");
+                    const fName = item?.customer?.name;
                     return {
                         id: item.customer.id,
                         name: productNames,
-                        lat: coordinates[1], // [lng, lat]
+                        lat: coordinates[1],
                         lng: coordinates[0],
+                        fName: fName,
                     };
                 });
     
@@ -151,11 +154,13 @@ const Map = () => {
     
             const finalLocations = Object.keys(grouped).map(key => {
                 const group = grouped[key];
+                
                 return {
                     id: group[0].id,
                     lat: group[0].lat,
                     lng: group[0].lng,
                     name: group.map(g => g.name).join(', '),
+                    fName: group[0].fName,
                     allProducts: group,
                 };
             });
@@ -190,9 +195,9 @@ const Map = () => {
       <div>
       <div className="p-2 absolute z-20 m-3 bg-white shadow-md rounded-lg right-4 font-medium">
         <div className="flex gap-4">
-            <div className="flex items-center">
+            {/* <div className="flex items-center">
                 Customer: <img src={customer_icon} alt="Customer Icon" className="w-4 h-6 ml-2" />
-            </div>
+            </div> */}
             <div className="flex items-center">
                 Product: <img src={product_icon} alt="Product Icon" className="w-4 h-6 ml-2" />
             </div>
@@ -222,12 +227,13 @@ const Map = () => {
                         }}
                     >
                         <Popup>
-                            <strong></strong> {loc.name}
+                            <div>{loc.fName}</div>
+                            <strong>{loc.name}</strong>
                         </Popup>
                     </Marker>
                     ))}
 
-                    {customers.map((customer, index) => (
+                    {/* {customers.map((customer, index) => (
                         <Marker
                             key={`cust-${index}`}
                             position={[customer.lat, customer.lng]}
@@ -237,7 +243,7 @@ const Map = () => {
                                 <strong>{customer.name}</strong>
                             </Popup>
                         </Marker>
-                    ))}
+                    ))} */}
 
                     {/* {userLocation && destination && (
                         <RouteLayer userLocation={userLocation} destination={destination} />

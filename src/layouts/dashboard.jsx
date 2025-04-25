@@ -35,12 +35,17 @@ export function Dashboard() {
           <Cog6ToothIcon className="h-5 w-5" />
         </IconButton> */}
         <Routes>
-          {routes.map(
+          {routes.flatMap(
             ({ layout, pages }) =>
               layout === "dashboard" &&
-              pages.map(({ path, element }) => (
-                <Route exact path={path} element={element} />
-              ))
+              pages.flatMap(({ path, element, children }) => {
+                if (children) {
+                  return children.map(({ path, element }) => (
+                    <Route key={path} path={path} element={element} />
+                  ));
+                }
+                return <Route key={path} path={path} element={element} />;
+              })
           )}
         </Routes>
         <div className="text-blue-gray-600">

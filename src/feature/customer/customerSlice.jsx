@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -47,14 +47,43 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
     }
   });
 
+  export const sendMissedDelivery = createAsyncThunk(
+      "customer/sendMissedDelivery",
+      async (customerData) => {
+        try {
+          const data = await sendDelivery(customerData);
+          return data;
+        } catch (error) {
+          console.error("Error in send delivery thunk:", error);
+          throw error.response?.data?.message || error.message || "Something went wrong";
+        }
+      }
+    );
+
+  export const getMissedDeliveryLogs= createAsyncThunk("customer/getMissedDeliveryLogs", async ({startDate, endDate, customerId}) => {
+    try {
+      // console.log("startDateSlice", startDate)
+      // console.log("endDateSlice", endDate)
+      const data = await fetchMissedDeliveryLogs({startDate, endDate, customerId});
+      return data;
+    } catch (error) {
+      console.error("Error in missed delivery logs thunk:", error);
+      throw error.response?.data?.error || error.message;
+    }
+  });
+
   const customerSlice = createSlice({
     name: "customer",
     initialState: {
       customers: [],
       customersMap: [],
       customersDropdown: [],
+      missedDeliveryData: [],
+      missedDelivery: null,
       loading: false,
+      sendLoading: false,
       mapLoading: false,
+      deliveryLoading: false,
       create: null,
       error: null,
       pagination: {
@@ -121,6 +150,32 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
           state.loading = false;
           state.error = action.error.message;
           toast.error(state.error);
+        })
+        .addCase(sendMissedDelivery.pending, (state) => {
+          state.sendLoading = true;
+        })
+        .addCase(sendMissedDelivery.fulfilled, (state, action) => {
+          state.sendLoading = false;
+          state.missedDelivery = action.payload.data;
+          state.message = action.payload.message;
+          toast.success(state.message);
+        })
+        .addCase(sendMissedDelivery.rejected, (state, action) => {
+          state.sendLoading = false;
+          state.error = action.error.message;
+          toast.error(state.error);
+        })
+        .addCase(getMissedDeliveryLogs.pending, (state) => {
+          state.deliveryLoading = true;
+        })
+        .addCase(getMissedDeliveryLogs.fulfilled, (state, action) => {
+          state.deliveryLoading = false;
+          state.missedDeliveryData = action.payload.data;
+          state.message = action.payload.message;
+        })
+        .addCase(getMissedDeliveryLogs.rejected, (state, action) => {
+          state.deliveryLoading = false;
+          state.error = action.error.message;
         })
     },
   });

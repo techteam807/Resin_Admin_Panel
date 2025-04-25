@@ -66,3 +66,21 @@ export const fetchTechnicians = async (page = 1, search = '', user_status = "") 
       throw error;
     }
   };
+
+  export const fetchTechnicianScoreLogs = async ({ startDate, endDate, userId }) => {
+    try {
+      const params = {
+        startDate,
+        endDate,
+        ...(userId && { userId }),
+      };
+  
+      const response = await axiosConfig.get('logsManagement/logs/technicianScore', {
+        params,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching technician score logs:', error);
+      throw error;
+    }
+  };
