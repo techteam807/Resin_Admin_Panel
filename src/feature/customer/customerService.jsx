@@ -47,6 +47,22 @@ export const fetchCustomers = async (page = 1, search = '') => {
     }
   };
 
+  export const fetchCustomersClusterMap = async (numClusters, maxCustomersPerCluster) => {
+    try {
+      const params = {
+        numClusters,
+        maxCustomersPerCluster,
+      };
+      const response = await axiosConfig.get(`customers/customerLocationCluster`, {
+        params
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching products map:', error);
+      throw error;
+    }
+  };
+
   export const sendDelivery = async (customerData) => {
     try {
       const response = await axiosConfig.post(`customers/SendMissedCartidgeMsg`, customerData);

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -17,6 +17,16 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
     export const getCustomersMap = createAsyncThunk("customer/getCustomersMap", async () => {
       try {
         const data = await fetchCustomersMap();
+        return data;
+      } catch (error) {
+        console.error("Error in getProductsMap thunk:", error);
+        throw error.response?.data?.error || error.message;
+      }
+    });
+
+    export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({numClusters, maxCustomersPerCluster}) => {
+      try {
+        const data = await fetchCustomersClusterMap(numClusters, maxCustomersPerCluster);
         return data;
       } catch (error) {
         console.error("Error in getProductsMap thunk:", error);
@@ -79,6 +89,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
       customersMap: [],
       customersDropdown: [],
       missedDeliveryData: [],
+      customersClusterMap: [],
       missedDelivery: null,
       loading: false,
       sendLoading: false,
@@ -121,6 +132,18 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
           state.message = action.payload.message;
         })
         .addCase(getCustomersMap.rejected, (state, action) => {
+          state.mapLoading = false;
+          state.error = action.error.message;
+        })
+        .addCase(getCustomersClusterMap.pending, (state) => {
+          state.mapLoading = true;
+        })
+        .addCase(getCustomersClusterMap.fulfilled, (state, action) => {
+          state.mapLoading = false;
+          state.customersClusterMap = action.payload.data;
+          state.message = action.payload.message;
+        })
+        .addCase(getCustomersClusterMap.rejected, (state, action) => {
           state.mapLoading = false;
           state.error = action.error.message;
         })
