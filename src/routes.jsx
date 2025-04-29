@@ -87,12 +87,12 @@ export const routes = [
             path: "/missed-delivery-log",
             element: <MissedDeliveryLog />,
           },
-          {
-            icon: <AcademicCapIcon {...icon} />,
-            name: "Technician Score Log",
-            path: "/score-log",
-            element: <TechnicianScorrLog />,
-          },
+          // {
+          //   icon: <AcademicCapIcon {...icon} />,
+          //   name: "Technician Score Log",
+          //   path: "/score-log",
+          //   element: <TechnicianScorrLog />,
+          // },
         ],
       },      
       {
