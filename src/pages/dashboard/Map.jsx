@@ -195,9 +195,9 @@ const Map = () => {
       <div>
       <div className="p-2 absolute z-20 m-3 bg-white shadow-md rounded-lg right-4 font-medium">
         <div className="flex gap-4">
-            {/* <div className="flex items-center">
+            <div className="flex items-center">
                 Customer: <img src={customer_icon} alt="Customer Icon" className="w-4 h-6 ml-2" />
-            </div> */}
+            </div>
             <div className="flex items-center">
                 Product: <img src={product_icon} alt="Product Icon" className="w-4 h-6 ml-2" />
             </div>
@@ -222,9 +222,9 @@ const Map = () => {
                         key={index}
                         position={[loc.lat, loc.lng]}
                         icon={locationIcon}
-                        eventHandlers={{
-                            click: () => setDestination({ lat: loc.lat, lng: loc.lng }),
-                        }}
+                        // eventHandlers={{
+                        //     click: () => setDestination({ lat: loc.lat, lng: loc.lng }),
+                        // }}
                     >
                         <Popup>
                             <div>{loc.fName}</div>
@@ -233,7 +233,7 @@ const Map = () => {
                     </Marker>
                     ))}
 
-                    {/* {customers.map((customer, index) => (
+                    {customers.map((customer, index) => (
                         <Marker
                             key={`cust-${index}`}
                             position={[customer.lat, customer.lng]}
@@ -243,7 +243,7 @@ const Map = () => {
                                 <strong>{customer.name}</strong>
                             </Popup>
                         </Marker>
-                    ))} */}
+                    ))}
 
                     {/* {userLocation && destination && (
                         <RouteLayer userLocation={userLocation} destination={destination} />
