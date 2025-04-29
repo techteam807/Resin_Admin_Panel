@@ -38,12 +38,12 @@ useEffect(()=> {
 }, [dispatch])
 
   return (
-    <div>
-      {mapLoading ? (
+    <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
+      {/* {mapLoading ? (
         <div className="flex h-[80vh] items-center justify-center">
           <Loader />
         </div>
-      ) : (
+      ) : ( */}
         <div className="h-[80vh]">
           <MapContainer center={[23.0225, 72.5714]} zoom={11} className="rounded-xl" style={{ height: "100%", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -56,32 +56,35 @@ useEffect(()=> {
                 }))
             } />
 
-{customersClusterMap
-    .filter(cust => cust.geoCoordinates?.coordinates?.length === 2) // ✅ safe
-    .map((cust, idx) => {
-      const lat = cust.geoCoordinates.coordinates[1];
-      const lng = cust.geoCoordinates.coordinates[0];
-      return (
-        <React.Fragment key={idx}>
-          <Circle
-            center={[lat, lng]}
-            radius={500}
-            pathOptions={{ color: clusterColors[cust.cluster % clusterColors.length], fillOpacity: 0.3 }}
-          />
-          <Marker position={[lat, lng]} icon={customerIcon}>
-            <Popup>
-              <div>
-                <strong>{cust.display_name}</strong> <br />
-                Cluster: {cust.cluster}
-              </div>
-            </Popup>
-          </Marker>
-        </React.Fragment>
-      );
-    })}
+            {customersClusterMap
+                .filter(cust => cust.geoCoordinates?.coordinates?.length === 2) // ✅ safe
+                .map((cust, idx) => {
+                  const lat = cust.geoCoordinates.coordinates[1];
+                  const lng = cust.geoCoordinates.coordinates[0];
+                  return (
+                    <React.Fragment key={idx}>
+                      <Circle
+                        center={[lat, lng]}
+                        radius={500}
+                        pathOptions={{ color: clusterColors[cust.cluster % clusterColors.length], fillOpacity: 0.3 }}
+                      />
+                      <Marker position={[lat, lng]} icon={customerIcon}>
+                        <Popup>
+                          <div>
+                            <strong>{cust.display_name}</strong> <br />
+                            Cluster: {cust.cluster}
+                          </div>
+                        </Popup>
+                      </Marker>
+                    </React.Fragment>
+                  );
+                })}
           </MapContainer>
         </div>
-      )}
+      {/* )} */}
+      <div className="pt-5">
+        
+      </div>
     </div>
   );
 };
