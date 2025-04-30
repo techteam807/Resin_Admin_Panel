@@ -47,15 +47,19 @@ export const fetchCustomers = async (page = 1, search = '') => {
     }
   };
 
-  export const fetchCustomersClusterMap = async (numClusters, maxCustomersPerCluster) => {
+  export const fetchCustomersClusterMap = async () => {
     try {
-      const params = {
-        numClusters,
-        maxCustomersPerCluster,
-      };
-      const response = await axiosConfig.get(`customers/customerLocationCluster`, {
-        params
-      });
+      const response = await axiosConfig.get(`customers/clusters`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching products map:', error);
+      throw error;
+    }
+  };
+
+  export const updateCustomersClusterMap = async (reassignments) => {
+    try {
+      const response = await axiosConfig.put(`customers/clusters/reassign-batch`, reassignments);
       return response.data;
     } catch (error) {
       console.error('Error fetching products map:', error);

@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -24,12 +24,23 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
       }
     });
 
-    export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({numClusters, maxCustomersPerCluster}) => {
+    export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async () => {
       try {
-        const data = await fetchCustomersClusterMap(numClusters, maxCustomersPerCluster);
+        const data = await fetchCustomersClusterMap();
         return data;
       } catch (error) {
-        console.error("Error in getProductsMap thunk:", error);
+        console.error("Error in getCustomersClusterMap thunk:", error);
+        throw error.response?.data?.error || error.message;
+      }
+    });
+
+    export const editCustomersClusterMap = createAsyncThunk("customer/editCustomersClusterMap", async ({reassignments}) => {
+      try {
+        console.log("reassignments", reassignments)
+        const data = await updateCustomersClusterMap(reassignments);
+        return data;
+      } catch (error) {
+        console.error("Error in editCustomersClusterMap thunk:", error);
         throw error.response?.data?.error || error.message;
       }
     });
@@ -144,6 +155,18 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
           state.message = action.payload.message;
         })
         .addCase(getCustomersClusterMap.rejected, (state, action) => {
+          state.mapLoading = false;
+          state.error = action.error.message;
+        })
+        .addCase(editCustomersClusterMap.pending, (state) => {
+          state.mapLoading = true;
+        })
+        .addCase(editCustomersClusterMap.fulfilled, (state, action) => {
+          state.mapLoading = false;
+          state.customersClusterMap = action.payload.data;
+          state.message = action.payload.message;
+        })
+        .addCase(editCustomersClusterMap.rejected, (state, action) => {
           state.mapLoading = false;
           state.error = action.error.message;
         })
