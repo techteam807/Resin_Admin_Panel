@@ -10,7 +10,7 @@ import {
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import Loader from "../Loader";
-import { editCustomersClusterMap, getCustomersClusterMap } from "@/feature/customer/customerSlice";
+import { editCustomersClusterMap, getCustomersClusterMap, refreshCustomersClusterMap } from "@/feature/customer/customerSlice";
 import { useDispatch, useSelector } from "react-redux";
 import "./Home.css";
 import { Button, Typography } from "@material-tailwind/react";
@@ -40,8 +40,10 @@ const FitBounds = ({ locations }) => {
 
 const MapCluster = () => {
   const dispatch = useDispatch();
-  const { customersClusterMap, mapLoading } = useSelector((state) => state.customer);
+  const { customersClusterMap, mapLoading, refreshLoading } = useSelector((state) => state.customer);
   const [data, setData] = useState([]);
+
+  console.log("refreshLoading", refreshLoading)
 
   useEffect(() => {
     dispatch(getCustomersClusterMap());
@@ -75,18 +77,23 @@ const MapCluster = () => {
     setData(newData);
   };
 
+  const refreshCluster = () => {
+    dispatch(refreshCustomersClusterMap()).unwrap()
+    dispatch(getCustomersClusterMap());
+  }
+
   const handleSave = () => {
     const reassignments = [];
-  
+
     data.forEach((cluster, clusterIndex) => {
       cluster.customers.forEach(customer => {
         // Find the original cluster this customer belonged to
         const originalCluster = customersClusterMap.find(c =>
           c.customers.some(orig => orig._id === customer.customerId)
         );
-  
+
         const originalClusterNo = originalCluster?.clusterNo;
-  
+
         if (originalClusterNo !== clusterIndex) {
           reassignments.push({
             customerId: customer.customerId,
@@ -95,16 +102,23 @@ const MapCluster = () => {
         }
       });
     });
-  
+
     console.log("Reassignments:", reassignments);
-  
+
     // dispatch your update action here
-    dispatch(editCustomersClusterMap({ reassignments }));
+    dispatch(editCustomersClusterMap({ reassignments: { reassignments: reassignments } })).unwrap();
+    dispatch(getCustomersClusterMap());
   };
-  
+
 
   return (
     <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
+       {refreshLoading ? (
+        <div className="flex h-[80vh] items-center justify-center">
+          <Loader />
+        </div>
+      ) : (
+        <>
       <div className="p-4 overflow-x-auto border-blue-gray-100">
         <div className="mb-4 border rounded-lg p-2 px-3 flex items-center justify-between">
           <div>
@@ -112,10 +126,17 @@ const MapCluster = () => {
               Cluster List
             </Typography>
           </div>
-          <div>
-            <Button size="md" variant="gradient" onClick={handleSave}>
-              Save
-            </Button>
+          <div className="flex gap-2">
+            <div>
+              <Button size="md" variant="gradient" onClick={refreshCluster}>
+                Refresh Cluster
+              </Button>
+            </div>
+            <div>
+              <Button size="md" variant="gradient" onClick={handleSave}>
+                Save
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -138,26 +159,54 @@ const MapCluster = () => {
                       className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
                     >
                       {cluster.customers.map((customer, idx) => (
+                        // <Draggable
+                        //   key={customer.code}
+                        //   draggableId={customer.code}
+                        //   index={idx}
+                        // >
+                        //   {(provided, snapshot) => (
+                        //     <div
+                        //       ref={provided.innerRef}
+                        //       {...provided.draggableProps}
+                        //       {...provided.dragHandleProps}
+                        //       className={`bg-white rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 border-black ${snapshot.isDragging
+                        //         ? "bg-blue-50 shadow-md"
+                        //         : ""
+                        //         }`}
+                        //     >
+                        //       {customer.code} <br />
+                        //       {customer.displayName}
+                        //     </div>
+                        //   )}
+                        // </Draggable>
+
                         <Draggable
                           key={customer.code}
                           draggableId={customer.code}
                           index={idx}
                         >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`bg-white rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 border-black ${snapshot.isDragging
-                                ? "bg-blue-50 shadow-md"
-                                : ""
-                              }`}
-                            >
-                              {customer.code} <br />
-                              {customer.displayName}
-                            </div>
-                          )}
+                          {(provided, snapshot) => {
+                            const clusterColor = clusterColors[index % clusterColors.length];
+
+                            return (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`bg-white rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""}`}
+                                style={{
+                                  ...provided.draggableProps.style, // keep drag styles
+                                  borderLeftColor: clusterColor,
+                                  color: clusterColor,
+                                }}
+                              >
+                                {customer.code} <br />
+                                {customer.displayName}
+                              </div>
+                            );
+                          }}
                         </Draggable>
+
                       ))}
                       {provided.placeholder}
                     </div>
@@ -181,43 +230,56 @@ const MapCluster = () => {
         <div className="h-[80vh] mt-28">
           <MapContainer center={[23.0225, 72.5714]} zoom={11} className="rounded-xl" style={{ height: "100%", width: "100%" }}>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <FitBounds locations={
-              customersClusterMap
-                .flatMap(c => c.customers)
-                .filter(c => c.geoCoordinates?.coordinates?.length === 2)
-                .map(c => ({
-                  lat: c.geoCoordinates.coordinates[1],
-                  lng: c.geoCoordinates.coordinates[0],
-                }))
-            } />
+            <FitBounds
+              locations={
+                Array.isArray(customersClusterMap)
+                  ? customersClusterMap
+                    .flatMap(c => c.customers)
+                    .filter(c => c.geoCoordinates?.coordinates?.length === 2)
+                    .map(c => ({
+                      lat: c.geoCoordinates.coordinates[1],
+                      lng: c.geoCoordinates.coordinates[0],
+                    }))
+                  : []
+              }
+            />
 
-            {customersClusterMap
-              .flatMap(c => c.customers)
-              .filter(c => c.geoCoordinates?.coordinates?.length === 2)
-              .map((cust, idx) => {
-                const lat = cust.geoCoordinates.coordinates[1];
-                const lng = cust.geoCoordinates.coordinates[0];
-                return (
-                  <React.Fragment key={idx}>
-                    <Circle
-                      center={[lat, lng]}
-                      radius={500}
-                      pathOptions={{ color: clusterColors[idx % clusterColors.length], fillOpacity: 0.3 }}
-                    />
-                    <Marker position={[lat, lng]} icon={customerIcon}>
-                      <Popup>
-                        <div>
-                          <strong>{cust.display_name}</strong> <br />
-                          {cust.contact_number}
-                        </div>
-                      </Popup>
-                    </Marker>
-                  </React.Fragment>
-                );
-              })}
+            {Array.isArray(customersClusterMap)
+              ? customersClusterMap.map((cluster) => {
+                const clusterColor = clusterColors[cluster.clusterNo % clusterColors.length];
+
+                return cluster.customers
+                  .filter(c => c.geoCoordinates?.coordinates?.length === 2)
+                  .map((cust, idx) => {
+                    const lat = cust.geoCoordinates.coordinates[1];
+                    const lng = cust.geoCoordinates.coordinates[0];
+                    return (
+                      <React.Fragment key={`${cust._id}-${idx}`}>
+                        <Circle
+                          center={[lat, lng]}
+                          radius={500}
+                          pathOptions={{ color: clusterColor, fillOpacity: 0.3 }}
+                        />
+                        <Marker position={[lat, lng]} icon={customerIcon}>
+                          <Popup>
+                            <div>
+                              <strong>{cust.display_name}</strong> <br />
+                              {cust.contact_number}
+                            </div>
+                          </Popup>
+                        </Marker>
+                      </React.Fragment>
+                    );
+                  });
+              })
+              : null}
+
+
           </MapContainer>
         </div>
       )}
+      </>
+    )}
     </div>
   );
 };

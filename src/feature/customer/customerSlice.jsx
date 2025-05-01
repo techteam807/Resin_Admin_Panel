@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -30,6 +30,16 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
         return data;
       } catch (error) {
         console.error("Error in getCustomersClusterMap thunk:", error);
+        throw error.response?.data?.error || error.message;
+      }
+    });
+
+    export const refreshCustomersClusterMap = createAsyncThunk("customer/refreshCustomersClusterMap", async () => {
+      try {
+        const data = await refetchCustomersClusterMap();
+        return data;
+      } catch (error) {
+        console.error("Error in refreshCustomersClusterMap thunk:", error);
         throw error.response?.data?.error || error.message;
       }
     });
@@ -105,6 +115,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
       loading: false,
       sendLoading: false,
       mapLoading: false,
+      refreshLoading: false,
       deliveryLoading: false,
       create: null,
       error: null,
@@ -156,6 +167,18 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
         })
         .addCase(getCustomersClusterMap.rejected, (state, action) => {
           state.mapLoading = false;
+          state.error = action.error.message;
+        })
+        .addCase(refreshCustomersClusterMap.pending, (state) => {
+          state.refreshLoading = true;
+        })
+        .addCase(refreshCustomersClusterMap.fulfilled, (state, action) => {
+          state.refreshLoading = false;
+          state.refreshData = action.payload.data;
+          state.message = action.payload.message;
+        })
+        .addCase(refreshCustomersClusterMap.rejected, (state, action) => {
+          state.refreshLoading = false;
           state.error = action.error.message;
         })
         .addCase(editCustomersClusterMap.pending, (state) => {

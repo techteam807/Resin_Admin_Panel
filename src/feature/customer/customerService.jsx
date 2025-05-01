@@ -57,6 +57,16 @@ export const fetchCustomers = async (page = 1, search = '') => {
     }
   };
 
+  export const refetchCustomersClusterMap = async () => {
+    try {
+      const response = await axiosConfig.get(`customers/customerLocationCluster`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching products map:', error);
+      throw error;
+    }
+  };
+
   export const updateCustomersClusterMap = async (reassignments) => {
     try {
       const response = await axiosConfig.put(`customers/clusters/reassign-batch`, reassignments);
