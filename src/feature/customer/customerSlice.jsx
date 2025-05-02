@@ -40,7 +40,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
         return data;
       } catch (error) {
         console.error("Error in refreshCustomersClusterMap thunk:", error);
-        throw error.response?.data?.error || error.message;
+        throw error.response?.data?.message || error.message;
       }
     });
 
@@ -111,6 +111,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
       customersDropdown: [],
       missedDeliveryData: [],
       customersClusterMap: [],
+      updatedcustomersClusterMap: [],
       missedDelivery: null,
       loading: false,
       sendLoading: false,
@@ -176,22 +177,26 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
           state.refreshLoading = false;
           state.refreshData = action.payload.data;
           state.message = action.payload.message;
+          toast.success(state.message);
         })
         .addCase(refreshCustomersClusterMap.rejected, (state, action) => {
           state.refreshLoading = false;
           state.error = action.error.message;
+          toast.error(state.error);
         })
         .addCase(editCustomersClusterMap.pending, (state) => {
           state.mapLoading = true;
         })
         .addCase(editCustomersClusterMap.fulfilled, (state, action) => {
           state.mapLoading = false;
-          state.customersClusterMap = action.payload.data;
+          state.updatedcustomersClusterMap = action.payload.data;
           state.message = action.payload.message;
+          toast.success(state.message);
         })
         .addCase(editCustomersClusterMap.rejected, (state, action) => {
           state.mapLoading = false;
           state.error = action.error.message;
+          toast.error(state.error);
         })
         .addCase(refreshcustomers.pending, (state) => {
           state.loading = true;
