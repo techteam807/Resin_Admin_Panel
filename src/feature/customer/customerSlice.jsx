@@ -51,7 +51,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
         return data;
       } catch (error) {
         console.error("Error in editCustomersClusterMap thunk:", error);
-        throw error.response?.data?.error || error.message;
+        throw error.response?.data?.message || error.message;
       }
     });
 
@@ -164,6 +164,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
         .addCase(getCustomersClusterMap.fulfilled, (state, action) => {
           state.mapLoading = false;
           state.customersClusterMap = action.payload.data;
+          console.log("action.payload", action.payload)
           state.message = action.payload.message;
         })
         .addCase(getCustomersClusterMap.rejected, (state, action) => {
@@ -171,16 +172,16 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
           state.error = action.error.message;
         })
         .addCase(refreshCustomersClusterMap.pending, (state) => {
-          state.refreshLoading = true;
+          state.mapLoading = true;
         })
         .addCase(refreshCustomersClusterMap.fulfilled, (state, action) => {
-          state.refreshLoading = false;
+          state.mapLoading = false;
           state.refreshData = action.payload.data;
           state.message = action.payload.message;
           toast.success(state.message);
         })
         .addCase(refreshCustomersClusterMap.rejected, (state, action) => {
-          state.refreshLoading = false;
+          state.mapLoading = false;
           state.error = action.error.message;
           toast.error(state.error);
         })
@@ -190,12 +191,15 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
         .addCase(editCustomersClusterMap.fulfilled, (state, action) => {
           state.mapLoading = false;
           state.updatedcustomersClusterMap = action.payload.data;
+          console.log("hell", action.payload)
           state.message = action.payload.message;
           toast.success(state.message);
         })
         .addCase(editCustomersClusterMap.rejected, (state, action) => {
           state.mapLoading = false;
           state.error = action.error.message;
+          console.log("hell", action.error)
+          
           toast.error(state.error);
         })
         .addCase(refreshcustomers.pending, (state) => {

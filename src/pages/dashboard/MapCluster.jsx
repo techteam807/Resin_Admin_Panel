@@ -81,11 +81,16 @@ const MapCluster = () => {
   };
 
   const refreshCluster = () => {
-    dispatch(refreshCustomersClusterMap()).unwrap()
-    if(refreshData){
-    dispatch(getCustomersClusterMap());
-  }
-  }
+    dispatch(refreshCustomersClusterMap())
+      .unwrap()
+      .then(() => {
+          dispatch(getCustomersClusterMap());
+      })
+      .catch((error) => {
+        console.error('Refresh failed:', error);
+      });
+  };
+  
 
   const handleSave = () => {
     const reassignments = [];
@@ -108,16 +113,19 @@ const MapCluster = () => {
       });
     });
 
-    dispatch(editCustomersClusterMap({ reassignments: { reassignments: reassignments } })).unwrap();
-    if (updatedcustomersClusterMap){
+    dispatch(editCustomersClusterMap({ reassignments: { reassignments: reassignments } })).unwrap()
+    .then(() => {
+      dispatch(getCustomersClusterMap());
+  })
+  .catch((error) => {
     dispatch(getCustomersClusterMap());
-    }
+  });
   };
 
 
   return (
     <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
-      {refreshLoading ? (
+      {mapLoading ? (
         <div className="flex h-[80vh] items-center justify-center">
           <Loader />
         </div>
