@@ -95,7 +95,7 @@ const TechnicianScorrLog = () => {
           dispatch(getTechnicianScoreLogs({ startDate: defaultStart, endDate: defaultEnd }));
       };
 
-      const TABLE_HEAD = ["Index", "Technician", "Efficiency Score", "Total Replacements"];
+      const TABLE_HEAD = ["Index", "Technician", "Efficiency Score", "Average Time (Minute)", "Total Replacements"];
 
   return (
     <div>
@@ -241,6 +241,17 @@ const TechnicianScorrLog = () => {
                                     className="font-normal"
                                   >
                                     {customer?.averageEfficiencyScore}
+                                  </Typography>
+                                </div>
+                              </td>
+                              <td className={classes}>
+                                <div className="flex flex-col">
+                                  <Typography
+                                    variant="small"
+                                    color="blue-gray"
+                                    className="font-normal"
+                                  >
+                                    {customer?.averageReplacementTime}
                                   </Typography>
                                 </div>
                               </td>
