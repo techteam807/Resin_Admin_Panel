@@ -191,12 +191,12 @@ const MapCluster = () => {
                                     pathOptions={{ color: clusterColor, fillOpacity: 0.3 }}
                                   />
                                   <Marker position={[lat, lng]} icon={customerIcon}>
-                                    <Popup>
-                                      <div>
-                                        <strong>{cust.display_name}</strong> <br />
-                                        {cust.contact_number}
-                                      </div>
-                                    </Popup>
+                                  <Popup>
+                                  <div style={{ backgroundColor: clusterColor, padding: '5px', borderRadius: '4px', color: '#fff' }}>
+                                    <strong>{cust.display_name}</strong> <br />
+                                    {cust.contact_number}
+                                  </div>
+                                </Popup>
                                   </Marker>
                                 </React.Fragment>
                               );
