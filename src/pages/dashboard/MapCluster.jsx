@@ -40,9 +40,17 @@ const FitBounds = ({ locations }) => {
 
 const MapCluster = () => {
   const dispatch = useDispatch();
-  const { customersClusterMap, mapLoading, refreshLoading, refreshData, updatedcustomersClusterMap } = useSelector((state) => state.customer);
+  const { customersClusterMap, mapLoading } = useSelector((state) => state.customer);
   const [data, setData] = useState([]);
   const [showMap, setShowMap] = useState(false);
+
+  const [technicians, setTechnicians] = useState([
+    { _id: "tech1", name: "Technician A" },
+    { _id: "tech2", name: "Technician B" },
+    { _id: "tech3", name: "Technician C" },
+  ]);
+  const [selectedTechnician, setSelectedTechnician] = useState({});
+  const [selectedDay, setSelectedDay] = useState({});
 
   useEffect(() => {
     dispatch(getCustomersClusterMap());
@@ -80,49 +88,106 @@ const MapCluster = () => {
     setData(newData);
   };
 
+  const handleTechnicianChange = (clusterIndex, techId) => {
+    setSelectedTechnician((prev) => ({ ...prev, [clusterIndex]: techId }));
+  };
+
+  const handleDayChange = (clusterIndex, day) => {
+    setSelectedDay((prev) => ({ ...prev, [clusterIndex]: day }));
+  };
+
   const refreshCluster = () => {
     dispatch(refreshCustomersClusterMap())
       .unwrap()
       .then(() => {
-          dispatch(getCustomersClusterMap());
+        dispatch(getCustomersClusterMap());
       })
       .catch((error) => {
         console.error('Refresh failed:', error);
       });
   };
-  
+
+
+  // const handleSave = () => {
+  //   const reassignments = [];
+
+  //   data.forEach((cluster, clusterIndex) => {
+  //     cluster.customers.forEach(customer => {
+  //       // Find the original cluster this customer belonged to
+  //       const originalCluster = customersClusterMap.find(c =>
+  //         c.customers.some(orig => orig._id === customer.customerId)
+  //       );
+
+  //       const originalClusterNo = originalCluster?.clusterNo;
+
+  //       if (originalClusterNo !== clusterIndex) {
+  //         reassignments.push({
+  //           customerId: customer.customerId,
+  //           newClusterNo: clusterIndex,
+  //         });
+  //       }
+  //     });
+  //   });
+
+  //   dispatch(editCustomersClusterMap({ reassignments: { reassignments: reassignments } })).unwrap()
+  //     .then(() => {
+  //       dispatch(getCustomersClusterMap());
+  //     })
+  //     .catch((error) => {
+  //       dispatch(getCustomersClusterMap());
+  //     });
+  // };
+
 
   const handleSave = () => {
-    const reassignments = [];
-
+    const technicianAssignments = [];
+    const dayAssignments = [];
+  
+    // Iterate over the data (clusters)
     data.forEach((cluster, clusterIndex) => {
-      cluster.customers.forEach(customer => {
-        // Find the original cluster this customer belonged to
-        const originalCluster = customersClusterMap.find(c =>
-          c.customers.some(orig => orig._id === customer.customerId)
-        );
-
-        const originalClusterNo = originalCluster?.clusterNo;
-
-        if (originalClusterNo !== clusterIndex) {
-          reassignments.push({
-            customerId: customer.customerId,
-            newClusterNo: clusterIndex,
-          });
+      const selectedTechId = selectedTechnician[clusterIndex];
+      const selectedDayValue = selectedDay[clusterIndex];
+  
+      // Only add to the arrays if the technician and day are assigned
+      if (selectedTechId || selectedDayValue) {
+        const assignment = {
+          clusterNo: clusterIndex, // Cluster number
+          technicianId: selectedTechId || null, // Technician ID (null if not selected)
+          day: selectedDayValue || null, // Day (null if not selected)
+        };
+  
+        if (selectedTechId) {
+          technicianAssignments.push(assignment);
         }
-      });
+  
+        if (selectedDayValue) {
+          dayAssignments.push(assignment);
+        }
+      }
     });
-
-    dispatch(editCustomersClusterMap({ reassignments: { reassignments: reassignments } })).unwrap()
-    .then(() => {
-      dispatch(getCustomersClusterMap());
-  })
-  .catch((error) => {
-    dispatch(getCustomersClusterMap());
-  });
+  
+    // Log the technician and day assignments
+    console.log("Technician Assignments:", technicianAssignments);
+    console.log("Day Assignments:", dayAssignments);
+  
+    // Optionally, if you want to send this data to the backend, combine them into one object
+    const dataToSave = {
+      technicianAssignments,
+      dayAssignments,
+    };
+  
+    // Assuming you have an API or Redux action to save the data
+    dispatch(editCustomersClusterMap({ data: dataToSave }))
+      .unwrap()
+      .then(() => {
+        dispatch(getCustomersClusterMap());  // Refresh the customer cluster map
+      })
+      .catch((error) => {
+        console.error("Save failed:", error);
+        dispatch(getCustomersClusterMap());  // Optionally refresh even on failure
+      });
   };
-
-
+  
   return (
     <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
       {mapLoading ? (
@@ -152,7 +217,7 @@ const MapCluster = () => {
                 )}
               </div>
             </div>
-  
+
             {showMap ? (
               mapLoading ? (
                 <div className="flex h-[80vh] items-center justify-center">
@@ -166,42 +231,42 @@ const MapCluster = () => {
                       locations={
                         Array.isArray(customersClusterMap)
                           ? customersClusterMap
-                              .flatMap(c => c.customers)
-                              .filter(c => c.geoCoordinates?.coordinates?.length === 2)
-                              .map(c => ({
-                                lat: c.geoCoordinates.coordinates[1],
-                                lng: c.geoCoordinates.coordinates[0],
-                              }))
+                            .flatMap(c => c.customers)
+                            .filter(c => c.geoCoordinates?.coordinates?.length === 2)
+                            .map(c => ({
+                              lat: c.geoCoordinates.coordinates[1],
+                              lng: c.geoCoordinates.coordinates[0],
+                            }))
                           : []
                       }
                     />
                     {Array.isArray(customersClusterMap)
                       ? customersClusterMap.map((cluster) => {
-                          const clusterColor = clusterColors[cluster.clusterNo % clusterColors.length];
-                          return cluster.customers
-                            .filter(c => c.geoCoordinates?.coordinates?.length === 2)
-                            .map((cust, idx) => {
-                              const lat = cust.geoCoordinates.coordinates[1];
-                              const lng = cust.geoCoordinates.coordinates[0];
-                              return (
-                                <React.Fragment key={`${cust._id}-${idx}`}>
-                                  <Circle
-                                    center={[lat, lng]}
-                                    radius={500}
-                                    pathOptions={{ color: clusterColor, fillOpacity: 0.3 }}
-                                  />
-                                  <Marker position={[lat, lng]} icon={customerIcon}>
-                                    <Popup>
-                                      <div>
-                                        <strong>{cust.display_name}</strong> <br />
-                                        {cust.contact_number}
-                                      </div>
-                                    </Popup>
-                                  </Marker>
-                                </React.Fragment>
-                              );
-                            });
-                        })
+                        const clusterColor = clusterColors[cluster.clusterNo % clusterColors.length];
+                        return cluster.customers
+                          .filter(c => c.geoCoordinates?.coordinates?.length === 2)
+                          .map((cust, idx) => {
+                            const lat = cust.geoCoordinates.coordinates[1];
+                            const lng = cust.geoCoordinates.coordinates[0];
+                            return (
+                              <React.Fragment key={`${cust._id}-${idx}`}>
+                                <Circle
+                                  center={[lat, lng]}
+                                  radius={500}
+                                  pathOptions={{ color: clusterColor, fillOpacity: 0.3 }}
+                                />
+                                <Marker position={[lat, lng]} icon={customerIcon}>
+                                <Popup>
+                                  <div style={{ backgroundColor: clusterColor, padding: '5px', borderRadius: '4px', color: '#fff' }}>
+                                    <strong>{cust.display_name}</strong> <br />
+                                    {cust.contact_number}
+                                  </div>
+                                </Popup>
+                                </Marker>
+                              </React.Fragment>
+                            );
+                          });
+                      })
                       : null}
                   </MapContainer>
                 </div>
@@ -214,7 +279,7 @@ const MapCluster = () => {
                       <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
                         {cluster.name}
                       </div>
-  
+
                       <Droppable droppableId={`${index}`}>
                         {(provided) => (
                           <div
@@ -249,7 +314,55 @@ const MapCluster = () => {
                           </div>
                         )}
                       </Droppable>
-  
+
+                      <div className="px-3 pt-2 pb-3 bg-gray-100 border-t mt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">
+                              Assign Technician
+                            </label>
+                            <select
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              value={selectedTechnician[index] || ""}
+                              onChange={(e) => handleTechnicianChange(index, e.target.value)}
+                            >
+                              <option value="">Select Technician</option>
+                              {technicians.map((tech) => (
+                                <option key={tech._id} value={tech._id}>
+                                  {tech.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">
+                              Assign Day
+                            </label>
+                            <select
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              value={selectedDay[index] || ""}
+                              onChange={(e) => handleDayChange(index, e.target.value)}
+                            >
+                              <option value="">Select Day</option>
+                              {[
+                                "monday",
+                                "tuesday",
+                                "wednesday",
+                                "thursday",
+                                "friday",
+                                "saturday",
+                              ].map((day) => (
+                                <option key={day} value={day}>
+                                  {day.charAt(0).toUpperCase() + day.slice(1)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+
                       <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700">
                         {cluster.customers.length} Customers <br />
                         {cluster.cartridge_qty} Cartridge Quantity
@@ -264,7 +377,7 @@ const MapCluster = () => {
       )}
     </div>
   );
-  
+
 };
 
 export default MapCluster;

@@ -77,6 +77,16 @@ export const fetchCustomers = async (page = 1, search = '') => {
     }
   };
 
+  export const assignTechnician = async (assignments) => {
+    try {
+      const response = await axiosConfig.put(`cluster/assign-technician`, assignments);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating cluster:', error);
+      throw error;
+    }
+  };
+
   export const sendDelivery = async (customerData) => {
     try {
       const response = await axiosConfig.post(`customers/SendMissedCartidgeMsg`, customerData);
