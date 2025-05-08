@@ -85,7 +85,7 @@ const Map = () => {
     const { customersMap, mapLoading } = useSelector((state) => state.customer);
 
     console.log("p:",productsMap)
-    console.log(customersMap);
+    console.log("ccccccccccccccc",customersMap);
     
 
 
@@ -251,6 +251,51 @@ const Map = () => {
                 </MapContainer>
             </div>
         </div>
+
+        {customersMap?.length > 0 && (
+  <div className="p-4 mt-6 bg-white rounded-lg shadow-md border border-gray-200">
+    <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+      Customers-Missing
+    </h2>
+
+    <div className="overflow-y-auto max-h-72">
+      {customersMap.filter(c =>
+        !c.geoCoordinates ||
+        !Array.isArray(c.geoCoordinates.coordinates) ||
+        c.geoCoordinates.coordinates.length !== 2
+      ).length === 0 ? (
+        <p className="text-sm text-gray-600 italic">All customers have valid locations 🎉</p>
+      ) : (
+        <table className="min-w-full text-sm text-left text-gray-700">
+          <thead className="bg-gray-100 text-gray-600 uppercase text-xs sticky top-0">
+            <tr>
+              <th className="px-3 py-2">#</th>
+              <th className="px-3 py-2">Customer Name</th>
+              <th className="px-3 py-2">Contact Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            {customersMap
+              .filter(c =>
+                !c.geoCoordinates ||
+                !Array.isArray(c.geoCoordinates.coordinates) ||
+                c.geoCoordinates.coordinates.length !== 2
+              )
+              .map((c, idx) => (
+                <tr key={c._id || idx} className="border-b">
+                  <td className="px-3 py-2">{idx + 1}</td>
+                  <td className="px-3 py-2">{c.display_name || <em className="text-gray-400">Unnamed</em>}</td>
+                  <td className="px-3 py-2">{c.contact_number || <span className="text-gray-400 italic">No Contact</span>}</td>
+                </tr>
+              ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  </div>
+)}
+
+
         </div>
         )}
         </div>
