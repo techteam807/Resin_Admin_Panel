@@ -68,3 +68,14 @@
     scrollbar-width: thin;
     scrollbar-color: #238be5 #f4f5f7;
 }
+
+/* Tailwind config or global CSS */
+.scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+    width: 5px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 100, 100, 0.4);
+    border-radius: 4px;
+  }
+  
