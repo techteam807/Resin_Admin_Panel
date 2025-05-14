@@ -6,6 +6,8 @@ import technicianReducer from "../feature/technician/technicianSlice";
 import warehouseReducer from "../feature/warehouse/warehouseSlice";
 import productLogReducer from "../feature/productLog/productLogSlice"
 import superAdminReducer from "../feature/superAdmin/superAdminSlice"
+import waterReportsReducer from "../feature/waterReports/waterReportsSlice"
+
 
 
 export const store = configureStore({
@@ -16,6 +18,7 @@ export const store = configureStore({
         technician: technicianReducer,
         warehouse: warehouseReducer,
         productLog:productLogReducer,
-        superAdmin:superAdminReducer
+        superAdmin:superAdminReducer,
+        waterReport: waterReportsReducer,
     },
 });

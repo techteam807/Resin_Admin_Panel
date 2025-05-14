@@ -25,7 +25,7 @@ const customerIcon = new L.Icon({
   iconSize: [30, 30],
   iconAnchor: [15, 30],
   popupAnchor: [0, -30],
-});
+}); 
 
 const FitBounds = ({ locations }) => {
   const map = useMap();
