@@ -11,6 +11,7 @@ function WaterReports() {
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1
   const currentYear = currentDate.getFullYear();
+  const years = Array.from({ length: currentYear - 2024 + 11 }, (_, i) => 2024 + i);
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
   const monthNames = [
@@ -69,10 +70,11 @@ function WaterReports() {
   return (
     <div className="flex flex-col w-full">
       <div className="flex justify-end items-center gap-4 mb-6 px-4 pt-3">
+        <div className="w-32 px-2 py-2 bg-white border border-gray-300 rounded-lg shadow-sm">
         <select
           value={monthNames[month - 1]}
           onChange={handleMonthChange}
-          className="w-32 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full focus:outline-none"
         >
           {monthNames.map((m, index) => (
             <option key={m} value={m}>
@@ -80,17 +82,20 @@ function WaterReports() {
             </option>
           ))}
         </select>
+        </div>
+        <div className="w-28 px-2 py-2 bg-white border border-gray-300 rounded-lg shadow-sm">
         <select
           value={year}
           onChange={handleYearChange}
-          className="w-24 px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full focus:outline-none"
         >
-          {[2023, 2024, 2025, 2026].map((y) => (
+          {years.map((y) => (
             <option key={y} value={y.toString()}>
               {y}
             </option>
           ))}
         </select>
+        </div>
       </div>
 
       <div className="relative overflow-x-auto shadow-md rounded-lg">
