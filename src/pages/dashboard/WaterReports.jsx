@@ -7,8 +7,7 @@ function WaterReports() {
   const dispatch = useDispatch();
   const { waterReports, loading } = useSelector((state) => state.waterReport);
   console.log("waterReport", waterReports)
-  const Data = waterReports
-
+  const Data = waterReports;
   const currentDate = new Date();
   const currentMonth = currentDate.getMonth() + 1
   const currentYear = currentDate.getFullYear();
@@ -42,6 +41,30 @@ function WaterReports() {
   const formatMonth = (month) => {
     return month < 10 ? `0${month}` : month;
   };
+
+  const groupedData = {};
+
+  Data.forEach((entry) => {
+    const userId = entry.customerId._id;
+    const day = new Date(entry.createdAt).getDate();
+
+    if (!groupedData[userId]) {
+      groupedData[userId] = {
+        user: entry.customerId,
+        scores: {}  // day: [{ score, status }]
+      };
+    }
+
+    if (!groupedData[userId].scores[day]) {
+      groupedData[userId].scores[day] = [];
+    }
+
+    groupedData[userId].scores[day].push({
+      score: entry.waterScore,
+      status: entry.status
+    });
+  });
+
 
   return (
     <div className="flex flex-col w-full">
@@ -90,34 +113,33 @@ function WaterReports() {
                 </tr>
               </thead>
               <tbody>
-                {Data.map((user) => {
-                  const createdAtDay = new Date(user.createdAt).getDate()
-                  return (
-                    <tr key={user.customerId._id} className="hover:bg-gray-50">
-                      <td className="sticky left-0 z-10 bg-white border text-center border-gray-200 p-4 font-medium text-gray-700">
-                        {user.customerId.display_name}
-                      </td>
-                      {Array.from({ length: daysInMonth }, (_, day) => {
-                        const currentDayOfMonth = day + 1;
-                        const isHighlighted = currentDayOfMonth === createdAtDay;
-                        const statusClass =
-                          user.status === "true"
-                            ? "bg-green-500 text-white"
-                            : "bg-yellow-500 text-black";
+                {Object.values(groupedData).map((userData) => (
+                  <tr key={userData.user._id}>
+                    <td className="sticky left-0 z-10 bg-white border text-center border-gray-200 p-4 font-medium text-gray-700">
+                      {userData.user.display_name}
+                    </td>
+                    {Array.from({ length: daysInMonth }, (_, day) => {
+                      const currentDayOfMonth = day + 1;
+                      const entries = userData.scores[currentDayOfMonth]; // array or undefined
 
-                        return (
-                          <td
-                            key={currentDayOfMonth}
-                            className={`border border-gray-200 text-center p-4 w-16 min-w-16 ${isHighlighted ? statusClass : "text-black"
-                              }`}
-                          >
-                            {isHighlighted ? user.waterScore : "-"}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  )
-                })}
+                      let bgClass = "";
+                      if (entries?.some(e => e.status === "true")) {
+                        bgClass = "bg-green-500 text-white";
+                      } else if (entries?.length) {
+                        bgClass = "bg-yellow-500 text-black";
+                      }
+
+                      return (
+                        <td
+                          key={currentDayOfMonth}
+                          className={`border border-gray-500 text-center p-4 w-16 min-w-16 ${bgClass}`}
+                        >
+                          {entries ? entries.map(e => e.score).join(", ") : "-"}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
               </tbody>
             </table>
             {Data.length == 0 && (
