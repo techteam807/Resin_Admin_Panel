@@ -10,3 +10,16 @@ export const fetchWaterReports = async (month, year) => {
         throw error;
     }
 };
+
+export const generateReports = async (customerId, logIds) => {
+    try {
+        const response = await axiosConfig.post(`waterReport/genrateReports`, {
+            customerId,
+            logIds
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error While Generating Water Reports:', error);
+        throw error;
+    }
+};

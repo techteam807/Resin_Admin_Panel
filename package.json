@@ -39,6 +39,7 @@
     "react-leaflet": "^4.2.1",
     "react-router-dom": "6.17.0",
     "react-toastify": "^10.0.5",
+    "recharts": "^2.15.3",
     "tostify": "^0.0.1",
     "xlsx": "^0.18.5"
   },
