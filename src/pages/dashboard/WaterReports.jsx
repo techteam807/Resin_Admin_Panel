@@ -226,5 +226,4 @@ function WaterReports() {
     </div>
   )
 }
-
 export default WaterReports
