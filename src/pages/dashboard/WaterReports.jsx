@@ -66,19 +66,19 @@ function WaterReports() {
       score: entry.waterScore,
       status: entry.status,
       createdAt: entry.createdAt,
-      id:entry._id,
+      id: entry._id,
     });
   });
 
-const handleNavigation = (customerData) => {
-  navigate(`/dashboard/waterPdf`, {
-    state: {
-      customer: customerData,
-      month,
-      year,
-    },
-  });
-};
+  const handleNavigation = (customerData) => {
+    navigate(`/dashboard/waterPdf`, {
+      state: {
+        customer: customerData,
+        month,
+        year,
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col w-full">
@@ -144,6 +144,54 @@ const handleNavigation = (customerData) => {
                       const entries = userData.scores[currentDayOfMonth]; // array or undefined
 
                       let bgClass = "";
+                      let isMixed = false;
+
+                      if (entries?.length) {
+                        const hasTrue = entries.some(e => e.status === "true");
+                        const hasFalse = entries.some(e => e.status === "false");
+
+                        if (hasTrue && hasFalse) {
+                          isMixed = true;
+                        } else if (hasTrue) {
+                          bgClass = "bg-green-500 text-white";
+                        } else if (hasFalse) {
+                          bgClass = "bg-yellow-500 text-black";
+                        }
+                      }
+
+                      return (
+                        <td
+                          key={currentDayOfMonth}
+                          className={`border border-gray-500 text-center p-2 min-w-[90px] cursor-pointer ${bgClass}`}
+                        >
+                          {entries ? (
+                            isMixed ? (
+                              entries.map((e, idx) => {
+                                const entryBg =
+                                  e.status === "true"
+                                    ? "bg-green-500 text-white"
+                                    : "bg-yellow-500 text-black";
+                                return (
+                                  <div key={idx} className={`rounded px-1 py-0.5 my-0.5 text-sm ${entryBg}`}>
+                                    {e.score}
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              entries.map(e => e.score).join(", ")
+                            )
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                      );
+                    })}
+
+                    {/* {Array.from({ length: daysInMonth }, (_, day) => {
+                      const currentDayOfMonth = day + 1;
+                      const entries = userData.scores[currentDayOfMonth]; // array or undefined
+
+                      let bgClass = "";
                       if (entries?.some(e => e.status === "true")) {
                         bgClass = "bg-green-500 text-white";
                       } else if (entries?.length) {
@@ -158,7 +206,7 @@ const handleNavigation = (customerData) => {
                           {entries ? entries.map(e => e.score).join(", ") : "-"}
                         </td>
                       );
-                    })}
+                    })} */}
                     <td className="sticky right-0 z-10 bg-gray-200 text-center p-2 border-b border-gray-500">
                       <button className="bg-black rounded-lg text-white px-2 py-2 text-sm" onClick={() => handleNavigation(userData)}>
                         View Report
