@@ -9,3 +9,14 @@ import axiosConfig from "@/app/axiosConfig";
       throw error;
     }
   };
+
+  export const updateProductCode = async (productData) => {
+    try {
+      const response = await axiosConfig.put(`admin/productCodeUpdate`,productData);
+      return response.data;
+    }
+    catch (error) {
+      console.error("Error updating product code :", error)
+      throw error;
+    }
+  }

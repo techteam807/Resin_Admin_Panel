@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { updateProductStatus } from "./superAdminService";
+import { updateProductStatus, updateProductCode } from "./superAdminService";
 
   export const changeProductStatus = createAsyncThunk(
     "product/changeProductStatus",
@@ -13,6 +13,20 @@ import { updateProductStatus } from "./superAdminService";
       } catch (error) {
         console.error("Error update product thunk:", error);
         throw error.response?.data?.message || error.message || "Something went wrong";
+      }
+    }
+  );
+
+  export const editProductCode = createAsyncThunk(
+    "product/editProductCode",
+    async (productData) => {
+      try {
+        console.log("productData",productData)
+        const data = await updateProductCode(productData);
+        return data;
+      } catch (error) {
+        console.error("Error update product code thunk:", error);
+         throw error.response?.data?.message || error.message || "Something went wrong";
       }
     }
   );
@@ -40,7 +54,21 @@ import { updateProductStatus } from "./superAdminService";
                 state.loading = false;
                 state.error = action.error.message;
               })
-              
+
+              .addCase(editProductCode.pending, (state) => {
+                state.loading = true;
+              })
+              .addCase(editProductCode.fulfilled, (state, action) => {
+                state.loading = false;
+                const updatedProductcode = action.payload.data;
+                state.update = updatedProductcode;
+                state.message = action.payload.message;
+                toast.success(state.message);
+              })
+              .addCase(editProductCode.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
+              })
           },
         });
         

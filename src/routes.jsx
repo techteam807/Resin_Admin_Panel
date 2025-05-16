@@ -1,4 +1,4 @@
-import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon, PresentationChartBarIcon, MapPinIcon, ShieldCheckIcon, AdjustmentsHorizontalIcon, ChartBarIcon, AcademicCapIcon, FlagIcon} from "@heroicons/react/24/solid";
+import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon, PresentationChartBarIcon, MapPinIcon, ShieldCheckIcon, AdjustmentsHorizontalIcon, ChartBarIcon, AcademicCapIcon, FlagIcon, CalendarDaysIcon, PencilSquareIcon  } from "@heroicons/react/24/solid";
 import { Company, Product } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 import { HiBuildingOffice } from "react-icons/hi2";
@@ -14,6 +14,8 @@ import MasterAdmin from "./pages/dashboard/MasterAdmin";
 import CustomerLog from "./pages/dashboard/CustomerLog";
 import MissedDeliveryLog from "./pages/dashboard/MissedDeliveryLog";
 import TechnicianScorrLog from "./pages/dashboard/TechnicianScorrLog";
+import WaterReports from "./pages/dashboard/WaterReports";
+import AdminProductCodeUpdate from "./pages/dashboard/AdminProductCodeUpdate";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -94,12 +96,18 @@ export const routes = [
             path: "/missed-delivery-log",
             element: <MissedDeliveryLog />,
           },
-          // {
-          //   icon: <AcademicCapIcon {...icon} />,
-          //   name: "Technician Score Log",
-          //   path: "/score-log",
-          //   element: <TechnicianScorrLog />,
-          // },
+          {
+            icon: <AcademicCapIcon {...icon} />,
+            name: "Technician Score Log",
+            path: "/score-log",
+            element: <TechnicianScorrLog />,
+          },
+          {
+            icon: <CalendarDaysIcon  {...icon} />,
+            name: "Water Reports",
+            path: "/water-reports",
+            element: <WaterReports />,
+          },
         ],
       },      
       {
@@ -107,6 +115,12 @@ export const routes = [
         name: "Master Admin",
         path: "/master-admin",
         element: <MasterAdmin />,
+      },
+      {
+        icon: <PencilSquareIcon  {...icon} />,
+        name: "Product Code Edit",
+        path: "/product-code-edit",
+        element: <AdminProductCodeUpdate />,
       },
     ],
   },
