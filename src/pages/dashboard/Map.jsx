@@ -338,6 +338,8 @@ const Map = () => {
 
     const dispatch = useDispatch();
     const { productsMap } = useSelector((state) => state.product);
+    console.log("productsMap", productsMap);
+    
     const { customersMap } = useSelector((state) => state.customer);
     console.log("customersMap", customersMap);
 
@@ -382,7 +384,8 @@ const Map = () => {
 
                 marker.addListener("click", () => {
                     infoWindowRef.current.setContent(
-                        `<div><strong>${customer?.name || "Product"}</strong><br>${customer?.display_name || "No display name"}</div>`
+                        // `<div><strong>${customer?.name || "Product"}</strong></div>`
+                        `<div>Product<br>${customer.name || "No display name"}</div>`
                     );
                     infoWindowRef.current.open(map, marker);
                 });
