@@ -116,6 +116,7 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
       loading: false,
       sendLoading: false,
       mapLoading: false,
+      mapLoading1: false,
       refreshLoading: false,
       deliveryLoading: false,
       create: null,
@@ -159,16 +160,15 @@ export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ p
           state.error = action.error.message;
         })
         .addCase(getCustomersClusterMap.pending, (state) => {
-          state.mapLoading = true;
+          state.mapLoading1 = true;
         })
         .addCase(getCustomersClusterMap.fulfilled, (state, action) => {
-          state.mapLoading = false;
+          state.mapLoading1 = false;
           state.customersClusterMap = action.payload.data;
-          console.log("action.payload", action.payload)
           state.message = action.payload.message;
         })
         .addCase(getCustomersClusterMap.rejected, (state, action) => {
-          state.mapLoading = false;
+          state.mapLoading1 = false;
           state.error = action.error.message;
         })
         .addCase(refreshCustomersClusterMap.pending, (state) => {
