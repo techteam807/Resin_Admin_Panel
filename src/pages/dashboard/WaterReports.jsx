@@ -49,7 +49,7 @@ function WaterReports() {
 
   Data.forEach((entry) => {
     const userId = entry.customerId._id;
-    const day = new Date(entry.createdAt).getDate();
+    const day = new Date(entry.date).getDate();
 
     if (!groupedData[userId]) {
       groupedData[userId] = {
@@ -65,7 +65,7 @@ function WaterReports() {
     groupedData[userId].scores[day].push({
       score: entry.waterScore,
       status: entry.status,
-      createdAt: entry.createdAt,
+      createdAt: entry.date,
       id:entry._id,
     });
   });
