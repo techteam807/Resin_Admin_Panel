@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from "../Loader";
 import { useNavigate } from "react-router-dom";
+import DayDetailModal from "@/component/DayDetailModal";
 
 function WaterReports() {
   const dispatch = useDispatch();
@@ -20,6 +21,12 @@ function WaterReports() {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
+
+    const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState([]);
+  const [modalDay, setModalDay] = useState(null);
+  const [modalUser, setModalUser] = useState(null);
+
 
   useEffect(() => {
     const formattedMonth = month < 10 ? `0${month}` : month;
@@ -40,10 +47,6 @@ function WaterReports() {
   const handleYearChange = (e) => {
     setYear(e.target.value)
   }
-
-  const formatMonth = (month) => {
-    return month < 10 ? `0${month}` : month;
-  };
 
   const groupedData = {};
 
@@ -79,6 +82,18 @@ const handleNavigation = (customerData) => {
     },
   });
 };
+
+const handleCellClick = (entries = [], day, user) => {
+  setModalData(entries);
+  setModalDay(day);
+  setModalUser(user);
+  setShowModal(true);
+};
+  const closeModal = () => {
+    setShowModal(false);
+    setModalData([]);
+    setModalDay(null);
+  };
 
   return (
     <div className="flex flex-col w-full">
@@ -135,13 +150,14 @@ const handleNavigation = (customerData) => {
               </thead>
               <tbody>
                 {Object.values(groupedData).map((userData) => (
+                  console.log("userData",userData),
                   <tr key={userData.user._id}>
                     <td className="sticky left-0 bg-gray-200 text-center font-medium text-gray-700 border-b border-gray-500">
                       {userData.user.display_name}
                     </td>
                     {Array.from({ length: daysInMonth }, (_, day) => {
                       const currentDayOfMonth = day + 1;
-                      const entries = userData.scores[currentDayOfMonth]; // array or undefined
+                     const entries = userData.scores[currentDayOfMonth];// array or undefined
 
                       let bgClass = "";
                       if (entries?.some(e => e.status === "true")) {
@@ -154,6 +170,7 @@ const handleNavigation = (customerData) => {
                         <td
                           key={currentDayOfMonth}
                           className={`border border-gray-500 text-center p-2 min-w-[90px] ${bgClass}`}
+                          onClick={() => handleCellClick(entries, currentDayOfMonth, userData.user)}
                         >
                           {entries ? entries.map(e => e.score).join(", ") : "-"}
                         </td>
@@ -175,6 +192,16 @@ const handleNavigation = (customerData) => {
           </div>
         }
       </div>
+         <DayDetailModal
+  show={showModal}
+  onClose={closeModal}
+  data={modalData}
+  day={modalDay}
+  user={modalUser}
+  month={month}
+  year={year}
+/>
+
     </div>
   )
 }

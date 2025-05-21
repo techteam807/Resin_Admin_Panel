@@ -23,3 +23,16 @@ export const generateReports = async (customerId, logIds) => {
         throw error;
     }
 };
+
+
+export const createReports = async (payload) => {
+  try {
+    const response = await axiosConfig.post(`waterReport/admin-add-or-update`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error While Creating Water Reports:', error);
+    throw error;
+  }
+};
+
+
