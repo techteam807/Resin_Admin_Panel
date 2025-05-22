@@ -17,16 +17,16 @@ function WaterReports() {
   const years = Array.from({ length: currentYear - 2024 + 11 }, (_, i) => 2024 + i);
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
+  
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState([]);
+  const [modalDay, setModalDay] = useState(null);
+  const [modalUser, setModalUser] = useState(null);
+  
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
-
-    const [showModal, setShowModal] = useState(false);
-  const [modalData, setModalData] = useState([]);
-  const [modalDay, setModalDay] = useState(null);
-  const [modalUser, setModalUser] = useState(null);
-
 
   useEffect(() => {
     const formattedMonth = month < 10 ? `0${month}` : month;
@@ -47,7 +47,7 @@ function WaterReports() {
   const handleYearChange = (e) => {
     setYear(e.target.value)
   }
-
+  
   const groupedData = {};
 
   Data.forEach((entry) => {
@@ -150,7 +150,7 @@ const handleCellClick = (entries = [], day, user) => {
               </thead>
               <tbody>
                 {Object.values(groupedData).map((userData) => (
-                  console.log("userData",userData),
+                  // console.log("userData",userData),
                   <tr key={userData.user._id}>
                     <td className="sticky left-0 bg-gray-200 text-center font-medium text-gray-700 border-b border-gray-500">
                       {userData.user.display_name}

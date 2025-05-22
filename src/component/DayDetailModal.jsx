@@ -23,25 +23,29 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
     }
   }, [data]);
 
-   const handleSave = () => {
-    if (scoreInput.trim() === '') return alert("Score is required");
+  const handleSave = () => {
+  if (scoreInput.trim() === '') return alert("Score is required");
 
-   const payload = {
-//   _id: data.length > 0 ? data[0]._id : undefined, // only if editing
-  waterScore: Number(scoreInput),
-  date: new Date(dateInput).toISOString(),
+  const payload = {
   customerId: user._id,
+  waterScore: scoreInput.toString(), // Ensure it's a string
+  date: new Date(dateInput).toISOString().split("T")[0], // Format to 'YYYY-MM-DD'
+  // status: "false"
 };
-     console.log('payload:', payload);
 
-     dispatch(createWaterReports(payload))
-      .unwrap()
-      .then(() => {
-        onClose();
-        dispatch(getWaterReports({ month: month < 10 ? `0${month}` : month, year }));
-      })
-      .catch((err) => alert(err));
-  };
+
+  dispatch(createWaterReports(payload))
+    .unwrap()
+    .then(() => {
+      onClose();
+      dispatch(getWaterReports({ month: month < 10 ? `0${month}` : month, year }));
+    })
+    .catch((err) => {
+      console.error("Error creating water report:", err);
+      alert("Failed to add water report. Please check the input.");
+    });
+};
+
 
   if (!show) return null;
 
