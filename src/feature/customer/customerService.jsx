@@ -1,10 +1,11 @@
 import axiosConfig from "@/app/axiosConfig";
 
 
-export const fetchCustomers = async (page = 1, search = '') => {
+export const fetchCustomers = async (page = 1, search = '',isSubscription) => {
     try {
       const queryParams = new URLSearchParams({
         page: page,
+        isSubscription: isSubscription,
       });
       if (search) {
         queryParams.append('search', search);

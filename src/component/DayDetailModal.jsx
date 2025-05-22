@@ -1,54 +1,48 @@
-import { createWaterReports, getWaterReports } from '@/feature/waterReports/waterReportsSlice';
+import { createWaterReports } from '@/feature/waterReports/waterReportsSlice';
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 
-const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
-    const dispatch = useDispatch();
-
-
+const DayDetailModal = ({ show, onClose,onSaved, data, day, user, month, year }) => {
+  const dispatch = useDispatch();
   const [scoreInput, setScoreInput] = useState('');
-   const [dateInput, setDateInput] = useState(() => {
-  const now = new Date();
-  return now.toISOString().split('T')[0]; // "YYYY-MM-DD"
-});
-  const [isEditing, setIsEditing] = useState(false);
+  const [dateInput, setDateInput] = useState(() => {
+    const selectedDate = new Date(year, month - 1, day);
+    return selectedDate.toISOString().split('T')[0];
+  });
 
-   useEffect(() => {
+  useEffect(() => {
+    const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    setDateInput(formattedDate);
     if (data.length > 0) {
       setScoreInput(data[0].score);
-      setDateInput(new Date(data[0].createdAt).toISOString().split('T')[0]);
     } else {
       setScoreInput('');
-      setDateInput(new Date().toISOString().split('T')[0]);
     }
-  }, [data]);
+  }, [data, day, month, year]);
 
   const handleSave = () => {
-  if (scoreInput.trim() === '') return alert("Score is required");
+    if (scoreInput.trim() === '') return alert("Score is required");
 
-  const payload = {
-  customerId: user._id,
-  waterScore: scoreInput.toString(), // Ensure it's a string
-  date: new Date(dateInput).toISOString().split("T")[0], // Format to 'YYYY-MM-DD'
-  // status: "false"
-};
+    const payload = {
+      customerId: user._id,
+      waterScore: scoreInput.toString(),
+      date: dateInput,
+    };
 
-
-  dispatch(createWaterReports(payload))
-    .unwrap()
-    .then(() => {
-      onClose();
-      dispatch(getWaterReports({ month: month < 10 ? `0${month}` : month, year }));
-    })
-    .catch((err) => {
-      console.error("Error creating water report:", err);
-      alert("Failed to add water report. Please check the input.");
-    });
-};
-
+    dispatch(createWaterReports(payload))
+      .unwrap()
+      .then(() => {
+        setScoreInput('');
+        onClose();
+        onSaved();
+      })
+      .catch((err) => {
+        console.error("Error creating water report:", err);
+        alert("Failed to add water report. Please check the input.");
+      });
+  };
 
   if (!show) return null;
-
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -68,9 +62,7 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
             {data.map((entry, index) => (
               <li key={index} className="p-2 border rounded">
                 <p><strong>Score:</strong> {entry.score}</p>
-                {/* <p><strong>Status:</strong> {entry.status}</p> */}
-               <p><strong>Date:</strong> {new Date(entry.createdAt).toISOString().split('T')[0]}</p>
-
+                <p><strong>Date:</strong> {new Date(entry.createdAt).toISOString().split('T')[0]}</p>
               </li>
             ))}
           </ul>
@@ -87,14 +79,12 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
             className="w-full border px-3 py-2 rounded"
             placeholder="Enter score"
           />
-            {!isEditing && (
-            <input
-              type="date"
-              value={dateInput}
-              onChange={(e) => setDateInput(e.target.value)}
-              className="w-full border px-3 py-2 rounded"
-            />
-          )}
+          <input
+            type="date"
+            value={dateInput}
+            readOnly
+            className="w-full border px-3 py-2 rounded bg-gray-100 cursor-not-allowed"
+          />
           <button
             onClick={handleSave}
             className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700"

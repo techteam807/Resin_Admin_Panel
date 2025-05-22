@@ -89,11 +89,17 @@ const handleCellClick = (entries = [], day, user) => {
   setModalUser(user);
   setShowModal(true);
 };
-  const closeModal = () => {
-    setShowModal(false);
-    setModalData([]);
-    setModalDay(null);
-  };
+ const closeModal = () => {
+  setShowModal(false);
+  setModalData([]);
+  setModalDay(null);
+  setModalUser(null);
+};
+
+const handleModalSave = () => {
+  const formattedMonth = month < 10 ? `0${month}` : month;
+  dispatch(getWaterReports({ month: formattedMonth, year }));
+};
 
   return (
     <div className="flex flex-col w-full">
@@ -160,7 +166,7 @@ const handleCellClick = (entries = [], day, user) => {
                      const entries = userData.scores[currentDayOfMonth];// array or undefined
 
                       let bgClass = "";
-                      if (entries?.some(e => e.status === "true")) {
+                      if (entries?.some(e => e.status)) {
                         bgClass = "bg-green-500 text-white";
                       } else if (entries?.length) {
                         bgClass = "bg-yellow-500 text-black";
@@ -195,6 +201,7 @@ const handleCellClick = (entries = [], day, user) => {
          <DayDetailModal
   show={showModal}
   onClose={closeModal}
+  onSaved={handleModalSave}
   data={modalData}
   day={modalDay}
   user={modalUser}
