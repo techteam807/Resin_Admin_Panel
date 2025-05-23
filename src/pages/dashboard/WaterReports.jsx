@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from "../Loader";
 import { useNavigate } from "react-router-dom";
+import DayDetailModal from "@/component/DayDetailModal";
 
 function WaterReports() {
   const dispatch = useDispatch();
@@ -16,6 +17,12 @@ function WaterReports() {
   const years = Array.from({ length: currentYear - 2024 + 11 }, (_, i) => 2024 + i);
   const [month, setMonth] = useState(currentMonth);
   const [year, setYear] = useState(currentYear);
+  
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState([]);
+  const [modalDay, setModalDay] = useState(null);
+  const [modalUser, setModalUser] = useState(null);
+  
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -40,16 +47,12 @@ function WaterReports() {
   const handleYearChange = (e) => {
     setYear(e.target.value)
   }
-
-  const formatMonth = (month) => {
-    return month < 10 ? `0${month}` : month;
-  };
-
+  
   const groupedData = {};
 
   Data.forEach((entry) => {
     const userId = entry.customerId._id;
-    const day = new Date(entry.createdAt).getDate();
+    const day = new Date(entry.date).getDate();
 
     if (!groupedData[userId]) {
       groupedData[userId] = {
@@ -65,7 +68,7 @@ function WaterReports() {
     groupedData[userId].scores[day].push({
       score: entry.waterScore,
       status: entry.status,
-      createdAt: entry.createdAt,
+      createdAt: entry.date,
       id:entry._id,
     });
   });
@@ -78,6 +81,24 @@ const handleNavigation = (customerData) => {
       year,
     },
   });
+};
+
+const handleCellClick = (entries = [], day, user) => {
+  setModalData(entries);
+  setModalDay(day);
+  setModalUser(user);
+  setShowModal(true);
+};
+ const closeModal = () => {
+  setShowModal(false);
+  setModalData([]);
+  setModalDay(null);
+  setModalUser(null);
+};
+
+const handleModalSave = () => {
+  const formattedMonth = month < 10 ? `0${month}` : month;
+  dispatch(getWaterReports({ month: formattedMonth, year }));
 };
 
   return (
@@ -135,16 +156,17 @@ const handleNavigation = (customerData) => {
               </thead>
               <tbody>
                 {Object.values(groupedData).map((userData) => (
+                  // console.log("userData",userData),
                   <tr key={userData.user._id}>
                     <td className="sticky left-0 bg-gray-200 text-center font-medium text-gray-700 border-b border-gray-500">
                       {userData.user.display_name}
                     </td>
                     {Array.from({ length: daysInMonth }, (_, day) => {
                       const currentDayOfMonth = day + 1;
-                      const entries = userData.scores[currentDayOfMonth]; // array or undefined
+                     const entries = userData.scores[currentDayOfMonth];// array or undefined
 
                       let bgClass = "";
-                      if (entries?.some(e => e.status === "true")) {
+                      if (entries?.some(e => e.status)) {
                         bgClass = "bg-green-500 text-white";
                       } else if (entries?.length) {
                         bgClass = "bg-yellow-500 text-black";
@@ -154,6 +176,7 @@ const handleNavigation = (customerData) => {
                         <td
                           key={currentDayOfMonth}
                           className={`border border-gray-500 text-center p-2 min-w-[90px] ${bgClass}`}
+                          onClick={() => handleCellClick(entries, currentDayOfMonth, userData.user)}
                         >
                           {entries ? entries.map(e => e.score).join(", ") : "-"}
                         </td>
@@ -175,6 +198,17 @@ const handleNavigation = (customerData) => {
           </div>
         }
       </div>
+         <DayDetailModal
+  show={showModal}
+  onClose={closeModal}
+  onSaved={handleModalSave}
+  data={modalData}
+  day={modalDay}
+  user={modalUser}
+  month={month}
+  year={year}
+/>
+
     </div>
   )
 }

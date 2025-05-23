@@ -43,7 +43,7 @@ const WaterReportsPdf = () => {
 
   const waterQualityData = Object.values(customer.scores)
     .flat()
-    .filter(item => item.status === "false")
+    .filter(item => !item.status)
     .map(item => ({
       date: formatDate(item.createdAt),
       hardness: Number(item.score),

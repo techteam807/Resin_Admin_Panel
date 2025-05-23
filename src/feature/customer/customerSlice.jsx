@@ -4,9 +4,9 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
-export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ page = 1, search = '' }) => {
+export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ page = 1, search = '',isSubscription}) => {
     try {
-      const data = await fetchCustomers(page, search);
+      const data = await fetchCustomers(page, search,isSubscription);
       return data;
     } catch (error) {
       console.error("Error in getCustomers thunk:", error);
