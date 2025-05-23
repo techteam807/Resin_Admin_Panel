@@ -1,9 +1,13 @@
-import { createWaterReports } from '@/feature/waterReports/waterReportsSlice';
+import { createWaterReports, deleteWaterReport } from '@/feature/waterReports/waterReportsSlice';
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 
 const DayDetailModal = ({ show, onClose,onSaved, data, day, user, month, year }) => {
+  console.log("data",data)
   const dispatch = useDispatch();
+    const { deleting, deleteSuccess, deleteError } = useSelector(state => state.waterReport);
+  console.log("deleting",deleting)
   const [scoreInput, setScoreInput] = useState('');
   const [dateInput, setDateInput] = useState(() => {
     const selectedDate = new Date(year, month - 1, day);
@@ -40,7 +44,27 @@ const DayDetailModal = ({ show, onClose,onSaved, data, day, user, month, year })
         console.error("Error creating water report:", err);
         alert("Failed to add water report. Please check the input.");
       });
+      console.log("payload",payload)
   };
+
+
+  const handleDelete = () => {
+  if (data.length === 0) return alert('No entry to delete');
+
+  const logId = data[0].id;
+
+  dispatch(deleteWaterReport(logId))
+    .unwrap()
+    .then(() => {
+      onClose();
+      onSaved();
+    })
+    .catch((err) => {
+      console.error('Error deleting water report:', err);
+      alert('Failed to delete water report.');
+    });
+};
+
 
   if (!show) return null;
 
@@ -85,12 +109,23 @@ const DayDetailModal = ({ show, onClose,onSaved, data, day, user, month, year })
             readOnly
             className="w-full border px-3 py-2 rounded bg-gray-100 cursor-not-allowed"
           />
+          <div className='flex gap-5'>
           <button
             onClick={handleSave}
             className="bg-blue-600 text-white w-full py-2 rounded hover:bg-blue-700"
           >
             Save
           </button>
+            {data.length > 0 && (
+    <button
+      onClick={handleDelete}
+      className="bg-red-600 text-white w-full py-2 rounded hover:bg-red-700"
+      disabled={deleting}
+    >
+      {deleting ? 'Deleting...' : 'Delete'}
+    </button>
+  )}
+          </div>
         </div>
       </div>
     </div>

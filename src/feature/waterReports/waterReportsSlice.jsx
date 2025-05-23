@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { createReports, fetchWaterReports, generateReports } from './waterReportsService';
+import { createReports, deleteWaterReports, fetchWaterReports, generateReports } from './waterReportsService';
 import { toast } from 'react-toastify';
 
 export const getWaterReports = createAsyncThunk(
@@ -39,6 +39,20 @@ export const createWaterReports = createAsyncThunk(
   }
 );
 
+  export const deleteWaterReport = createAsyncThunk(
+    "waterReports/deleteWaterReport",
+    async (logId) => {
+      try {
+        console.log("logId",logId)
+        const data = await deleteWaterReports(logId);
+        return data;
+      } catch (error) {
+        console.error("Error in delete waterReport thunk:", error);
+        throw error.response?.data?.message || error.message || "Something went wrong";
+      }
+    }
+  );
+
 const waterReportsSlice = createSlice({
     name: 'waterReport',
     initialState: {
@@ -46,6 +60,7 @@ const waterReportsSlice = createSlice({
         loading: false,
         error: null,
         message: null,
+        deleting: false,
     },
     reducers: {},
     extraReducers: (builder) => {
@@ -89,7 +104,26 @@ const waterReportsSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload || action.error.message;
                 toast.error(state.error);
-            });
+            })
+            .addCase(deleteWaterReport.pending, (state) => {
+        state.loading = true;
+        state.deleting = true;
+        state.error = null;
+        state.message = null;
+      })
+      .addCase(deleteWaterReport.fulfilled, (state, action) => {
+        state.loading = false;
+        state.deleting = false;
+        state.message = action.payload.message;
+        toast.success(state.message);
+      })
+      .addCase(deleteWaterReport.rejected, (state, action) => {
+        state.loading = false;
+        state.deleting = false;
+        state.error = action.payload || action.error.message;
+        toast.error(state.error);
+      });
+
     },
 });
 

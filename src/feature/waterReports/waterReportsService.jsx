@@ -35,4 +35,18 @@ export const createReports = async (payload) => {
   }
 };
 
+  export const deleteWaterReports = async (logId) => {
+    try {
+    //   console.log("payload", payload);
+    console.log("logId",logId)
+      const response = await axiosConfig.delete(`waterReport/deleteWaterReports/${logId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching delete WaterReport :", error);
+      throw error;
+    }
+  };
+
+
+
 
