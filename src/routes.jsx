@@ -16,6 +16,7 @@ import MissedDeliveryLog from "./pages/dashboard/MissedDeliveryLog";
 import TechnicianScorrLog from "./pages/dashboard/TechnicianScorrLog";
 import WaterReports from "./pages/dashboard/WaterReports";
 import AdminProductCodeUpdate from "./pages/dashboard/AdminProductCodeUpdate";
+import TechnicianLogAnalytics from "./pages/dashboard/TechnicianLogAnalytics";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -95,6 +96,12 @@ export const routes = [
             name: "Missed Delivery Log",
             path: "/missed-delivery-log",
             element: <MissedDeliveryLog />,
+          },
+           {
+            icon: <FlagIcon {...icon} />,
+            name: "Technician Analytics",
+            path: "/technician-log-analytics",
+            element: <TechnicianLogAnalytics />,
           },
           {
             icon: <AcademicCapIcon {...icon} />,
