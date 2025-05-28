@@ -67,6 +67,16 @@ export const fetchTechnicians = async (page = 1, search = '', user_status = "") 
     }
   };
 
+   export const fetchTechnicianLogsAnalytics = async () => {
+    try {
+      const response = await axiosConfig.get(`logsManagement/logs/gettechnicianScoreByDay`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Technician Analytics:', error);
+      throw error;
+    }
+  };
+
   export const fetchTechnicianScoreLogs = async ({ startDate, endDate, userId }) => {
     try {
       const params = {

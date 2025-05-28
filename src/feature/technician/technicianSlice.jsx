@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { appTechnician, delPerTechnician, delTechnician, fetchTechnicianDropdown, fetchTechnicians, fetchTechnicianScoreLogs, resTechnician } from "./technicianService";
+import { appTechnician, delPerTechnician, delTechnician, fetchTechnicianDropdown, fetchTechnicianLogsAnalytics, fetchTechnicians, fetchTechnicianScoreLogs, resTechnician } from "./technicianService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -89,12 +89,24 @@ export const getTechnicianDropDown = createAsyncThunk("technician/getTechnicianD
     }
   });
 
+  export const getTechnicianLogsAnalytics = createAsyncThunk("technician/getTechnicianLogsAnalytics", async () => {
+    try {
+      const data = await fetchTechnicianLogsAnalytics();
+      return data;
+    } catch (error) {
+      console.error("Error in getTechnicianLogsAnalytics thunk:", error);
+      throw error.response?.data?.error || error.message;
+    }
+  });
+  
+
 const technicianSlice = createSlice({
     name: "technician",
     initialState: {
         technicians: [],
         technicianDrop: [],
         technicianScoreData: [],
+        technicianLogsAnalytics: [],
         delete: null,
         restore: null,
         approve: null,
@@ -191,6 +203,18 @@ const technicianSlice = createSlice({
             })
             .addCase(getTechnicianDropDown.rejected, (state, action) => {
                 state.dropLoading = false;
+                state.error = action.error.message;
+            })
+            .addCase(getTechnicianLogsAnalytics.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getTechnicianLogsAnalytics.fulfilled, (state, action) => {
+                state.loading = false;
+                state.technicianLogsAnalytics = action.payload.result;
+                state.message = action.payload.message;
+            })
+            .addCase(getTechnicianLogsAnalytics.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.error.message;
             })
             .addCase(deletePerTechnician.pending, (state) => {
