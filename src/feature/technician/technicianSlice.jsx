@@ -89,9 +89,11 @@ export const getTechnicianDropDown = createAsyncThunk("technician/getTechnicianD
     }
   });
 
-  export const getTechnicianLogsAnalytics = createAsyncThunk("technician/getTechnicianLogsAnalytics", async () => {
+  export const getTechnicianLogsAnalytics = createAsyncThunk("technician/getTechnicianLogsAnalytics", async ({ startDate,endDate }) => {
     try {
-      const data = await fetchTechnicianLogsAnalytics();
+        console.log("startDate", startDate)
+      console.log("endDate", endDate)
+      const data = await fetchTechnicianLogsAnalytics(startDate,endDate);
       return data;
     } catch (error) {
       console.error("Error in getTechnicianLogsAnalytics thunk:", error);
