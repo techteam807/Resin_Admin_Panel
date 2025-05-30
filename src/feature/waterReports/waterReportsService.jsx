@@ -11,11 +11,12 @@ export const fetchWaterReports = async (month, year) => {
     }
 };
 
-export const generateReports = async (customerId, logIds) => {
+export const generateReports = async (customerId, logIds, docUrl) => {
     try {
         const response = await axiosConfig.post(`waterReport/genrateReports`, {
             customerId,
-            logIds
+            logIds,
+            docUrl
         });
         return response.data;
     } catch (error) {
@@ -35,8 +36,8 @@ export const createReports = async (payload) => {
   }
 };
 
-  export const deleteWaterReports = async (logId) => {
-    try {
+export const deleteWaterReports = async (logId) => {
+  try {
     //   console.log("payload", payload);
     console.log("logId",logId)
       const response = await axiosConfig.delete(`waterReport/deleteWaterReports/${logId}`);
@@ -46,6 +47,25 @@ export const createReports = async (payload) => {
       throw error;
     }
   };
+
+export const uploadWaterReportPdf = async (pdfBlob) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', pdfBlob, `${Date.now()}-report.pdf`);
+
+    const response = await axiosConfig.post(`waterReport/uploadWaterReportPdf`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading water report PDF:', error);
+    throw error;
+  }
+};
+  
 
 
 

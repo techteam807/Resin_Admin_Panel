@@ -366,33 +366,72 @@ const Map = () => {
         }
 
         // Add product markers
+        // productsMap?.forEach((item) => {
+        //     const coords = item.geoCoordinates?.coordinates;
+        //     const customer = item.customer;
+        //     if (coords?.length === 2) {
+        //         const [lng, lat] = coords;
+        //         const marker = new window.google.maps.Marker({
+        //             position: { lat, lng },
+        //             map,
+        //             title: customer?.name || "Product",
+        //             icon: {
+        //                 url: product_icon,
+        //                 scaledSize: new window.google.maps.Size(28, 40),
+        //                 anchor: new window.google.maps.Point(15, 40),
+        //             },
+        //         });
+
+        //         marker.addListener("click", () => {
+        //             infoWindowRef.current.setContent(
+        //                 // `<div><strong>${customer?.name || "Product"}</strong></div>`
+        //                 `<div>Product<br>${customer.name || "No display name"}</div>`
+        //             );
+        //             infoWindowRef.current.open(map, marker);
+        //         });
+
+        //         markersRef.current.push(marker);
+        //     }
+        // });
         productsMap?.forEach((item) => {
-            const coords = item.geoCoordinates?.coordinates;
-            const customer = item.customer;
-            if (coords?.length === 2) {
-                const [lng, lat] = coords;
-                const marker = new window.google.maps.Marker({
-                    position: { lat, lng },
-                    map,
-                    title: customer?.name || "Product",
-                    icon: {
-                        url: product_icon,
-                        scaledSize: new window.google.maps.Size(28, 40),
-                        anchor: new window.google.maps.Point(15, 40),
-                    },
-                });
+    const coords = item.geoCoordinates?.coordinates;
+    const customer = item.customer;
+    const productCodes =  Array.isArray(item.customer.products) ? item.customer.products.map((p) => p.productCode).filter(Boolean) : [];
 
-                marker.addListener("click", () => {
-                    infoWindowRef.current.setContent(
-                        // `<div><strong>${customer?.name || "Product"}</strong></div>`
-                        `<div>Product<br>${customer.name || "No display name"}</div>`
-                    );
-                    infoWindowRef.current.open(map, marker);
-                });
-
-                markersRef.current.push(marker);
-            }
+    if (coords?.length === 2) {
+        const [lng, lat] = coords;
+        const marker = new window.google.maps.Marker({
+            position: { lat, lng },
+            map,
+            title: customer?.name || "Product",
+            icon: {
+                url: product_icon,
+                scaledSize: new window.google.maps.Size(28, 40),
+                anchor: new window.google.maps.Point(15, 40),
+            },
         });
+
+        marker.addListener("click", () => {
+            const productCodesHTML = productCodes.length
+        ? `<div>${productCodes.map(code => `• ${code}`).join("<br>")}</div>`
+        : `<div>No product codes</div>`;
+
+
+            infoWindowRef.current.setContent(
+                `<div>
+                    <strong>${customer?.name || "Product"}</strong><br/><br/>
+                    <strong>Product</strong>
+                    ${productCodesHTML}
+                </div>`
+            );
+
+            infoWindowRef.current.open(map, marker);
+        });
+
+        markersRef.current.push(marker);
+    }
+});
+
 
         // Add customer markers
         customersMap?.forEach((customer) => {
@@ -405,7 +444,7 @@ const Map = () => {
                     title: customer.name || "Customer",
                     icon: {
                         url: customer_icon,
-                        scaledSize: new window.google.maps.Size(28, 40),
+                        scaledSize: new window.google.maps.Size(28, 41),
                         anchor: new window.google.maps.Point(15, 40),
                     },
                 });
