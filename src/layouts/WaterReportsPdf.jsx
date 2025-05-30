@@ -10,8 +10,10 @@ import {
 } from "recharts";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/solid";
 import { useLocation } from 'react-router-dom';
-import { generateWaterReports } from '@/feature/waterReports/waterReportsSlice';
+import { generateWaterReports, uploadWaterReport } from '@/feature/waterReports/waterReportsSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
+import html2pdf from 'html2pdf.js'
 
 const waterComparisons = [
   { source: "Loch Katrine (Scotland)", hardness: 15, color: "bg-red-500" },
@@ -57,13 +59,29 @@ const WaterReportsPdf = () => {
   console.log(logIds);
 
 
-  const generatePDF = () => {
-    dispatch(generateWaterReports({ customerId, logIds }));
+  const generatePDF = async () => {
     const element = reportRef.current
     if (!element) return
-    window.print();
-  }
+    try {
+      // Generate PDF blob from HTML
+      const opt = {
+        margin: 0.5,
+        filename: `${Date.now()}-report.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
 
+      const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
+
+      const uploadResult = await dispatch(uploadWaterReport(pdfBlob)).unwrap();
+
+      const docUrl = uploadResult.data.uploadedUrl;
+      dispatch(generateWaterReports({ customerId, logIds, docUrl }));
+    } catch (err) {
+      console.error('Error generating/uploading PDF:', err);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -79,7 +97,6 @@ const WaterReportsPdf = () => {
         <div ref={reportRef} className="bg-white p-8 rounded-lg shadow-md space-y-8">
           {/* Header */}
           <div className="text-center space-y-2 pb-6 border-b">
-            <p className="text-gray-500">Hey</p>
             <h1 className="text-3xl font-bold text-gray-900">Your 30 Day Report is here</h1>
             <p className="text-xl font-semibold text-gray-700">{customer?.user?.display_name}</p>
             <p className="text-sm text-gray-500 max-w-md mx-auto">Promoting better wellness through Betterwater</p>
@@ -227,4 +244,4 @@ const WaterReportsPdf = () => {
   )
 }
 
-export default WaterReportsPdf
+export default WaterReportsPdf;

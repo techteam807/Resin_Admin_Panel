@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { createReports, deleteWaterReports, fetchWaterReports, generateReports } from './waterReportsService';
+import { createReports, deleteWaterReports, fetchWaterReports, generateReports, uploadWaterReportPdf } from './waterReportsService';
 import { toast } from 'react-toastify';
 
 export const getWaterReports = createAsyncThunk(
@@ -17,9 +17,9 @@ export const getWaterReports = createAsyncThunk(
 
 export const generateWaterReports = createAsyncThunk(
     'waterReports/generateWaterReports',
-    async ({ customerId, logIds }, { rejectWithValue }) => {
+    async ({ customerId, logIds, docUrl }, { rejectWithValue }) => {
         try {
-            const data = await generateReports(customerId, logIds);
+            const data = await generateReports(customerId, logIds, docUrl);
             return data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.error || error.message);
@@ -52,6 +52,19 @@ export const createWaterReports = createAsyncThunk(
       }
     }
   );
+
+  export const uploadWaterReport = createAsyncThunk(
+  'waterReports/uploadWaterReport',
+  async (pdfBlob, { rejectWithValue }) => {
+    try {
+      const data = await uploadWaterReportPdf(pdfBlob);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || error.message);
+    }
+  }
+);
+
 
 const waterReportsSlice = createSlice({
     name: 'waterReport',
@@ -122,7 +135,21 @@ const waterReportsSlice = createSlice({
         state.deleting = false;
         state.error = action.payload || action.error.message;
         toast.error(state.error);
-      });
+      })
+      .addCase(uploadWaterReport.pending, (state) => {
+  state.loading = true;
+  state.error = null;
+})
+.addCase(uploadWaterReport.fulfilled, (state, action) => {
+  state.loading = false;
+  state.message = action.payload.message;
+  // toast.success(state.message);
+})
+.addCase(uploadWaterReport.rejected, (state, action) => {
+  state.loading = false;
+  state.error = action.payload || action.error.message;
+  toast.error(state.error);
+});
 
     },
 });
