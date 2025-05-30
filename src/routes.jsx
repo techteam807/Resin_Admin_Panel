@@ -16,6 +16,7 @@ import MissedDeliveryLog from "./pages/dashboard/MissedDeliveryLog";
 import TechnicianScorrLog from "./pages/dashboard/TechnicianScorrLog";
 import WaterReports from "./pages/dashboard/WaterReports";
 import AdminProductCodeUpdate from "./pages/dashboard/AdminProductCodeUpdate";
+import TechnicianLogAnalytics from "./pages/dashboard/TechnicianLogAnalytics";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
