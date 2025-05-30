@@ -377,7 +377,7 @@ const Map = () => {
                     title: customer?.name || "Product",
                     icon: {
                         url: product_icon,
-                        scaledSize: new window.google.maps.Size(30, 40),
+                        scaledSize: new window.google.maps.Size(28, 40),
                         anchor: new window.google.maps.Point(15, 40),
                     },
                 });
@@ -405,7 +405,7 @@ const Map = () => {
                     title: customer.name || "Customer",
                     icon: {
                         url: customer_icon,
-                        scaledSize: new window.google.maps.Size(30, 40),
+                        scaledSize: new window.google.maps.Size(28, 40),
                         anchor: new window.google.maps.Point(15, 40),
                     },
                 });
