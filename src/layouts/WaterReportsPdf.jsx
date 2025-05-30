@@ -83,12 +83,41 @@ const WaterReportsPdf = () => {
     }
   }
 
+  const downloadPdf = async () => {
+     const element = reportRef.current
+    if (!element) return
+    window.print();
+  }
+const {loading} = useSelector((state) => state.waterReport);
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Water Quality Report</h1>
-          <button onClick={generatePDF} className="flex items-center gap-2">
+          <button
+  onClick={generatePDF}
+  disabled={loading}
+  className={`flex items-center gap-2 px-4 py-2 rounded text-white 
+    ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black'}`}
+>
+  {loading ? (
+    <>
+      <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+      </svg>
+      Sending...
+    </>
+  ) : (
+    <>
+      <ArrowDownTrayIcon className="h-4 w-4 bg-" />
+      Send PDF
+    </>
+  )}
+</button>
+
+          <button onClick={downloadPdf} className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded">
             <ArrowDownTrayIcon className="h-4 w-4" />
             Download PDF
           </button>
