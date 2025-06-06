@@ -297,8 +297,9 @@ import {
   refreshCustomersClusterMap,
 } from "@/feature/customer/customerSlice";
 import Loader from "../Loader";
-import { Button, Typography } from "@material-tailwind/react";
+import { Button, MenuItem, Option, Select, Typography } from "@material-tailwind/react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import RoutesMap from "./RoutesMap";
 // import "./Home.css";
 
 const clusterColors = [
@@ -341,6 +342,12 @@ const MapCluster = () => {
   const [data, setData] = useState([]);
   const [showMap, setShowMap] = useState(false);
   const [selected, setSelected] = useState(null);
+const [selectedClusterIndex, setSelectedClusterIndex] = React.useState(0);
+const [selectedMarker, setSelectedMarker] = useState(null);
+const [map, setMap] = useState(null);
+
+  console.log(selectedClusterIndex);
+  
   console.log("data", data);
   
 
@@ -388,8 +395,9 @@ useEffect(() => {
       cartridge_qty: cluster.cartridge_qty,
       customers: cluster.customers.map((c) => ({
         code: c.contact_number,
-        customerId: c._id,
-        displayName: c.display_name,
+        customerId: c.customerId,
+        displayName: c.name,
+        vistSequnceNo:c.sequenceNo,
         lat: Number(c.geoCoordinates?.coordinates[1]),
         lng: Number(c.geoCoordinates?.coordinates[0]),
       })),
@@ -475,13 +483,43 @@ useEffect(() => {
           <Loader />
         </div>
       ) : (
-        <>
+        <> 
           <div className="p-4 border-blue-gray-100">
             <div className="mb-4 border rounded-lg p-2 px-3 flex items-center justify-between">
               <Typography variant="h5" color="blue-gray">
                 Cluster {showMap ? "Map" : "List"}
               </Typography>
               <div className="flex gap-2">
+                              <div>
+<Select
+  label="Select Cluster"
+  value={selectedClusterIndex !== null ? selectedClusterIndex : ""}
+  onChange={(value) => {
+    console.log("Selected cluster index:", value);
+    setSelectedClusterIndex(value);
+  }}
+>
+  <Option value={0}>
+    -- Choose --
+  </Option>
+
+  {data.map((cluster, idx) => {
+    const color = clusterColors[idx % clusterColors.length];
+    return (
+      <Option key={cluster.clusterNo ?? idx} value={idx + 1}>
+        <span
+          className="inline-block w-3 h-3 rounded-full mr-2"
+          style={{ backgroundColor: color }}
+        />
+        {cluster.name ?? `Cluster ${idx + 1}`}
+      </Option>
+    );
+  })}
+</Select>
+
+
+
+      </div>
                 <Button size="sm" variant="outlined" onClick={() => setShowMap(!showMap)}>
                   {showMap ? "Show Customers" : "Show Map"}
                 </Button>
@@ -500,109 +538,171 @@ useEffect(() => {
 
             {showMap ? (
               <GoogleMap
-                mapContainerStyle={containerStyle}
-                center={center}
-                zoom={11}
-                // onLoad={(map) => {
-                //   const bounds = new window.google.maps.LatLngBounds();
-                //   data.forEach((cl) =>
-                //     cl.customers.forEach((cu) => {
-                //       if (!isNaN(cu.lat) && !isNaN(cu.lng)) {
-                //         bounds.extend({ lat: cu.lat, lng: cu.lng });
-                //       }
-                //     })
-                //   );
-                //   if (!bounds.isEmpty()) map.fitBounds(bounds);
-                // }}
-                onLoad={handleMapLoad}
-                onClick={() => setSelected(null)}
-              >
-                {data.map((cluster, clusterIndex) => {
-                  const clusterColor =
-                    clusterColors[clusterIndex % clusterColors.length];
+  mapContainerStyle={containerStyle}
+  center={center}
+  zoom={10}
+onLoad={(mapInstance) => {
+  setMap(mapInstance); // make sure this is defined using useState
 
-                  return cluster.customers
-                    .filter((cust) => !isNaN(cust.lat) && !isNaN(cust.lng))
-                    .map((cust) => (
-                      <React.Fragment key={cust.customerId}>
-                        <Circle
-                          center={{ lat: cust.lat, lng: cust.lng }}
-                          radius={500}
-                          options={{
-                            strokeColor: clusterColor,
-                            fillColor: clusterColor,
-                            strokeOpacity: 0.8,
-                            fillOpacity: 0.25,
-                            strokeWeight: 1,
-                            clickable: false,
-                            zIndex: 0, 
-                          }}
-                        />
-                        <Marker
-                          position={{ lat: cust.lat, lng: cust.lng }}
-                          onClick={() => setSelected({ ...cust, clusterColor })}
-                          icon={{
-                            url: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-                            scaledSize: new window.google.maps.Size(30, 30),
-                            anchor: new window.google.maps.Point(15, 30),
-                          }}
-                        />
-                      </React.Fragment>
-                    ));
-                })}
+  const bounds = new window.google.maps.LatLngBounds();
 
-                {/* {selected && (
-                  <InfoWindow
-                    position={{ lat: selected.lat, lng: selected.lng }}
-                    onCloseClick={() => setSelected(null)}
-                  >
-                    <div
-                      style={{
-                        background: selected.clusterColor,
-                        color: "#fff",
-                        padding: 6,
-                        borderRadius: 4,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      <strong>{selected.displayName}</strong>
-                      <br />
-                      {selected.code}
-                    </div>
-                  </InfoWindow>
-                )} */}
+  if (showMap) {
+    data.forEach((cl) =>
+      cl.customers?.forEach((cu) => {
+        if (!isNaN(cu.lat) && !isNaN(cu.lng)) {
+          bounds.extend({ lat: cu.lat, lng: cu.lng });
+        }
+      })
+    );
+  } else if (
+    selectedClusterIndex !== null &&
+    data[selectedClusterIndex]?.visitSequence?.length
+  ) {
+    data[selectedClusterIndex].visitSequence.forEach((point) => {
+      bounds.extend({ lat: point.lat, lng: point.lng });
+    });
+  }
 
-                {selected && (
-  <OverlayView
-    position={{ lat: selected.lat, lng: selected.lng }}
-    mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-    onClick={() => setSelected(null)}
-  >
-    <div
-      style={{
-        background    : selected.clusterColor,
-        minWidth      : 160,
-        maxWidth      : 260,
-        color         : "#fff",
-        padding       : "6px 10px",
-        borderRadius  : 6,
-        lineHeight    : 1.4,
-        cursor        : "pointer",
-        userSelect    : "none",
-        whiteSpace    : "normal",   // allow wrapping
-        wordBreak     : "break-word", // prevent long words from breaking layout
-        boxShadow     : "0 2px 6px rgba(0,0,0,.3)",
+  if (!bounds.isEmpty()) mapInstance.fitBounds(bounds);
+}}
+
+  onClick={() => setSelected(null)}
+>
+  {/* --- Cluster Mode --- */}
+  {showMap &&
+    data.map((cluster, clusterIndex) => {
+      const clusterColor = clusterColors[clusterIndex % clusterColors.length];
+
+      return cluster.customers
+        ?.filter((cust) => !isNaN(cust.lat) && !isNaN(cust.lng))
+        .map((cust) => (
+          <React.Fragment key={cust.customerId}>
+            <Circle
+              center={{ lat: cust.lat, lng: cust.lng }}
+              radius={500}
+              options={{
+                strokeColor: clusterColor,
+                fillColor: clusterColor,
+                strokeOpacity: 0.8,
+                fillOpacity: 0.25,
+                strokeWeight: 1,
+                clickable: false,
+                zIndex: 0,
+              }}
+            />
+            <Marker
+              position={{ lat: cust.lat, lng: cust.lng }}
+              onClick={() => setSelected({ ...cust, clusterColor })}
+              icon={{
+                url: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+                scaledSize: new window.google.maps.Size(30, 30),
+                anchor: new window.google.maps.Point(15, 30),
+              }}
+            />
+          </React.Fragment>
+        ));
+    })}
+
+  {/* --- Optimized Route Mode --- */}
+  {!showMap &&
+    selectedClusterIndex !== null &&
+    data[selectedClusterIndex]?.visitSequence?.map((point, idx) => {
+      const isWarehouse = point.customerName?.trim().toLowerCase() === "warehouse";
+      const clusterColor =
+        clusterColors[selectedClusterIndex % clusterColors.length];
+
+      return (
+        <React.Fragment key={idx}>
+          {!isWarehouse && (
+            <Circle
+              center={{ lat: point.lat, lng: point.lng }}
+              radius={400}
+              options={{
+                strokeColor: clusterColor,
+                fillColor: clusterColor,
+                strokeOpacity: 0.8,
+                fillOpacity: 0.2,
+              }}
+            />
+          )}
+          <Marker
+            position={{ lat: point.lat, lng: point.lng }}
+            onClick={() => setSelectedMarker(point)}
+            icon={{
+              url: isWarehouse
+                ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+              scaledSize: new window.google.maps.Size(32, 32),
+            }}
+          />
+        </React.Fragment>
+      );
+    })}
+
+  {/* Directions */}
+  {!showMap && directionsResponse && (
+    <DirectionsRenderer
+      directions={directionsResponse}
+      options={{
+        polylineOptions: {
+          strokeColor: clusterColors[selectedClusterIndex % clusterColors.length],
+          strokeOpacity: 0.8,
+          strokeWeight: 5,
+        },
       }}
-    >
-      <strong>{selected.displayName}</strong>
-      <br />
-      {selected.code}
-    </div>
-  </OverlayView>
-)}
+    />
+  )}
 
-              </GoogleMap>
+  {/* InfoWindow */}
+  {selected && showMap && (
+    <OverlayView
+      position={{ lat: selected.lat, lng: selected.lng }}
+      mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+    >
+      <div
+        style={{
+          background: selected.clusterColor,
+          minWidth: 160,
+          maxWidth: 260,
+          color: "#fff",
+          padding: "6px 10px",
+          borderRadius: 6,
+          lineHeight: 1.4,
+          cursor: "pointer",
+          userSelect: "none",
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+          boxShadow: "0 2px 6px rgba(0,0,0,.3)",
+        }}
+      >
+        <strong>{selected.displayName}</strong>
+        <br />
+        {selected.code}
+      </div>
+    </OverlayView>
+  )}
+
+  {selectedMarker && !showMap && (
+    <InfoWindow
+      position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
+      onCloseClick={() => setSelectedMarker(null)}
+    >
+      <div>
+        <h4>{selectedMarker.customerName}</h4>
+        <p>
+          Lat: {selectedMarker.lat}, Lng: {selectedMarker.lng}
+        </p>
+      </div>
+    </InfoWindow>
+  )}
+</GoogleMap>
+
             ) : (
+              <>
+              {selectedClusterIndex ? ( 
+                <RoutesMap selectedClusterIndex={selectedClusterIndex}
+    setSelectedClusterIndex={setSelectedClusterIndex}/>
+              ):(
               <DragDropContext onDragEnd={onDragEnd}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
                   {data.map((cluster, index) => (
@@ -643,7 +743,8 @@ useEffect(() => {
                                       }}
                                     >
                                       {customer.code} <br />
-                                      {customer.displayName}
+                                      {customer.displayName}<br />
+                                      vistSequnceNo :{customer.vistSequnceNo}
                                     </div>
                                   )}
                                 </Draggable>
@@ -662,6 +763,8 @@ useEffect(() => {
                   ))}
                 </div>
               </DragDropContext>
+                )}
+              </>
             )}
           </div>
         </>
