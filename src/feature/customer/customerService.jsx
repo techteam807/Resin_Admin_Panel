@@ -78,6 +78,28 @@ export const fetchCustomers = async (page = 1, search = '',isSubscription) => {
     }
   };
 
+export const fetchClusterRoutes = async (clusterNo) => {
+  console.log("clno:", clusterNo);
+
+  try {
+    const queryParams = new URLSearchParams();
+
+    // Fix: Allow 0 as a valid value
+    if (clusterNo !== undefined && clusterNo !== null) {
+      queryParams.append('clusterNo', clusterNo);
+    }
+
+    console.log("Query Params:", queryParams.toString()); // will show ?clusterNo=0
+
+    const response = await axiosConfig.get(`cluster/clusters/optimize-routes?${queryParams}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching products map:', error);
+    throw error;
+  }
+};
+
+
   export const sendDelivery = async (customerData) => {
     try {
       const response = await axiosConfig.post(`customers/SendMissedCartidgeMsg`, customerData);

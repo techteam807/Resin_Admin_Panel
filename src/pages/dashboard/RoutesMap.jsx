@@ -599,6 +599,181 @@
 
 // export default RoutesMap;
 
+// import React, { useEffect, useState } from "react";
+// import {
+//   GoogleMap,
+//   Marker,
+//   DirectionsRenderer,
+//   InfoWindow,
+//   useJsApiLoader,
+//   Circle,
+// } from "@react-google-maps/api";
+
+// const containerStyle = {
+//   width: "100vw",
+//   height: "100vh",
+// };
+
+// const center = {
+//   lat: 23.0811,
+//   lng: 72.4972,
+// };
+
+// const clusterColors = [
+//   "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
+//   "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe",
+// ];
+
+// const RoutesMap = () => {
+//   const { isLoaded } = useJsApiLoader({
+//     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+//   });
+
+//   const [data, setData] = useState([]);
+//   const [directionsResponse, setDirectionsResponse] = useState(null);
+//   const [map, setMap] = useState(null);
+//   const [selectedMarker, setSelectedMarker] = useState(null);
+//   const [selectedClusterIndex , setSelectedClusterIndex ] = useState(1);
+
+//   useEffect(() => {
+//     fetch("http://localhost:5000/cluster/clusters/optimize-routes")
+//       .then((res) => res.json())
+//       .then((res) => setData(res.data || []))
+//       .catch(console.error);
+//   }, []);
+
+//   useEffect(() => {
+//     if (!map || selectedClusterIndex === null || !data[selectedClusterIndex]) return;
+
+//     const cluster = data[selectedClusterIndex];
+//     const bounds = new window.google.maps.LatLngBounds();
+//     cluster.visitSequence.forEach((point) => {
+//       bounds.extend({ lat: point.lat, lng: point.lng });
+//     });
+
+//     if (!bounds.isEmpty()) {
+//       map.fitBounds(bounds);
+//     }
+//   }, [map, selectedClusterIndex, data]);
+
+//   useEffect(() => {
+//     if (selectedClusterIndex === null) return;
+
+//     const cluster = data[selectedClusterIndex];
+//     if (!cluster || !cluster.visitSequence) return;
+
+//     const customerPoints = cluster.visitSequence.filter(
+//       (p) => p.customerName?.trim().toLowerCase() !== "warehouse"
+//     );
+
+//     if (customerPoints.length < 2) {
+//       setDirectionsResponse(null);
+//       return;
+//     }
+
+//     const origin = customerPoints[0];
+//     const destination = customerPoints[customerPoints.length - 1];
+//     const waypoints = customerPoints.slice(1, -1).map((p) => ({
+//       location: { lat: p.lat, lng: p.lng },
+//       stopover: true,
+//     }));
+
+//     const service = new window.google.maps.DirectionsService();
+//     service.route(
+//       {
+//         origin: { lat: origin.lat, lng: origin.lng },
+//         destination: { lat: destination.lat, lng: destination.lng },
+//         waypoints,
+//         travelMode: "DRIVING",
+//       },
+//       (result, status) => {
+//         if (status === "OK") {
+//           setDirectionsResponse(result);
+//         } else {
+//           console.warn("Directions error:", status);
+//           setDirectionsResponse(null);
+//         }
+//       }
+//     );
+//   }, [selectedClusterIndex, data]);
+
+//   if (!isLoaded) return <div>Loading map...</div>;
+
+//   return (
+//     <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
+//     <GoogleMap
+//       mapContainerStyle={containerStyle}
+//       center={center}
+//       zoom={10}
+//       onLoad={setMap}
+//     >
+//       {selectedClusterIndex !== null &&
+//         data[selectedClusterIndex]?.visitSequence.map((point, idx) => {
+//           const isWarehouse = point.customerName?.trim().toLowerCase() === "warehouse";
+
+//           const clusterColor = clusterColors[selectedClusterIndex % clusterColors.length];
+
+//           return (
+//             <React.Fragment key={idx}>
+//               {!isWarehouse && (
+//                 <Circle
+//                   center={{ lat: point.lat, lng: point.lng }}
+//                   radius={400}
+//                   options={{
+//                     strokeColor: clusterColor,
+//                     fillColor: clusterColor,
+//                     strokeOpacity: 0.8,
+//                     fillOpacity: 0.2,
+//                   }}
+//                 />
+//               )}
+//               <Marker
+//                 position={{ lat: point.lat, lng: point.lng }}
+//                 onClick={() => setSelectedMarker(point)}
+//                 icon={{
+//                   url: isWarehouse
+//                     ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+//                     : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+//                   scaledSize: new window.google.maps.Size(32, 32),
+//                 }}
+//               />
+//             </React.Fragment>
+//           );
+//         })}
+
+//       {directionsResponse && (
+//         <DirectionsRenderer
+//           directions={directionsResponse}
+//           options={{
+//             polylineOptions: {
+//               strokeColor: clusterColors[selectedClusterIndex % clusterColors.length],
+//               strokeOpacity: 0.8,
+//               strokeWeight: 5,
+//             },
+//           }}
+//         />
+//       )}
+
+//       {selectedMarker && (
+//         <InfoWindow
+//           position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
+//           onCloseClick={() => setSelectedMarker(null)}
+//         >
+//           <div>
+//             <h4>{selectedMarker.customerName}</h4>
+//             <p>
+//               Lat: {selectedMarker.lat}, Lng: {selectedMarker.lng}
+//             </p>
+//           </div>
+//         </InfoWindow>
+//       )}
+//     </GoogleMap>
+//     </div>
+//   );
+// };
+
+// export default RoutesMap;
+
 import React, { useEffect, useState } from "react";
 import {
   GoogleMap,
@@ -624,7 +799,7 @@ const clusterColors = [
   "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe",
 ];
 
-const RoutesMap = ({ selectedClusterIndex, setSelectedClusterIndex }) => {
+const RoutesMap = () => {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
@@ -633,14 +808,22 @@ const RoutesMap = ({ selectedClusterIndex, setSelectedClusterIndex }) => {
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [map, setMap] = useState(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
+  const [selectedClusterIndex, setSelectedClusterIndex] = useState(null);
 
+  // Fetch route cluster data
   useEffect(() => {
     fetch("http://localhost:5000/cluster/clusters/optimize-routes")
       .then((res) => res.json())
-      .then((res) => setData(res.data || []))
+      .then((res) => {
+        setData(res.data || []);
+        if ((res.data || []).length > 0) {
+          setSelectedClusterIndex(0); // set default
+        }
+      })
       .catch(console.error);
   }, []);
 
+  // Auto-fit bounds to selected cluster
   useEffect(() => {
     if (!map || selectedClusterIndex === null || !data[selectedClusterIndex]) return;
 
@@ -655,6 +838,7 @@ const RoutesMap = ({ selectedClusterIndex, setSelectedClusterIndex }) => {
     }
   }, [map, selectedClusterIndex, data]);
 
+  // Generate directions route
   useEffect(() => {
     if (selectedClusterIndex === null) return;
 
@@ -690,6 +874,7 @@ const RoutesMap = ({ selectedClusterIndex, setSelectedClusterIndex }) => {
           setDirectionsResponse(result);
         } else {
           console.warn("Directions error:", status);
+          alert("Failed to get route: " + status);
           setDirectionsResponse(null);
         }
       }
@@ -699,74 +884,98 @@ const RoutesMap = ({ selectedClusterIndex, setSelectedClusterIndex }) => {
   if (!isLoaded) return <div>Loading map...</div>;
 
   return (
-    <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={center}
-      zoom={10}
-      onLoad={setMap}
-    >
-      {selectedClusterIndex !== null &&
-        data[selectedClusterIndex]?.visitSequence.map((point, idx) => {
-          const isWarehouse = point.customerName?.trim().toLowerCase() === "warehouse";
-
-          const clusterColor = clusterColors[selectedClusterIndex % clusterColors.length];
-
-          return (
-            <React.Fragment key={idx}>
-              {!isWarehouse && (
-                <Circle
-                  center={{ lat: point.lat, lng: point.lng }}
-                  radius={400}
-                  options={{
-                    strokeColor: clusterColor,
-                    fillColor: clusterColor,
-                    strokeOpacity: 0.8,
-                    fillOpacity: 0.2,
-                  }}
-                />
-              )}
-              <Marker
-                position={{ lat: point.lat, lng: point.lng }}
-                onClick={() => setSelectedMarker(point)}
-                icon={{
-                  url: isWarehouse
-                    ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-                    : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                  scaledSize: new window.google.maps.Size(32, 32),
-                }}
-              />
-            </React.Fragment>
-          );
-        })}
-
-      {directionsResponse && (
-        <DirectionsRenderer
-          directions={directionsResponse}
-          options={{
-            polylineOptions: {
-              strokeColor: clusterColors[selectedClusterIndex % clusterColors.length],
-              strokeOpacity: 0.8,
-              strokeWeight: 5,
-            },
-          }}
-        />
-      )}
-
-      {selectedMarker && (
-        <InfoWindow
-          position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
-          onCloseClick={() => setSelectedMarker(null)}
+    <div className="mt-6">
+      {/* Dropdown to select cluster */}
+      <div className="mb-4 text-center">
+        <label className="mr-2 font-medium">Select Cluster:</label>
+        <select
+          value={selectedClusterIndex ?? ""}
+          onChange={(e) => setSelectedClusterIndex(Number(e.target.value))}
+          className="px-3 py-1 border rounded shadow"
         >
-          <div>
-            <h4>{selectedMarker.customerName}</h4>
-            <p>
-              Lat: {selectedMarker.lat}, Lng: {selectedMarker.lng}
-            </p>
-          </div>
-        </InfoWindow>
-      )}
-    </GoogleMap>
+          {data.map((cluster, idx) => (
+            <option key={idx} value={idx}>
+              Cluster {idx + 1} - {cluster?.visitSequence?.length || 0} stops
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="bg-white border rounded-xl shadow-sm">
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={10}
+          onLoad={setMap}
+        >
+          {selectedClusterIndex !== null &&
+            data[selectedClusterIndex]?.visitSequence.map((point, idx) => {
+              const isWarehouse =
+                point.customerName?.trim().toLowerCase() === "warehouse";
+              const clusterColor =
+                clusterColors[selectedClusterIndex % clusterColors.length];
+
+              return (
+                <React.Fragment
+                  key={`${point.lat}-${point.lng}-${idx}`}
+                >
+                  {!isWarehouse && (
+                    <Circle
+                      center={{ lat: point.lat, lng: point.lng }}
+                      radius={400}
+                      options={{
+                        strokeColor: clusterColor,
+                        fillColor: clusterColor,
+                        strokeOpacity: 0.8,
+                        fillOpacity: 0.2,
+                      }}
+                    />
+                  )}
+                  <Marker
+                    position={{ lat: point.lat, lng: point.lng }}
+                    onClick={() => setSelectedMarker(point)}
+                    icon={{
+                      url: isWarehouse
+                        ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                        : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                      scaledSize: new window.google.maps.Size(32, 32),
+                    }}
+                  />
+                </React.Fragment>
+              );
+            })}
+
+          {directionsResponse && (
+            <DirectionsRenderer
+              directions={directionsResponse}
+              options={{
+                polylineOptions: {
+                  strokeColor:
+                    clusterColors[selectedClusterIndex % clusterColors.length],
+                  strokeOpacity: 0.8,
+                  strokeWeight: 5,
+                },
+              }}
+            />
+          )}
+
+          {selectedMarker && (
+            <InfoWindow
+              position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
+              onCloseClick={() => setSelectedMarker(null)}
+            >
+              <div>
+                <h4 className="font-semibold">
+                  {selectedMarker.customerName}
+                </h4>
+                <p>
+                  Lat: {selectedMarker.lat}, Lng: {selectedMarker.lng}
+                </p>
+              </div>
+            </InfoWindow>
+          )}
+        </GoogleMap>
+      </div>
     </div>
   );
 };
