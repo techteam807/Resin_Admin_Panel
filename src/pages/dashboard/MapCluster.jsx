@@ -536,6 +536,7 @@ const MapCluster = () => {
   }, [selectedCluster, clusteroute]);
 
 
+
   if (!isLoaded) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -558,25 +559,21 @@ const MapCluster = () => {
                 Cluster {showMap ? "Map" : "List"}
               </Typography>
               <div className="flex gap-2">
-                {showMap && (<Select
-                  label="Select Cluster"
-                  value={selectedCluster !== null ? selectedCluster : ""}
-                  onChange={handleClusterSelect}
-                >
-                  <Option value=''>-- Choose --</Option> {/* keep this disabled */}
-                  {data.map((cluster, idx) => {
-                    const color = clusterColors[idx % clusterColors.length];
-                    return (
-                      <Option key={cluster.clusterNo ?? idx} value={cluster.clusterNo}>
-                        <span
-                          className="inline-block w-3 h-3 rounded-full mr-2"
-                          style={{ backgroundColor: color }}
-                        />
-                        {cluster.name ?? `Cluster ${idx + 1}`}
-                      </Option>
-                    );
-                  })}
-                </Select>)}
+                {showMap && (
+                  <>
+                    <Select label="Select Cluster" onChange={handleClusterSelect}>
+                      {data.map((item, index) => {
+                        const color = clusterColors[index % clusterColors.length];
+                        return (
+                          <Option key={item.clusterNo} value={item.clusterNo}>
+                            <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }} />
+                            {item.name}
+                          </Option>
+                        );
+                      })}
+                    </Select>
+                  </>
+                )}
                 <Button size="sm" variant="outlined" onClick={() => setShowMap(!showMap)}>
                   {showMap ? "Show Customers" : "Show Map"}
                 </Button>
@@ -651,7 +648,6 @@ const MapCluster = () => {
                         );
                       });
                     })
-
                   ) : (
                     // show clusters
                     data.map((cluster, clusterIndex) => {
