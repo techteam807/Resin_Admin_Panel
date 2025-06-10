@@ -808,6 +808,8 @@ const RoutesMap = () => {
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [map, setMap] = useState(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
+  console.log(selectedMarker);
+  
   const [selectedClusterIndex, setSelectedClusterIndex] = useState(null);
 
   // Fetch route cluster data

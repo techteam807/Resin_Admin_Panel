@@ -290,7 +290,9 @@ import { Button, Option, Select, Typography } from "@material-tailwind/react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { DocumentIcon, DocumentChartBarIcon } from "@heroicons/react/24/solid";
 import { jsPDF } from "jspdf";
-import { autoTable } from 'jspdf-autotable'
+import { autoTable } from 'jspdf-autotable';
+import customerIcon from '../../../public/img/customerroute.png';
+import WareHouseIcon from '../../../public/img/warehouse.png';
 // import "./Home.css";
 
 const clusterColors = [
@@ -325,8 +327,13 @@ const MapCluster = () => {
   const { customersClusterMap, mapLoading1, mapLoading, clusteroute } = useSelector(
     (state) => state.customer
   );
+  console.log("clusteroute:",clusteroute);
+  
 
   const [data, setData] = useState([]);
+  console.log("data:",data);
+  const [route, setRoute] = useState([]);
+  console.log("route:",route)
   const [showMap, setShowMap] = useState(false);
   const [selected, setSelected] = useState(null);
   const [selectedCluster, setSelectedCluster] = useState('');
@@ -411,6 +418,36 @@ const MapCluster = () => {
     }
   }, [mapLoading1, customersClusterMap]);
 
+  useEffect(() => {
+if (mapLoading) {
+      setRoute([]);
+      return;
+    }
+    if(clusteroute?.length)
+    {
+      const formatted = clusteroute.map((cluster) => ({
+        clusterNo: cluster.clusterNo,
+         name: `Cluster ${cluster.clusterNo + 1}`,
+          cartridge_qty: cluster.cartridge_qty,
+           totalDistance: cluster.totalDistance,
+            customers: cluster.visitSequence
+            .map((v) => ({
+          displayName: v.customerName,
+          vistSequnceNo: v.visitNumber,
+          lat: Number(v.lat),
+          lng: Number(v.lng),
+          clusterId: v.clusterId,
+          distanceFromPrev: v.distanceFromPrev,
+        })),
+      }));
+      setRoute(formatted)
+    }
+    else
+    {
+      setRoute([]);
+    }
+  },[mapLoading,clusteroute])
+
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -433,6 +470,7 @@ const MapCluster = () => {
       .unwrap()
       .then(() => {
         dispatch(getCustomersClusterMap());
+        dispatch(fetchClusterRoute());
       })
       .catch((error) => {
         console.error("Refresh failed:", error);
@@ -462,9 +500,11 @@ const MapCluster = () => {
       .unwrap()
       .then(() => {
         dispatch(getCustomersClusterMap());
+        dispatch(fetchClusterRoute());
       })
       .catch(() => {
         dispatch(getCustomersClusterMap());
+        dispatch(fetchClusterRoute());
       });
   };
 
@@ -594,6 +634,13 @@ const MapCluster = () => {
     doc.save(fileName);
   };
 
+  useEffect(() => {
+  if (!showRoute) {
+    setRoute([]); // Optional: clear route to avoid leakage
+  }
+}, [showRoute]);
+
+
   if (!isLoaded) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -632,19 +679,41 @@ const MapCluster = () => {
 
                 {/* Cluster Selector */}
                 {showMap && (
-                  <Select label="Select Cluster" onChange={handleClusterSelect} value={selectedCluster}>
-                    {data.map((item, index) => {
-                      const color = clusterColors[index % clusterColors.length];
-                      return (
-                        <Option key={item.clusterNo} value={item.clusterNo}>
-                          <div className="flex items-center h-4">
-                            <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span> {item.name}
-                          </div>
-                        </Option>
-                      );
-                    })}
-                  </Select>
-                )}
+  <>
+    {/* Button toggles route/cluster view */}
+    <Button
+      size="sm"
+      variant="outlined"
+      onClick={() => setShowRoute(prev => !prev)}
+    >
+      {showRoute ? "Show Clusters" : "Show Cluster Route"}
+    </Button>
+
+    {/* Dropdown visible only when showRoute is true */}
+    {showRoute && (
+      <Select
+        label="Select Cluster"
+        onChange={handleClusterSelect}
+        value={selectedCluster}
+      >
+        {data.map((item, index) => {
+          const color = clusterColors[index % clusterColors.length];
+          return (
+            <Option key={item.clusterNo} value={item.clusterNo}>
+              <div className="flex items-center h-4">
+                <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span> 
+                {item.name}
+              </div>
+            </Option>
+          );
+        })}
+      </Select>
+    )}
+  </>
+)}
+
+
+                
 
                 {/* Toggle Button */}
                 <Button size="sm" variant="outlined" onClick={() => setShowMap(!showMap)}>
@@ -676,86 +745,78 @@ const MapCluster = () => {
                   setSelectedMarker(null);
                 }}
               >
-                {showRoute &&
-                  clusteroute
-                    .filter((_, index) => selectedCluster === null || selectedCluster === index)
-                    .map((cluster, index) => {
-                      return cluster.visitSequence.map((point, idx) => {
-                        const isWarehouse =
-                          point.customerName?.trim().toLowerCase() === 'warehouse';
-                      const clusterColor = clusterColors[index % clusterColors.length];
+{showRoute
+  ? (
+route 
+  .filter((cluster) => cluster.customers && cluster.customers.length > 0)
+  .map((cluster, clusterIndex) =>
+    cluster.customers.map((cust, idx) => {
+      const isWarehouse =
+        cust.displayName === "Warehouse" ||
+        cust.displayName === "Return to Warehouse";
 
-                        return (
-                          <React.Fragment key={`${point.lat}-${point.lng}-${idx}`}>
-                            {/* Circle for customer points only */}
-                            {!isWarehouse && (
-                              <Circle
-                                center={{ lat: point.lat, lng: point.lng }}
-                                radius={400}
-                                options={{
-                                  strokeColor: clusterColor,
-                                  fillColor: clusterColor,
-                                  strokeOpacity: 0.8,
-                                  fillOpacity: 0.2,
-                                }}
-                              />
-                            )}
+      const markerIcon = isWarehouse
+        ? WareHouseIcon
+        : customerIcon;
 
-                            {/* Marker for both warehouse and customers */}
-                            <Marker
-                              position={{ lat: point.lat, lng: point.lng }}
-                              onClick={() => setSelectedMarker(point)}
-                              icon={{
-                                url: isWarehouse
-                                  ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-                                  : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                                scaledSize: new window.google.maps.Size(30, 30),
-                                anchor: new window.google.maps.Point(15, 30),
-                              }}
+      return (
+        <Marker
+          key={`route-${cluster.clusterNo}-${idx}`}
+          position={{ lat: cust.lat, lng: cust.lng }}
+          onClick={() =>
+            setSelected({
+              ...cust,
+              clusterColor: clusterColors[clusterIndex % clusterColors.length],
+              isWarehouse,
+            })
+          }
+          icon={{
+            url: markerIcon,
+            scaledSize: new window.google.maps.Size(30, 40),
+            anchor: new window.google.maps.Point(15, 30),
+          }}
+        />
+      );
+    })
+  )
+  )
+  : (
+data
+  .filter((cluster) => cluster.customers && cluster.customers.length > 0)
+  .map((cluster, clusterIndex) => {
+    const clusterColor = clusterColors[clusterIndex % clusterColors.length];
 
-                            />
-                          </React.Fragment>
-                        );
-                      });
-                    })
-                }
+    return cluster.customers.map((cust, idx) => (
+      <React.Fragment key={cust.customerId || `cust-${clusterIndex}-${idx}`}>
+        <Circle
+          center={{ lat: cust.lat, lng: cust.lng }}
+          radius={500}
+          options={{
+            strokeColor: clusterColor,
+            fillColor: clusterColor,
+            strokeOpacity: 0.8,
+            fillOpacity: 0.25,
+            strokeWeight: 1,
+            clickable: false,
+            zIndex: 0,
+          }}
+        />
+        <Marker
+          position={{ lat: cust.lat, lng: cust.lng }}
+          onClick={() => setSelected({ ...cust, clusterColor })}
+          icon={{
+            url: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+            scaledSize: new window.google.maps.Size(30, 30),
+            anchor: new window.google.maps.Point(15, 30),
+          }}
+        />
+      </React.Fragment>
+    ));
+  })
+)
+}
 
-                {!showRoute && data.map((cluster, index) => {
-                  const clusterColor = clusterColors[index % clusterColors.length];
-
-                  return cluster.customers
-                    .filter((cust) => !isNaN(cust.lat) && !isNaN(cust.lng))
-                    .map((cust) => (
-                      <React.Fragment key={cust.customerId}>
-                        <Circle
-                          center={{ lat: cust.lat, lng: cust.lng }}
-                          radius={500}
-                          options={{
-                            strokeColor: clusterColor,
-                            fillColor: clusterColor,
-                            strokeOpacity: 0.8,
-                            fillOpacity: 0.25,
-                            strokeWeight: 1,
-                            clickable: false,
-                            zIndex: 0,
-                          }}
-                        />
-
-                        <Marker
-                          position={{ lat: cust.lat, lng: cust.lng }}
-                          onClick={() => setSelected({ ...cust, clusterColor })}
-                          icon={{
-                            url: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-                            scaledSize: new window.google.maps.Size(30, 30),
-                            anchor: new window.google.maps.Point(15, 30),
-                          }}
-                        />
-                      </React.Fragment>
-                    ))
-                })}
-
-                {/* // Directions for selected cluster (optional) */}
-                {directionsResponse && (
+{directionsResponse && (
                   <DirectionsRenderer
                     directions={directionsResponse}
                     options={{
@@ -764,41 +825,12 @@ const MapCluster = () => {
                           clusterColors[selectedCluster % clusterColors.length] || "#000",
                         strokeOpacity: 0.8,
                         strokeWeight: 5,
+                        zIndex:-1,
                       },
                     }}
                   />
                 )}
-
-                {/* // Info overlay for clicked marker */}
-                {selectedMarker && showRoute && (
-                  <OverlayView
-                    position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
-                    mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-                    onClick={() => setSelectedMarker(null)}
-                  >
-                    <div
-                      style={{
-                        background: selectedMarker.clusterColor || "#444",
-                        color: "#fff",
-                        padding: "6px 10px",
-                        borderRadius: 6,
-                        minWidth: 160,
-                        maxWidth: 260,
-                        whiteSpace: "normal",
-                        wordBreak: "break-word",
-                        boxShadow: "0 2px 6px rgba(0,0,0,.3)",
-                        cursor: "pointer",
-                        userSelect: "none",
-                      }}
-                    >
-                      <strong>{selectedMarker.customerName}</strong>
-                      <br />
-                      Lat: {selectedMarker.lat}, Lng: {selectedMarker.lng}
-                    </div>
-                  </OverlayView>
-                )}
-
-                {selected && !showRoute && (
+      {selected && (
                   <OverlayView
                     position={{ lat: selected.lat, lng: selected.lng }}
                     mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
@@ -826,6 +858,32 @@ const MapCluster = () => {
                     </div>
                   </OverlayView>
                 )}
+      
+
+
+                {/* {showRoute ? (
+                  clusteroute.map();
+                  <Marker
+                          position={{ lat: cust.lat, lng: cust.lng }}
+                          onClick={() => setSelected({ ...cust, clusterColor })}
+                          icon={{
+                            url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                            scaledSize: new window.google.maps.Size(30, 30),
+                            anchor: new window.google.maps.Point(15, 30),
+                          }}
+                        />
+                ) : (
+                  data.map();
+                  <Marker
+                          position={{ lat: cust.lat, lng: cust.lng }}
+                          onClick={() => setSelected({ ...cust, clusterColor })}
+                          icon={{
+                            url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                            scaledSize: new window.google.maps.Size(30, 30),
+                            anchor: new window.google.maps.Point(15, 30),
+                          }}
+                        />
+                ) } */}
               </GoogleMap>
             ) : (
               <DragDropContext onDragEnd={onDragEnd}>
