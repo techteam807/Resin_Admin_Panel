@@ -275,7 +275,6 @@ import {
   useLoadScript,
   Marker,
   Circle,
-  InfoWindow,
   OverlayView,
   DirectionsRenderer
 } from "@react-google-maps/api";
@@ -289,6 +288,9 @@ import {
 import Loader from "../Loader";
 import { Button, Option, Select, Typography } from "@material-tailwind/react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { DocumentIcon, DocumentChartBarIcon } from "@heroicons/react/24/solid";
+import { jsPDF } from "jspdf";
+import { autoTable } from 'jspdf-autotable'
 // import "./Home.css";
 
 const clusterColors = [
@@ -320,14 +322,9 @@ const MapCluster = () => {
   };
 
 
-  const { customersClusterMap, mapLoading1, mapLoading, clusteroute, loading } = useSelector(
+  const { customersClusterMap, mapLoading1, mapLoading, clusteroute } = useSelector(
     (state) => state.customer
   );
-
-  console.log("cr:", clusteroute)
-  console.log("mapLoading1", mapLoading1);
-
-  console.log("customersClusterMap", customersClusterMap);
 
   const [data, setData] = useState([]);
   const [showMap, setShowMap] = useState(false);
@@ -335,17 +332,7 @@ const MapCluster = () => {
   const [selectedCluster, setSelectedCluster] = useState('');
   const [showRoute, setShowRoute] = useState(false);
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  console.log("dir:", directionsResponse);
-
   const [selectedMarker, setSelectedMarker] = useState(null);
-  console.log("mark:", selectedMarker);
-
-
-  console.log(selectedCluster);
-
-
-  console.log("data", data);
-
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -360,6 +347,7 @@ const MapCluster = () => {
 
   useEffect(() => {
     dispatch(getCustomersClusterMap());
+    dispatch(fetchClusterRoute());
   }, [dispatch]);
 
   useEffect(() => {
@@ -375,6 +363,25 @@ const MapCluster = () => {
     );
     if (!bounds.isEmpty()) mapRef.current.fitBounds(bounds);
   }, [data]);
+
+  useEffect(() => {
+  if (!mapRef.current || !clusteroute.length) return;
+
+  const bounds = new window.google.maps.LatLngBounds();
+  
+  clusteroute.forEach((cluster) => {
+    cluster.visitSequence.forEach((visit) => {
+      if (!isNaN(visit.lat) && !isNaN(visit.lng)) {
+        bounds.extend({ lat: visit.lat, lng: visit.lng });
+      }
+    });
+  });
+
+  if (!bounds.isEmpty()) {
+    mapRef.current.fitBounds(bounds);
+  }
+}, [clusteroute]);
+
 
   useEffect(() => {
     // while the request is in‑flight make the list empty
@@ -403,9 +410,6 @@ const MapCluster = () => {
       setData([]);          // nothing came back ⇒ empty
     }
   }, [mapLoading1, customersClusterMap]);
-
-
-
 
   const onDragEnd = (result) => {
     const { source, destination } = result;
@@ -465,14 +469,11 @@ const MapCluster = () => {
   };
 
   const handleClusterSelect = (value) => {
-    console.log(value, ":valus");
-
-    const clusterNo = value;
-    setSelectedCluster(clusterNo);
+    setSelectedCluster(value);
     setShowRoute(true);
 
-    if (!isNaN(clusterNo)) {
-      dispatch(fetchClusterRoute(clusterNo));
+    if (!isNaN(value)) {
+      dispatch(fetchClusterRoute(value));
     }
   };
 
@@ -485,7 +486,6 @@ const MapCluster = () => {
     const cluster = clusteroute.find(
       (c) => String(c.clusterNo) === String(selectedCluster)
     );
-    console.log("uc:", cluster);
 
 
     if (!cluster || !cluster.visitSequence) {
@@ -494,11 +494,9 @@ const MapCluster = () => {
     }
 
     const customerPoints = cluster.visitSequence.filter(
-      (p) => p.customerName?.trim().toLowerCase() !== "warehouse" &&
-        p.customerName?.trim().toLowerCase() !== "return to warehouse"
+      (p) => p.customerName?.trim().toLowerCase() !== "warehouse"
     );
 
-    console.log("ucp:", customerPoints);
 
 
     if (customerPoints.length < 2) {
@@ -513,7 +511,6 @@ const MapCluster = () => {
       stopover: true,
     }));
 
-    console.log("way:", waypoints);
 
 
     const service = new window.google.maps.DirectionsService();
@@ -535,7 +532,67 @@ const MapCluster = () => {
     );
   }, [selectedCluster, clusteroute]);
 
+  const exportToPDF = (clusteroute, selectedCluster) => {
+    const clustersToExport =
+      typeof selectedCluster === "number"
+        ? clusteroute.filter((c) => c.clusterNo === selectedCluster)
+        : clusteroute;
 
+    if (!clustersToExport || clustersToExport.length === 0) {
+      console.error("Invalid cluster data");
+      return;
+    }
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    clustersToExport.forEach((clusteRoute, i) => {
+      if (!clusteRoute.visitSequence || clusteRoute.visitSequence.length === 0) return;
+
+      if (i > 0) doc.addPage();
+
+      doc.setFontSize(14);
+      doc.text(
+        `Cluster ${clusteRoute.clusterNo + 1} - Total Distance: ${clusteRoute.totalDistance} KM [Cartridge Qty: ${clusteRoute.cartridge_qty}]`,
+        14,
+        15
+      );
+
+      const tableBody = clusteRoute.visitSequence.map((item, index) => [
+        index + 1,
+        item.customerName,
+        ""  // placeholder text for clickable link
+      ]);
+
+      autoTable(doc, {
+        startY: 25,
+        head: [["Seq No", "Customer Name", "Coordinates"]],
+        body: tableBody,
+        didDrawCell: (data) => {
+          if (data.column.index === 2 && data.cell.section === 'body') {
+            const item = clusteRoute.visitSequence[data.row.index];
+            const lat = item.lat;
+            const lng = item.lng;
+            const url = `https://www.google.com/maps?q=${lat},${lng}`;
+
+            doc.setTextColor(0, 0, 255); // blue color
+            doc.textWithLink("Map Link", data.cell.x + 1, data.cell.y + 5, { url });
+            doc.setTextColor(0, 0, 0); // reset to black
+          }
+        }
+      });
+    });
+
+    const fileName =
+      typeof selectedCluster === "number"
+        ? `Cluster_${selectedCluster + 1}.pdf`
+        : `All_Clusters_Report.pdf`;
+
+    doc.save(fileName);
+  };
 
   if (!isLoaded) {
     return (
@@ -558,34 +615,52 @@ const MapCluster = () => {
               <Typography variant="h5" color="blue-gray">
                 Cluster {showMap ? "Map" : "List"}
               </Typography>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                {/* Map Icons */}
                 {showMap && (
-                  <>
-                    <Select label="Select Cluster" onChange={handleClusterSelect}>
-                      {data.map((item, index) => {
-                        const color = clusterColors[index % clusterColors.length];
-                        return (
-                          <Option key={item.clusterNo} value={item.clusterNo}>
-                            <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }} />
-                            {item.name}
-                          </Option>
-                        );
-                      })}
-                    </Select>
-                  </>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 cursor-pointer text-red-500" onClick={() => exportToPDF(clusteroute, selectedCluster, dispatch)}>
+                      <DocumentIcon className="w-5 h-5" />
+                      <span>PDF</span>
+                    </div>
+                    {/* <div className="flex items-center gap-1 cursor-pointer text-green-500"  onClick={() => exportToExcel(clusteroute, selectedCluster, dispatch)}>
+                        <DocumentChartBarIcon className="w-5 h-5" />
+                        <span>Excel</span>
+                      </div> */}
+                  </div>
                 )}
+
+                {/* Cluster Selector */}
+                {showMap && (
+                  <Select label="Select Cluster" onChange={handleClusterSelect} value={selectedCluster}>
+                    {data.map((item, index) => {
+                      const color = clusterColors[index % clusterColors.length];
+                      return (
+                        <Option key={item.clusterNo} value={item.clusterNo}>
+                          <div className="flex items-center h-4">
+                            <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span> {item.name}
+                          </div>
+                        </Option>
+                      );
+                    })}
+                  </Select>
+                )}
+
+                {/* Toggle Button */}
                 <Button size="sm" variant="outlined" onClick={() => setShowMap(!showMap)}>
                   {showMap ? "Show Customers" : "Show Map"}
                 </Button>
+
+                {/* Cluster Action Buttons */}
                 {!showMap && (
-                  <>
+                  <div className="flex gap-2">
                     <Button size="sm" variant="gradient" onClick={refreshCluster}>
                       Refresh Cluster
                     </Button>
                     <Button size="sm" variant="gradient" onClick={handleSave}>
                       Save
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -595,37 +670,28 @@ const MapCluster = () => {
                 mapContainerStyle={containerStyle}
                 center={center}
                 zoom={10}
-                // onLoad={(map) => {
-                //   const bounds = new window.google.maps.LatLngBounds();
-                //   data.forEach((cl) =>
-                //     cl.customers.forEach((cu) => {
-                //       if (!isNaN(cu.lat) && !isNaN(cu.lng)) {
-                //         bounds.extend({ lat: cu.lat, lng: cu.lng });
-                //       }
-                //     })
-                //   );
-                //   if (!bounds.isEmpty()) map.fitBounds(bounds);
-                // }}
                 onLoad={handleMapLoad}
-                onClick={() => setSelected(null)}
+                onClick={() => {
+                  setSelected(null);
+                  setSelectedMarker(null);
+                }}
               >
-                {showRoute ?
-                  (
-                    //show routes
-                    clusteroute.map((cluster, index) => {
-                      const clusterColor = clusterColors[index % clusterColors.length];
-
+                {showRoute &&
+                  clusteroute
+                    .filter((_, index) => selectedCluster === null || selectedCluster === index)
+                    .map((cluster, index) => {
                       return cluster.visitSequence.map((point, idx) => {
                         const isWarehouse =
-                          point.customerName === "Warehouse" ||
-                          point.customerName === "Return to Warehouse";
+                          point.customerName?.trim().toLowerCase() === 'warehouse';
+                      const clusterColor = clusterColors[index % clusterColors.length];
 
                         return (
-                          <React.Fragment key={`${cluster.clusterNo}-${idx}`}>
+                          <React.Fragment key={`${point.lat}-${point.lng}-${idx}`}>
+                            {/* Circle for customer points only */}
                             {!isWarehouse && (
                               <Circle
                                 center={{ lat: point.lat, lng: point.lng }}
-                                radius={10}
+                                radius={400}
                                 options={{
                                   strokeColor: clusterColor,
                                   fillColor: clusterColor,
@@ -634,6 +700,8 @@ const MapCluster = () => {
                                 }}
                               />
                             )}
+
+                            {/* Marker for both warehouse and customers */}
                             <Marker
                               position={{ lat: point.lat, lng: point.lng }}
                               onClick={() => setSelectedMarker(point)}
@@ -641,79 +709,59 @@ const MapCluster = () => {
                                 url: isWarehouse
                                   ? "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
                                   : "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                                scaledSize: new window.google.maps.Size(32, 32),
+                                scaledSize: new window.google.maps.Size(30, 30),
+                                anchor: new window.google.maps.Point(15, 30),
                               }}
+
                             />
                           </React.Fragment>
                         );
                       });
                     })
-                  ) : (
-                    // show clusters
-                    data.map((cluster, clusterIndex) => {
-                      const clusterColor =
-                        clusterColors[clusterIndex % clusterColors.length];
+                }
 
-                      return cluster.customers
-                        .filter((cust) => !isNaN(cust.lat) && !isNaN(cust.lng))
-                        .map((cust) => (
-                          <React.Fragment key={cust.customerId}>
-                            <Circle
-                              center={{ lat: cust.lat, lng: cust.lng }}
-                              radius={500}
-                              options={{
-                                strokeColor: clusterColor,
-                                fillColor: clusterColor,
-                                strokeOpacity: 0.8,
-                                fillOpacity: 0.25,
-                                strokeWeight: 1,
-                                clickable: false,
-                                zIndex: 0,
-                              }}
-                            />
-                            <Marker
-                              position={{ lat: cust.lat, lng: cust.lng }}
-                              onClick={() => setSelected({ ...cust, clusterColor })}
-                              icon={{
-                                url: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-                                scaledSize: new window.google.maps.Size(30, 30),
-                                anchor: new window.google.maps.Point(15, 30),
-                              }}
-                            />
-                            <span>hello</span>
-                          </React.Fragment>
-                        ));
-                    })
-                  )}
+                {!showRoute && data.map((cluster, index) => {
+                  const clusterColor = clusterColors[index % clusterColors.length];
 
-                {/* {selected && (
-                  <InfoWindow
-                    position={{ lat: selected.lat, lng: selected.lng }}
-                    onCloseClick={() => setSelected(null)}
-                  >
-                    <div
-                      style={{
-                        background: selected.clusterColor,
-                        color: "#fff",
-                        padding: 6,
-                        borderRadius: 4,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      <strong>{selected.displayName}</strong>
-                      <br />
-                      {selected.code}
-                    </div>
-                  </InfoWindow>
-                )} */}
+                  return cluster.customers
+                    .filter((cust) => !isNaN(cust.lat) && !isNaN(cust.lng))
+                    .map((cust) => (
+                      <React.Fragment key={cust.customerId}>
+                        <Circle
+                          center={{ lat: cust.lat, lng: cust.lng }}
+                          radius={500}
+                          options={{
+                            strokeColor: clusterColor,
+                            fillColor: clusterColor,
+                            strokeOpacity: 0.8,
+                            fillOpacity: 0.25,
+                            strokeWeight: 1,
+                            clickable: false,
+                            zIndex: 0,
+                          }}
+                        />
 
+                        <Marker
+                          position={{ lat: cust.lat, lng: cust.lng }}
+                          onClick={() => setSelected({ ...cust, clusterColor })}
+                          icon={{
+                            url: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+                            scaledSize: new window.google.maps.Size(30, 30),
+                            anchor: new window.google.maps.Point(15, 30),
+                          }}
+                        />
+                      </React.Fragment>
+                    ))
+                })}
 
+                {/* // Directions for selected cluster (optional) */}
                 {directionsResponse && (
                   <DirectionsRenderer
                     directions={directionsResponse}
                     options={{
                       polylineOptions: {
-                        strokeColor: clusterColors[selectedCluster % clusterColors.length],
+                        strokeColor:
+                          clusterColors[selectedCluster % clusterColors.length] || "#000",
                         strokeOpacity: 0.8,
                         strokeWeight: 5,
                       },
@@ -721,20 +769,36 @@ const MapCluster = () => {
                   />
                 )}
 
-                {selectedMarker && (
-                  <InfoWindow
+                {/* // Info overlay for clicked marker */}
+                {selectedMarker && showRoute && (
+                  <OverlayView
                     position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
-                    onCloseClick={() => setSelectedMarker(null)}
+                    mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                    onClick={() => setSelectedMarker(null)}
                   >
-                    <div>
-                      <h4>{selectedMarker.customerName}</h4>
-                      <p>
-                        Lat: {selectedMarker.lat}, Lng: {selectedMarker.lng}
-                      </p>
+                    <div
+                      style={{
+                        background: selectedMarker.clusterColor || "#444",
+                        color: "#fff",
+                        padding: "6px 10px",
+                        borderRadius: 6,
+                        minWidth: 160,
+                        maxWidth: 260,
+                        whiteSpace: "normal",
+                        wordBreak: "break-word",
+                        boxShadow: "0 2px 6px rgba(0,0,0,.3)",
+                        cursor: "pointer",
+                        userSelect: "none",
+                      }}
+                    >
+                      <strong>{selectedMarker.customerName}</strong>
+                      <br />
+                      Lat: {selectedMarker.lat}, Lng: {selectedMarker.lng}
                     </div>
-                  </InfoWindow>
+                  </OverlayView>
                 )}
-                {selected && (
+
+                {selected && !showRoute && (
                   <OverlayView
                     position={{ lat: selected.lat, lng: selected.lng }}
                     mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
@@ -762,7 +826,6 @@ const MapCluster = () => {
                     </div>
                   </OverlayView>
                 )}
-
               </GoogleMap>
             ) : (
               <DragDropContext onDragEnd={onDragEnd}>

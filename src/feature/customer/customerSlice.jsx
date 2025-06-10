@@ -270,15 +270,15 @@ const customerSlice = createSlice({
       })
 
       .addCase(fetchClusterRoute.pending, (state) => {
-        state.loading = true;
+        state.mapLoading = true;
       })
       .addCase(fetchClusterRoute.fulfilled, (state, action) => {
-        state.loading = false;
+        state.mapLoading = false;
         state.clusteroute = action.payload.data;
         state.message = action.payload.message;
       })
       .addCase(fetchClusterRoute.rejected, (state, action) => {
-        state.loading = false;
+        state.mapLoading = false;
         state.error = action.error.message;
       })
   },
