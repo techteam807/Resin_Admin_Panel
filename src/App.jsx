@@ -3,6 +3,7 @@ import { Dashboard, Auth } from "@/layouts";
 import { SignIn, SignUp } from "./pages/auth";
 import WaterReportsPdf from "./layouts/WaterReportsPdf";
 import CustomerDetails from "./pages/dashboard/CustomerDetails";
+import RoutesMap from "./pages/dashboard/RoutesMap";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/dashboard" element={<Navigate to="/dashboard/home" replace />} />
       <Route path="/dashboard/waterPdf" element={<WaterReportsPdf/>}/>
       <Route path="dashboard/home/details" element={<CustomerDetails />} />
+      <Route path="/map-routes" element={<RoutesMap/>}/>
     </Routes>
   );
 }

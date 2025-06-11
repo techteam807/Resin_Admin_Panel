@@ -269,36 +269,30 @@
 
 // export default MapCluster;
 
-
-
-
-
-
-
-
-
-
-
-
-
-import React, { useEffect,useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   GoogleMap,
   useLoadScript,
   Marker,
   Circle,
-  InfoWindow,
-  OverlayView
+  OverlayView,
+  DirectionsRenderer
 } from "@react-google-maps/api";
 import { useDispatch, useSelector } from "react-redux";
 import {
   editCustomersClusterMap,
   getCustomersClusterMap,
   refreshCustomersClusterMap,
+  fetchClusterRoute,
 } from "@/feature/customer/customerSlice";
 import Loader from "../Loader";
-import { Button, Typography } from "@material-tailwind/react";
+import { Button, Option, Select, Typography } from "@material-tailwind/react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { DocumentIcon, DocumentChartBarIcon } from "@heroicons/react/24/solid";
+import { jsPDF } from "jspdf";
+import { autoTable } from 'jspdf-autotable';
+import customerIcon from '../../../public/img/customerroute.png';
+import WareHouseIcon from '../../../public/img/warehouse.png';
 // import "./Home.css";
 
 const clusterColors = [
@@ -317,7 +311,7 @@ const containerStyle = {
   height: "80vh",
 };
 
-const center = { lat: 23.0618, lng: 72.515 };
+const center = { lat: 23.09762579093222, lng: 72.54794212155194 };
 
 const MapCluster = () => {
   const dispatch = useDispatch();
@@ -330,19 +324,22 @@ const MapCluster = () => {
   };
 
 
-  const { customersClusterMap, mapLoading1, mapLoading } = useSelector(
+  const { customersClusterMap, mapLoading1, mapLoading, clusteroute } = useSelector(
     (state) => state.customer
   );
-
-  console.log("mapLoading1", mapLoading1);
-
-  console.log("customersClusterMap", customersClusterMap);
+  console.log("clusteroute:",clusteroute);
+  
 
   const [data, setData] = useState([]);
+  console.log("data:",data);
+  const [route, setRoute] = useState([]);
+  console.log("route:",route)
   const [showMap, setShowMap] = useState(false);
   const [selected, setSelected] = useState(null);
-  console.log("data", data);
-  
+  const [selectedCluster, setSelectedCluster] = useState('');
+  const [showRoute, setShowRoute] = useState(false);
+  const [directionsResponse, setDirectionsResponse] = useState(null);
+  const [selectedMarker, setSelectedMarker] = useState(null);
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -350,14 +347,15 @@ const MapCluster = () => {
   });
 
   useEffect(() => {
-  if (showMap) {
-    dispatch(getCustomersClusterMap());
-  }
-}, [dispatch, showMap]);
+    if (showMap) {
+      dispatch(getCustomersClusterMap());
+    }
+  }, [dispatch, showMap]);
 
-useEffect(() => {
+  useEffect(() => {
     dispatch(getCustomersClusterMap());
-}, [dispatch]);
+    dispatch(fetchClusterRoute());
+  }, [dispatch]);
 
   useEffect(() => {
     if (!mapRef.current || !data.length) return;
@@ -374,34 +372,81 @@ useEffect(() => {
   }, [data]);
 
   useEffect(() => {
-  // while the request is in‑flight make the list empty
-  if (mapLoading1) {
-    setData([]);
-    return;
-  }
+  if (!mapRef.current || !clusteroute.length) return;
 
-  // once loading is finished, format what came back
-  if (customersClusterMap?.length) {
-    const formatted = customersClusterMap.map((cluster) => ({
-      clusterNo: cluster.clusterNo,
-      name: `Cluster ${cluster.clusterNo + 1}`,
-      cartridge_qty: cluster.cartridge_qty,
-      customers: cluster.customers.map((c) => ({
-        code: c.contact_number,
-        customerId: c._id,
-        displayName: c.display_name,
-        lat: Number(c.geoCoordinates?.coordinates[1]),
-        lng: Number(c.geoCoordinates?.coordinates[0]),
-      })),
-    }));
-    setData(formatted);
-  } else {
-    setData([]);          // nothing came back ⇒ empty
-  }
-}, [mapLoading1, customersClusterMap]);
-
-
+  const bounds = new window.google.maps.LatLngBounds();
   
+  clusteroute.forEach((cluster) => {
+    cluster.visitSequence.forEach((visit) => {
+      if (!isNaN(visit.lat) && !isNaN(visit.lng)) {
+        bounds.extend({ lat: visit.lat, lng: visit.lng });
+      }
+    });
+  });
+
+  if (!bounds.isEmpty()) {
+    mapRef.current.fitBounds(bounds);
+  }
+}, [clusteroute]);
+
+
+  useEffect(() => {
+    // while the request is in‑flight make the list empty
+    if (mapLoading1) {
+      setData([]);
+      return;
+    }
+
+    // once loading is finished, format what came back
+    if (customersClusterMap?.length) {
+      const formatted = customersClusterMap.map((cluster) => ({
+        clusterNo: cluster.clusterNo,
+        name: `Cluster ${cluster.clusterNo + 1}`,
+        cartridge_qty: cluster.cartridge_qty,
+        customers: cluster.customers.map((c) => ({
+          code: c.contact_number,
+          customerId: c.customerId,
+          displayName: c.name,
+          vistSequnceNo: c.sequenceNo,
+          lat: Number(c.geoCoordinates?.coordinates[1]),
+          lng: Number(c.geoCoordinates?.coordinates[0]),
+        })),
+      }));
+      setData(formatted);
+    } else {
+      setData([]);          // nothing came back ⇒ empty
+    }
+  }, [mapLoading1, customersClusterMap]);
+
+  useEffect(() => {
+if (mapLoading) {
+      setRoute([]);
+      return;
+    }
+    if(clusteroute?.length)
+    {
+      const formatted = clusteroute.map((cluster) => ({
+        clusterNo: cluster.clusterNo,
+         name: `Cluster ${cluster.clusterNo + 1}`,
+          cartridge_qty: cluster.cartridge_qty,
+           totalDistance: cluster.totalDistance,
+            customers: cluster.visitSequence
+            .map((v) => ({
+          displayName: v.customerName,
+          vistSequnceNo: v.visitNumber,
+          lat: Number(v.lat),
+          lng: Number(v.lng),
+          clusterId: v.clusterId,
+          distanceFromPrev: v.distanceFromPrev,
+        })),
+      }));
+      setRoute(formatted)
+    }
+    else
+    {
+      setRoute([]);
+    }
+  },[mapLoading,clusteroute])
 
   const onDragEnd = (result) => {
     const { source, destination } = result;
@@ -425,6 +470,7 @@ useEffect(() => {
       .unwrap()
       .then(() => {
         dispatch(getCustomersClusterMap());
+        dispatch(fetchClusterRoute());
       })
       .catch((error) => {
         console.error("Refresh failed:", error);
@@ -454,11 +500,146 @@ useEffect(() => {
       .unwrap()
       .then(() => {
         dispatch(getCustomersClusterMap());
+        dispatch(fetchClusterRoute());
       })
       .catch(() => {
         dispatch(getCustomersClusterMap());
+        dispatch(fetchClusterRoute());
       });
   };
+
+  const handleClusterSelect = (value) => {
+    setSelectedCluster(value);
+    setShowRoute(true);
+
+    if (!isNaN(value)) {
+      dispatch(fetchClusterRoute(value));
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCluster === '') {
+      setDirectionsResponse(null);
+      return;
+    }
+
+    const cluster = clusteroute.find(
+      (c) => String(c.clusterNo) === String(selectedCluster)
+    );
+
+
+    if (!cluster || !cluster.visitSequence) {
+      setDirectionsResponse(null);
+      return;
+    }
+
+    const customerPoints = cluster.visitSequence.filter(
+      (p) => p.customerName?.trim().toLowerCase() !== "warehouse"
+    );
+
+
+
+    if (customerPoints.length < 2) {
+      setDirectionsResponse(null);
+      return;
+    }
+
+    const origin = customerPoints[0];
+    const destination = customerPoints[customerPoints.length - 1];
+    const waypoints = customerPoints.slice(1, -1).map((p) => ({
+      location: { lat: p.lat, lng: p.lng },
+      stopover: true,
+    }));
+
+
+
+    const service = new window.google.maps.DirectionsService();
+    service.route(
+      {
+        origin: { lat: origin.lat, lng: origin.lng },
+        destination: { lat: destination.lat, lng: destination.lng },
+        waypoints,
+        travelMode: "DRIVING",
+      },
+      (result, status) => {
+        if (status === "OK") {
+          setDirectionsResponse(result);
+        } else {
+          console.warn("Directions error:", status);
+          setDirectionsResponse(null);
+        }
+      }
+    );
+  }, [selectedCluster, clusteroute]);
+
+  const exportToPDF = (clusteroute, selectedCluster) => {
+    const clustersToExport =
+      typeof selectedCluster === "number"
+        ? clusteroute.filter((c) => c.clusterNo === selectedCluster)
+        : clusteroute;
+
+    if (!clustersToExport || clustersToExport.length === 0) {
+      console.error("Invalid cluster data");
+      return;
+    }
+
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    clustersToExport.forEach((clusteRoute, i) => {
+      if (!clusteRoute.visitSequence || clusteRoute.visitSequence.length === 0) return;
+
+      if (i > 0) doc.addPage();
+
+      doc.setFontSize(14);
+      doc.text(
+        `Cluster ${clusteRoute.clusterNo + 1} - Total Distance: ${clusteRoute.totalDistance} KM [Cartridge Qty: ${clusteRoute.cartridge_qty}]`,
+        14,
+        15
+      );
+
+      const tableBody = clusteRoute.visitSequence.map((item, index) => [
+        index + 1,
+        item.customerName,
+        ""  // placeholder text for clickable link
+      ]);
+
+      autoTable(doc, {
+        startY: 25,
+        head: [["Seq No", "Customer Name", "Coordinates"]],
+        body: tableBody,
+        didDrawCell: (data) => {
+          if (data.column.index === 2 && data.cell.section === 'body') {
+            const item = clusteRoute.visitSequence[data.row.index];
+            const lat = item.lat;
+            const lng = item.lng;
+            const url = `https://www.google.com/maps?q=${lat},${lng}`;
+
+            doc.setTextColor(0, 0, 255); // blue color
+            doc.textWithLink("Map Link", data.cell.x + 1, data.cell.y + 5, { url });
+            doc.setTextColor(0, 0, 0); // reset to black
+          }
+        }
+      });
+    });
+
+    const fileName =
+      typeof selectedCluster === "number"
+        ? `Cluster_${selectedCluster + 1}.pdf`
+        : `All_Clusters_Report.pdf`;
+
+    doc.save(fileName);
+  };
+
+  useEffect(() => {
+  if (!showRoute) {
+    setRoute([]); // Optional: clear route to avoid leakage
+  }
+}, [showRoute]);
+
 
   if (!isLoaded) {
     return (
@@ -481,19 +662,74 @@ useEffect(() => {
               <Typography variant="h5" color="blue-gray">
                 Cluster {showMap ? "Map" : "List"}
               </Typography>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                {/* Map Icons */}
+                {showMap && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 cursor-pointer text-red-500" onClick={() => exportToPDF(clusteroute, selectedCluster, dispatch)}>
+                      <DocumentIcon className="w-5 h-5" />
+                      <span>PDF</span>
+                    </div>
+                    {/* <div className="flex items-center gap-1 cursor-pointer text-green-500"  onClick={() => exportToExcel(clusteroute, selectedCluster, dispatch)}>
+                        <DocumentChartBarIcon className="w-5 h-5" />
+                        <span>Excel</span>
+                      </div> */}
+                  </div>
+                )}
+
+                {/* Cluster Selector */}
+                {showMap && (
+  <>
+    {/* Button toggles route/cluster view */}
+    <Button
+      size="sm"
+      variant="outlined"
+      onClick={() => setShowRoute(prev => !prev)}
+    >
+      {showRoute ? "Show Clusters" : "Show Cluster Route"}
+    </Button>
+
+    {/* Dropdown visible only when showRoute is true */}
+    {showRoute && (
+      <Select
+        label="Select Cluster"
+        onChange={handleClusterSelect}
+        value={selectedCluster}
+      >
+        {data.map((item, index) => {
+          const color = clusterColors[index % clusterColors.length];
+          return (
+            <Option key={item.clusterNo} value={item.clusterNo}>
+              <div className="flex items-center h-4">
+                <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span> 
+                {item.name}
+              </div>
+            </Option>
+          );
+        })}
+      </Select>
+    )}
+  </>
+)}
+
+
+                
+
+                {/* Toggle Button */}
                 <Button size="sm" variant="outlined" onClick={() => setShowMap(!showMap)}>
                   {showMap ? "Show Customers" : "Show Map"}
                 </Button>
+
+                {/* Cluster Action Buttons */}
                 {!showMap && (
-                  <>
+                  <div className="flex gap-2">
                     <Button size="sm" variant="gradient" onClick={refreshCluster}>
                       Refresh Cluster
                     </Button>
                     <Button size="sm" variant="gradient" onClick={handleSave}>
                       Save
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -502,105 +738,152 @@ useEffect(() => {
               <GoogleMap
                 mapContainerStyle={containerStyle}
                 center={center}
-                zoom={11}
-                // onLoad={(map) => {
-                //   const bounds = new window.google.maps.LatLngBounds();
-                //   data.forEach((cl) =>
-                //     cl.customers.forEach((cu) => {
-                //       if (!isNaN(cu.lat) && !isNaN(cu.lng)) {
-                //         bounds.extend({ lat: cu.lat, lng: cu.lng });
-                //       }
-                //     })
-                //   );
-                //   if (!bounds.isEmpty()) map.fitBounds(bounds);
-                // }}
+                zoom={10}
                 onLoad={handleMapLoad}
-                onClick={() => setSelected(null)}
+                onClick={() => {
+                  setSelected(null);
+                  setSelectedMarker(null);
+                }}
               >
-                {data.map((cluster, clusterIndex) => {
-                  const clusterColor =
-                    clusterColors[clusterIndex % clusterColors.length];
+{showRoute
+  ? (
+route 
+  .filter((cluster) => cluster.customers && cluster.customers.length > 0)
+  .map((cluster, clusterIndex) =>
+    cluster.customers.map((cust, idx) => {
+      const isWarehouse =
+        cust.displayName === "Warehouse" ||
+        cust.displayName === "Return to Warehouse";
 
-                  return cluster.customers
-                    .filter((cust) => !isNaN(cust.lat) && !isNaN(cust.lng))
-                    .map((cust) => (
-                      <React.Fragment key={cust.customerId}>
-                        <Circle
-                          center={{ lat: cust.lat, lng: cust.lng }}
-                          radius={500}
-                          options={{
-                            strokeColor: clusterColor,
-                            fillColor: clusterColor,
-                            strokeOpacity: 0.8,
-                            fillOpacity: 0.25,
-                            strokeWeight: 1,
-                            clickable: false,
-                            zIndex: 0, 
-                          }}
-                        />
-                        <Marker
-                          position={{ lat: cust.lat, lng: cust.lng }}
-                          onClick={() => setSelected({ ...cust, clusterColor })}
-                          icon={{
-                            url: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-                            scaledSize: new window.google.maps.Size(30, 30),
-                            anchor: new window.google.maps.Point(15, 30),
-                          }}
-                        />
-                      </React.Fragment>
-                    ));
-                })}
+      const markerIcon = isWarehouse
+        ? WareHouseIcon
+        : customerIcon;
 
-                {/* {selected && (
-                  <InfoWindow
+      return (
+        <Marker
+          key={`route-${cluster.clusterNo}-${idx}`}
+          position={{ lat: cust.lat, lng: cust.lng }}
+          onClick={() =>
+            setSelected({
+              ...cust,
+              clusterColor: clusterColors[clusterIndex % clusterColors.length],
+              isWarehouse,
+            })
+          }
+          icon={{
+            url: markerIcon,
+            scaledSize: new window.google.maps.Size(30, 40),
+            anchor: new window.google.maps.Point(15, 30),
+          }}
+        />
+      );
+    })
+  )
+  )
+  : (
+data
+  .filter((cluster) => cluster.customers && cluster.customers.length > 0)
+  .map((cluster, clusterIndex) => {
+    const clusterColor = clusterColors[clusterIndex % clusterColors.length];
+
+    return cluster.customers.map((cust, idx) => (
+      <React.Fragment key={cust.customerId || `cust-${clusterIndex}-${idx}`}>
+        <Circle
+          center={{ lat: cust.lat, lng: cust.lng }}
+          radius={500}
+          options={{
+            strokeColor: clusterColor,
+            fillColor: clusterColor,
+            strokeOpacity: 0.8,
+            fillOpacity: 0.25,
+            strokeWeight: 1,
+            clickable: false,
+            zIndex: 0,
+          }}
+        />
+        <Marker
+          position={{ lat: cust.lat, lng: cust.lng }}
+          onClick={() => setSelected({ ...cust, clusterColor })}
+          icon={{
+            url: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+            scaledSize: new window.google.maps.Size(30, 30),
+            anchor: new window.google.maps.Point(15, 30),
+          }}
+        />
+      </React.Fragment>
+    ));
+  })
+)
+}
+
+{directionsResponse && (
+                  <DirectionsRenderer
+                    directions={directionsResponse}
+                    options={{
+                      polylineOptions: {
+                        strokeColor:
+                          clusterColors[selectedCluster % clusterColors.length] || "#000",
+                        strokeOpacity: 0.8,
+                        strokeWeight: 5,
+                        zIndex:-1,
+                      },
+                    }}
+                  />
+                )}
+      {selected && (
+                  <OverlayView
                     position={{ lat: selected.lat, lng: selected.lng }}
-                    onCloseClick={() => setSelected(null)}
+                    mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                    onClick={() => setSelected(null)}
                   >
                     <div
                       style={{
                         background: selected.clusterColor,
+                        minWidth: 160,
+                        maxWidth: 260,
                         color: "#fff",
-                        padding: 6,
-                        borderRadius: 4,
-                        lineHeight: 1.3,
+                        padding: "6px 10px",
+                        borderRadius: 6,
+                        lineHeight: 1.4,
+                        cursor: "pointer",
+                        userSelect: "none",
+                        whiteSpace: "normal",   // allow wrapping
+                        wordBreak: "break-word", // prevent long words from breaking layout
+                        boxShadow: "0 2px 6px rgba(0,0,0,.3)",
                       }}
                     >
                       <strong>{selected.displayName}</strong>
                       <br />
                       {selected.code}
                     </div>
-                  </InfoWindow>
-                )} */}
+                  </OverlayView>
+                )}
+      
 
-                {selected && (
-  <OverlayView
-    position={{ lat: selected.lat, lng: selected.lng }}
-    mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-    onClick={() => setSelected(null)}
-  >
-    <div
-      style={{
-        background    : selected.clusterColor,
-        minWidth      : 160,
-        maxWidth      : 260,
-        color         : "#fff",
-        padding       : "6px 10px",
-        borderRadius  : 6,
-        lineHeight    : 1.4,
-        cursor        : "pointer",
-        userSelect    : "none",
-        whiteSpace    : "normal",   // allow wrapping
-        wordBreak     : "break-word", // prevent long words from breaking layout
-        boxShadow     : "0 2px 6px rgba(0,0,0,.3)",
-      }}
-    >
-      <strong>{selected.displayName}</strong>
-      <br />
-      {selected.code}
-    </div>
-  </OverlayView>
-)}
 
+                {/* {showRoute ? (
+                  clusteroute.map();
+                  <Marker
+                          position={{ lat: cust.lat, lng: cust.lng }}
+                          onClick={() => setSelected({ ...cust, clusterColor })}
+                          icon={{
+                            url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                            scaledSize: new window.google.maps.Size(30, 30),
+                            anchor: new window.google.maps.Point(15, 30),
+                          }}
+                        />
+                ) : (
+                  data.map();
+                  <Marker
+                          position={{ lat: cust.lat, lng: cust.lng }}
+                          onClick={() => setSelected({ ...cust, clusterColor })}
+                          icon={{
+                            url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                            scaledSize: new window.google.maps.Size(30, 30),
+                            anchor: new window.google.maps.Point(15, 30),
+                          }}
+                        />
+                ) } */}
               </GoogleMap>
             ) : (
               <DragDropContext onDragEnd={onDragEnd}>
@@ -671,4 +954,3 @@ useEffect(() => {
 };
 
 export default MapCluster;
-
