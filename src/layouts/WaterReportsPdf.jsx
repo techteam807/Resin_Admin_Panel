@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -14,6 +14,7 @@ import { generateWaterReports, uploadWaterReport } from '@/feature/waterReports/
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import html2pdf from 'html2pdf.js'
+import WaterReportsTemplate from './WaterReportsTemplate';
 
 const waterComparisons = [
   { source: "Loch Katrine (Scotland)", hardness: 15, color: "bg-red-500" },
@@ -29,6 +30,7 @@ const waterComparisons = [
 const WaterReportsPdf = () => {
   const location = useLocation();
   const dispatch = useDispatch();
+  const [template, setTemplate] = useState(false);
   const { customer, month, year } = location.state || {};
   console.log("Cust:", customer);
   const reportRef = useRef(null)
@@ -90,6 +92,8 @@ const WaterReportsPdf = () => {
   }
 const {loading} = useSelector((state) => state.waterReport);
 
+if (template) return <WaterReportsTemplate closeTemplate={() => setTemplate(false)}/>;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
@@ -116,6 +120,7 @@ const {loading} = useSelector((state) => state.waterReport);
     </>
   )}
 </button>
+<button onClick={() => setTemplate(true)} className='flex items-center gap-2 bg-black text-white px-4 py-2 rounded'>View Template</button>
 
           <button onClick={downloadPdf} className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded">
             <ArrowDownTrayIcon className="h-4 w-4" />
