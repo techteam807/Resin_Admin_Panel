@@ -974,9 +974,9 @@ import {
   fetchClusterRoute,
 } from "@/feature/customer/customerSlice";
 import Loader from "../Loader";
-import { Button, Option, Select, Typography } from "@material-tailwind/react";
+import { Button, Input, Option, Select, Typography } from "@material-tailwind/react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { DocumentIcon, DocumentChartBarIcon } from "@heroicons/react/24/solid";
+import { DocumentIcon, DocumentChartBarIcon, XMarkIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { jsPDF } from "jspdf";
 import { autoTable } from 'jspdf-autotable';
 import customerIcon from '../../../public/img/customerroute.png';
@@ -1015,19 +1015,20 @@ const MapCluster = () => {
   const { customersClusterMap, mapLoading1, mapLoading, clusteroute } = useSelector(
     (state) => state.customer
   );
-  console.log("clusteroute:",clusteroute);
-  
+  console.log("clusteroute:", clusteroute);
+
 
   const [data, setData] = useState([]);
-  console.log("data:",data);
+  console.log("data:", data);
   const [route, setRoute] = useState([]);
-  console.log("route:",route)
+  console.log("route:", route)
   const [showMap, setShowMap] = useState(false);
   const [selected, setSelected] = useState(null);
   const [selectedCluster, setSelectedCluster] = useState("");
   const [showRoute, setShowRoute] = useState(false);
   const [showCluster, setShowCluster] = useState(false)
   const [directionsResponse, setDirectionsResponse] = useState(null);
+  const [searchValue, setSearchValue] = useState("");
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -1041,11 +1042,10 @@ const MapCluster = () => {
   }, [dispatch, showMap, showCluster]);
 
   useEffect(() => {
-    if(showMap && showRoute && selectedCluster !== "") 
-    {
+    if (showMap && showRoute && selectedCluster !== "") {
       dispatch(fetchClusterRoute(selectedCluster));
     }
-  },[dispatch, showMap, showRoute, selectedCluster])
+  }, [dispatch, showMap, showRoute, selectedCluster])
 
   useEffect(() => {
     dispatch(getCustomersClusterMap());
@@ -1092,6 +1092,7 @@ const MapCluster = () => {
       const formatted = customersClusterMap.map((cluster) => ({
         clusterNo: cluster.clusterNo,
         name: `Cluster ${cluster.clusterNo + 1}`,
+        clusterName: cluster.clusterName,
         cartridge_qty: cluster.cartridge_qty,
         customers: cluster.customers.map((c) => ({
           code: c.contact_number,
@@ -1109,42 +1110,40 @@ const MapCluster = () => {
   }, [mapLoading1, customersClusterMap]);
 
   useEffect(() => {
-if (mapLoading) {
+    if (mapLoading) {
       setRoute([]);
       return;
     }
-    if(clusteroute?.length)
-    {
+    if (clusteroute?.length) {
       const formatted = clusteroute.map((cluster) => ({
         clusterNo: cluster.clusterNo,
-         name: `Cluster ${cluster.clusterNo + 1}`,
-          cartridge_qty: cluster.cartridge_qty,
-           totalDistance: cluster.totalDistance,
-            customers: cluster.visitSequence
-            .map((v) => ({
-          displayName: v.customerName,
-          vistSequnceNo: v.visitNumber,
-          lat: Number(v.lat),
-          lng: Number(v.lng),
-          clusterId: v.clusterId,
-          distanceFromPrev: v.distanceFromPrev,
-        })),
+        name: `Cluster ${cluster.clusterNo + 1}`,
+        cartridge_qty: cluster.cartridge_qty,
+        totalDistance: cluster.totalDistance,
+        customers: cluster.visitSequence
+          .map((v) => ({
+            displayName: v.customerName,
+            vistSequnceNo: v.visitNumber,
+            lat: Number(v.lat),
+            lng: Number(v.lng),
+            clusterId: v.clusterId,
+            distanceFromPrev: v.distanceFromPrev,
+          })),
       }));
       setRoute(formatted)
     }
-    else
-    {
+    else {
       setRoute([]);
     }
-  },[mapLoading,clusteroute])
+  }, [mapLoading, clusteroute])
 
-    useEffect(() => {
+  useEffect(() => {
     if (showRoute && selectedCluster === "" && route.length > 0) {
       setSelectedCluster(route[0]?.clusterNo)
     }
   }, [showRoute, data, selectedCluster]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!showRoute && selectedCluster === "") {
       setDirectionsResponse(null);
       return;
@@ -1246,17 +1245,22 @@ if (mapLoading) {
       });
     });
 
-    dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
-      .unwrap()
-      .then(() => {
-        dispatch(getCustomersClusterMap());
-        dispatch(fetchClusterRoute());
-      })
-      .catch(() => {
-        dispatch(getCustomersClusterMap());
-        dispatch(fetchClusterRoute());
-      });
+    console.log("reassignments:", reassignments);
+
+    if (reassignments.length > 0) {
+      dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
+        .unwrap()
+        .then(() => {
+          dispatch(getCustomersClusterMap());
+          dispatch(fetchClusterRoute());
+        })
+        .catch(() => {
+          dispatch(getCustomersClusterMap());
+          dispatch(fetchClusterRoute());
+        });
+    }
   };
+
 
   const handleClusterSelect = (value) => {
     setSelectedCluster(value);
@@ -1326,7 +1330,7 @@ if (mapLoading) {
     doc.save(fileName);
   };
 
-const handleToggleView = () => {
+  const handleToggleView = () => {
     setShowMap(!showMap)
     if (!showMap) {
       // When switching to map view, default to cluster view
@@ -1360,13 +1364,25 @@ const handleToggleView = () => {
     }
   }
 
-    useEffect(() => {
+  const handleSearch = () => {
+    if (searchValue) {
+      console.log(searchValue);
+      const customer_code = searchValue;
+      dispatch(getCustomersClusterMap(customer_code));
+    }
+  }
+
+  const searchClear = () => {
+    setSearchValue('')
+    dispatch(getCustomersClusterMap());
+  }
+
+  useEffect(() => {
     // Ensure showCluster and showRoute are mutually exclusive
     if (showRoute && showCluster) {
       setShowCluster(false)
     }
   }, [showRoute, showCluster])
-
 
 
   if (!isLoaded) {
@@ -1391,6 +1407,19 @@ const handleToggleView = () => {
                 Cluster {showMap ? "Map" : "List"}
               </Typography>
               <div className="flex items-center gap-2">
+                {!showMap && (
+                  <div className="w-full md:w-72 relative flex gap-2">
+                    <Input
+                      label="Search"
+                      value={searchValue}
+                      onChange={(e) => setSearchValue(e.target.value)}
+                      icon={searchValue ? <XMarkIcon onClick={searchClear} className="h-5 w-5 cursor-pointer" /> : null}
+                    />
+                    <Button onClick={handleSearch} variant="gradient" className="px-2.5" size="sm">
+                      <MagnifyingGlassIcon className="h-5 w-5" />
+                    </Button>
+                  </div>
+                )}
                 {/* Map Icons */}
                 {showMap && (
                   <div className="flex items-center gap-2">
@@ -1407,36 +1436,36 @@ const handleToggleView = () => {
 
                 {/* Cluster Selector */}
                 {showMap && (
-  <>
-    {/* Button toggles route/cluster view */}
-                        <Button onClick={handleToggleMapMode}>{showRoute ? "Show Clusters" : "Show Routes"}</Button>
+                  <>
+                    {/* Button toggles route/cluster view */}
+                    <Button onClick={handleToggleMapMode}>{showRoute ? "Show Clusters" : "Show Routes"}</Button>
 
 
-    {/* Dropdown visible only when showRoute is true */}
-    {showRoute && (
-      <Select
-        label="Select Cluster"
-        onChange={handleClusterSelect}
-        value={selectedCluster}
-      >
-        {data.map((item, index) => {
-          const color = clusterColors[index % clusterColors.length];
-          return (
-            <Option key={item.clusterNo} value={item.clusterNo}>
-              <div className="flex items-center h-4">
-                <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span> 
-                {item.name}
-              </div>
-            </Option>
-          );
-        })}
-      </Select>
-    )}
-  </>
-)}
+                    {/* Dropdown visible only when showRoute is true */}
+                    {showRoute && (
+                      <Select
+                        label="Select Cluster"
+                        onChange={handleClusterSelect}
+                        value={selectedCluster}
+                      >
+                        {data.map((item, index) => {
+                          const color = clusterColors[index % clusterColors.length];
+                          return (
+                            <Option key={item.clusterNo} value={item.clusterNo}>
+                              <div className="flex items-center h-4">
+                                <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span>
+                                {item.name}
+                              </div>
+                            </Option>
+                          );
+                        })}
+                      </Select>
+                    )}
+                  </>
+                )}
 
 
-                
+
 
                 {/* Toggle Button */}
                 <Button size="sm" variant="outlined" onClick={handleToggleView}>
@@ -1456,6 +1485,15 @@ const handleToggleView = () => {
                 )}
               </div>
             </div>
+
+            {data.length === 0 && (
+              <div className="flex h-[70vh] items-center justify-center">
+                <Typography variant="h5" color="blue-gray">
+                  No Clusters Available
+                </Typography>
+              </div>
+            )}
+
 
             {showMap ? (
               <GoogleMap
@@ -1598,7 +1636,7 @@ const handleToggleView = () => {
                       className="bg-white rounded-lg shadow-md min-w-[23vw] max-w-[320px] flex flex-col overflow-hidden"
                     >
                       <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
-                        {cluster.name}
+                        {cluster.name} ({cluster.clusterName})
                       </div>
 
                       <Droppable droppableId={`${index}`}>
