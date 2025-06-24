@@ -17,6 +17,7 @@ import TechnicianScorrLog from "./pages/dashboard/TechnicianScorrLog";
 import WaterReports from "./pages/dashboard/WaterReports";
 import AdminProductCodeUpdate from "./pages/dashboard/AdminProductCodeUpdate";
 import TechnicianLogAnalytics from "./pages/dashboard/TechnicianLogAnalytics";
+import ClusterAssignments from "./pages/dashboard/ClusterAssignments";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -67,6 +68,12 @@ export const routes = [
         name: "Location Cluster",
         path: "/locationCluster",
         element: <MapCluster />,
+      },
+      {
+        icon:<MapPinIcon {...icon} />,
+         name: "Cluster Assignments",
+        path: "/clusterAssignments",
+        element: <ClusterAssignments />,
       },
       {
         icon: <ChartBarIcon {...icon} />,

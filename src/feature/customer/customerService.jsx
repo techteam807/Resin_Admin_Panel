@@ -129,3 +129,33 @@ export const fetchClusterRoutes = async (clusterNo) => {
       throw error;
     }
   };
+
+   export const fetchClusterDropdown = async () => {
+    try {
+      const response = await axiosConfig.get('clusterAssignment/clusters');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Technician Dropdown:', error);
+      throw error;
+    }
+  };
+
+ export const createAssignment = async (assignData) => {
+  try {
+    const response = await axiosConfig.post("clusterAssignment/assign", assignData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating assignment:", error);
+    throw error;
+  }
+};
+
+ export const fetchClusterAssignment = async () => {
+    try {
+      const response = await axiosConfig.get('clusterAssignment/all');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Technician Dropdown:', error);
+      throw error;
+    }
+  };
