@@ -48,9 +48,14 @@ export const fetchCustomers = async (page = 1, search = '',isSubscription) => {
     }
   };
 
-  export const fetchCustomersClusterMap = async () => {
+  export const fetchCustomersClusterMap = async (customer_code) => {
+    console.log("customerCode:", customer_code);
     try {
-      const response = await axiosConfig.get(`cluster/clusters`);
+      const queryParams = new URLSearchParams();
+      if(customer_code !== undefined && customer_code !== null) {
+        queryParams.append('customer_code', customer_code);
+      }                                 
+      const response = await axiosConfig.get(`cluster/clusters?${queryParams}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching products map:', error);
@@ -88,8 +93,6 @@ export const fetchClusterRoutes = async (clusterNo) => {
     if (clusterNo !== undefined && clusterNo !== null) {
       queryParams.append('clusterNo', clusterNo);
     }
-
-    console.log("Query Params:", queryParams.toString()); // will show ?clusterNo=0
 
     const response = await axiosConfig.get(`cluster/clusters/optimize-routes?${queryParams}`);
     return response.data;
