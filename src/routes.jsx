@@ -1,4 +1,4 @@
-import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon, PresentationChartBarIcon, MapPinIcon, ShieldCheckIcon, AdjustmentsHorizontalIcon, ChartBarIcon, AcademicCapIcon, FlagIcon, CalendarDaysIcon, PencilSquareIcon  } from "@heroicons/react/24/solid";
+import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon, PresentationChartBarIcon, MapPinIcon, ShieldCheckIcon, AdjustmentsHorizontalIcon, ChartBarIcon, AcademicCapIcon, FlagIcon, CalendarDaysIcon, PencilSquareIcon, AdjustmentsVerticalIcon, ArrowUpOnSquareStackIcon  } from "@heroicons/react/24/solid";
 import { Company, Product } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 import { HiBuildingOffice } from "react-icons/hi2";
@@ -64,13 +64,13 @@ export const routes = [
         element: <Map />,
       },
       {
-        icon: <MapPinIcon {...icon} />,
+        icon: <ArrowUpOnSquareStackIcon {...icon} />,
         name: "Location Cluster",
         path: "/locationCluster",
         element: <MapCluster />,
       },
       {
-        icon:<MapPinIcon {...icon} />,
+        icon:<AdjustmentsVerticalIcon {...icon} />,
          name: "Cluster Assignments",
         path: "/clusterAssignments",
         element: <ClusterAssignments />,
