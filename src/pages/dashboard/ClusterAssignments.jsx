@@ -40,6 +40,7 @@ const ClusterAssignments = () => {
     try {
       await dispatch(createClusterAssignment(formData)).unwrap();
       setFormData({ userId: "", clusterId: "", date: "" });
+      dispatch(getClusterAssignment());
     } catch (error) {
       console.error("Submission error:", error);
     }
@@ -101,7 +102,7 @@ const ClusterAssignments = () => {
                   <option value="">Choose a cluster</option>
                   {clusterDrop.map((c) => (
                     <option key={c._id} value={c._id}>
-                      Cluster {c.clusterNo}
+                      Cluster {c.clusterNo}  - ({c.clusterName})
                     </option>
                   ))}
                 </select>
@@ -161,13 +162,13 @@ const ClusterAssignments = () => {
                   <option value="">All Clusters</option>
                   {clusterDrop.map((c) => (
                     <option key={c._id} value={c._id}>
-                      Cluster {c.clusterNo}
+                      Cluster {c.clusterNo} - ({c.clusterName})
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">Filter by Status</label>
                 <select
                   value={statusFilter}
@@ -179,7 +180,7 @@ const ClusterAssignments = () => {
                   <option value="completed">Completed</option>
                   <option value="pending">Pending</option>
                 </select>
-              </div>
+              </div> */}
             </div>
 
             <table className="w-full border text-sm text-black">
@@ -203,7 +204,7 @@ const ClusterAssignments = () => {
                   filteredAssignments.map((a) => (
                     <tr key={a._id} className="border-t border-gray-200">
                       <td className="p-2 border text-center">{a.userId?.user_name || "N/A"}</td>
-                      <td className="p-2 border text-center">Cluster {a.clusterId?.clusterNo ?? "N/A"}</td>
+                      <td className="p-2 border text-center">Cluster {a.clusterId?.clusterNo ?? "N/A"} <br/> ({a.clusterId?.clusterName})</td>
                       <td className="p-2 border text-center">
                         {a.date
                           ? `${new Date(a.date).toLocaleDateString("en-GB")} (${new Date(a.date).toLocaleDateString("en-US", { weekday: "long" })})`
@@ -211,7 +212,7 @@ const ClusterAssignments = () => {
                       </td>
                       <td className="p-2 border text-center">
                         <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">
-                          {a.status || "Pending"}
+                          {a.status || "Active"}
                         </span>
                       </td>
                       <td className="p-2 border text-center">
