@@ -1,9 +1,9 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Dashboard, Auth } from "@/layouts";
 import { SignIn, SignUp } from "./pages/auth";
-import WaterReportsPdf from "./layouts/WaterReportsPdf";
 import CustomerDetails from "./pages/dashboard/CustomerDetails";
 import RoutesMap from "./pages/dashboard/RoutesMap";
+import WaterReportsTemplate from "./layouts/WaterReportsTemplate";
 
 function App() {
   return (
@@ -14,7 +14,7 @@ function App() {
       <Route path="/sign-in" element={<SignIn />} />
       <Route path="*" element={<Navigate to="/sign-in" replace />} />
       <Route path="/dashboard" element={<Navigate to="/dashboard/home" replace />} />
-      <Route path="/dashboard/waterPdf" element={<WaterReportsPdf/>}/>
+      <Route path="/dashboard/waterPdf" element={<WaterReportsTemplate/>}/>
       <Route path="dashboard/home/details" element={<CustomerDetails />} />
       <Route path="/map-routes" element={<RoutesMap/>}/>
     </Routes>
