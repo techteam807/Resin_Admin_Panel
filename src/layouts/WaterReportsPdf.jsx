@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import html2pdf from 'html2pdf.js'
 import WaterReportsTemplate from './WaterReportsTemplate';
+import { id } from 'date-fns/locale';
 
 const waterComparisons = [
   { source: "Loch Katrine (Scotland)", hardness: 15, color: "bg-red-500" },
@@ -92,7 +93,13 @@ const WaterReportsPdf = () => {
   }
 const {loading} = useSelector((state) => state.waterReport);
 
-if (template) return <WaterReportsTemplate closeTemplate={() => setTemplate(false)}/>;
+const userData = {
+  id: customer?.user?._id,
+  name: customer?.user?.display_name,
+  waterQualityData: waterQualityData,
+}
+
+if (template) return <WaterReportsTemplate closeTemplate={() => setTemplate(false)} customerData = {userData}/>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">

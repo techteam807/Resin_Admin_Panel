@@ -1,4 +1,4 @@
-import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon, PresentationChartBarIcon, MapPinIcon, ShieldCheckIcon, AdjustmentsHorizontalIcon, ChartBarIcon, AcademicCapIcon, FlagIcon, CalendarDaysIcon, PencilSquareIcon  } from "@heroicons/react/24/solid";
+import {HomeIcon,UserCircleIcon,ServerStackIcon,CogIcon, CircleStackIcon, PresentationChartBarIcon, MapPinIcon, ShieldCheckIcon, AdjustmentsHorizontalIcon, ChartBarIcon, AcademicCapIcon, FlagIcon, CalendarDaysIcon, PencilSquareIcon, AdjustmentsVerticalIcon, ArrowUpOnSquareStackIcon  } from "@heroicons/react/24/solid";
 import { Company, Product } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 import { HiBuildingOffice } from "react-icons/hi2";
@@ -17,6 +17,7 @@ import TechnicianScorrLog from "./pages/dashboard/TechnicianScorrLog";
 import WaterReports from "./pages/dashboard/WaterReports";
 import AdminProductCodeUpdate from "./pages/dashboard/AdminProductCodeUpdate";
 import TechnicianLogAnalytics from "./pages/dashboard/TechnicianLogAnalytics";
+import ClusterAssignments from "./pages/dashboard/ClusterAssignments";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -63,10 +64,16 @@ export const routes = [
         element: <Map />,
       },
       {
-        icon: <MapPinIcon {...icon} />,
+        icon: <ArrowUpOnSquareStackIcon {...icon} />,
         name: "Location Cluster",
         path: "/locationCluster",
         element: <MapCluster />,
+      },
+      {
+        icon:<AdjustmentsVerticalIcon {...icon} />,
+         name: "Cluster Assignments",
+        path: "/clusterAssignments",
+        element: <ClusterAssignments />,
       },
       {
         icon: <ChartBarIcon {...icon} />,

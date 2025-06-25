@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap, fetchClusterRoutes } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap, fetchClusterRoutes, fetchClusterDropdown, fetchClusterAssignment, createAssignment, delAssignment } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -24,9 +24,9 @@ export const getCustomersMap = createAsyncThunk("customer/getCustomersMap", asyn
   }
 });
 
-export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async () => {
+export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async (customer_code) => {
   try {
-    const data = await fetchCustomersClusterMap();
+    const data = await fetchCustomersClusterMap(customer_code);
     return data;
   } catch (error) {
     console.error("Error in getCustomersClusterMap thunk:", error);
@@ -115,6 +115,55 @@ export const getMissedDeliveryLogs = createAsyncThunk("customer/getMissedDeliver
   }
 });
 
+export const getClusterDropDown = createAsyncThunk("customer/getClusterDropDown", async () => {
+    try {
+      const data = await fetchClusterDropdown();
+      return data;
+    } catch (error) {
+      console.error("Error in getTechnicianDropDown thunk:", error);
+      throw error.response?.data?.error || error.message;
+    }
+  });
+
+export const createClusterAssignment = createAsyncThunk(
+  "customer/createClusterAssignment",
+  async (assignData) => {
+    try {
+      const data = await createAssignment(assignData);
+      return data;
+    } catch (error) {
+      console.error("Error in refresh customers thunk:", error);
+      throw error.response?.data?.message || error.message || "Something went wrong";
+    }
+  }
+);
+
+export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignment", async () => {
+    try {
+      const data = await fetchClusterAssignment();
+      return data;
+    } catch (error) {
+      console.error("Error in getTechnicianDropDown thunk:", error);
+      throw error.response?.data?.error || error.message;
+    }
+  });
+
+ export const deleteAssignment = createAsyncThunk(
+  "customer/deleteAssignment",
+  async (assignId, { rejectWithValue }) => {
+    try {
+      const data = await delAssignment(assignId); 
+      return { assignId, message: data.message }; 
+    } catch (error) {
+      console.error("Error in delete Assignment thunk:", error);
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Something went wrong"
+      );
+    }
+  }
+);
+
+
 const customerSlice = createSlice({
   name: "customer",
   initialState: {
@@ -125,13 +174,19 @@ const customerSlice = createSlice({
     customersClusterMap: [],
     updatedcustomersClusterMap: [],
     clusteroute: [],
+    clusterDrop: [],
+    assignment: [],
     missedDelivery: null,
+    clusterAssign: null,
     loading: false,
     sendLoading: false,
     mapLoading: false,
     mapLoading1: false,
     refreshLoading: false,
+    deleteLoading: false,
     deliveryLoading: false,
+    clusterLoading: false,
+    delete: null,
     create: null,
     error: null,
     pagination: {
@@ -280,6 +335,61 @@ const customerSlice = createSlice({
       .addCase(fetchClusterRoute.rejected, (state, action) => {
         state.mapLoading = false;
         state.error = action.error.message;
+      })
+      .addCase(getClusterDropDown.pending, (state) => {
+        state.dropLoading = true;
+      })
+      .addCase(getClusterDropDown.fulfilled, (state, action) => {
+        state.dropLoading = false;
+        state.clusterDrop = action.payload.data;
+        state.message = action.payload.message;
+      })
+      .addCase(getClusterDropDown.rejected, (state, action) => {
+        state.dropLoading = false;
+        state.error = action.error.message;
+      })
+      .addCase(createClusterAssignment.pending, (state) => {
+        state.clusterLoading = true;
+      })
+      .addCase(createClusterAssignment.fulfilled, (state, action) => {
+        state.clusterLoading = false;
+        state.clusterAssign = action.payload.data;
+        state.message = action.payload.message;
+        toast.success(state.message);
+      })
+      .addCase(createClusterAssignment.rejected, (state, action) => {
+        state.clusterLoading = false;
+        state.error = action.error.message;
+        toast.error(state.error);
+      })
+      .addCase(getClusterAssignment.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getClusterAssignment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assignment = action.payload.data;
+        state.message = action.payload.message;
+      })
+      .addCase(getClusterAssignment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(deleteAssignment.pending, (state) => {
+        state.deleteLoading = true;
+      })
+      .addCase(deleteAssignment.fulfilled, (state, action) => {
+        state.deleteLoading = false;
+        state.delete = action.payload;
+        state.assignment = state.assignment.filter(
+        (ass) => ass._id !== action.payload.assignId
+      );
+        state.message = action.payload.message;
+        toast.success(state.message);
+      })
+      .addCase(deleteAssignment.rejected, (state, action) => {
+        state.deleteLoading = false;
+        state.error = action.error.message;
+        toast.error(state.error);
       })
   },
 });

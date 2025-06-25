@@ -48,9 +48,14 @@ export const fetchCustomers = async (page = 1, search = '',isSubscription) => {
     }
   };
 
-  export const fetchCustomersClusterMap = async () => {
+  export const fetchCustomersClusterMap = async (customer_code) => {
+    console.log("customerCode:", customer_code);
     try {
-      const response = await axiosConfig.get(`cluster/clusters`);
+      const queryParams = new URLSearchParams();
+      if(customer_code !== undefined && customer_code !== null) {
+        queryParams.append('customer_code', customer_code);
+      }                                 
+      const response = await axiosConfig.get(`cluster/clusters?${queryParams}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching products map:', error);
@@ -89,8 +94,6 @@ export const fetchClusterRoutes = async (clusterNo) => {
       queryParams.append('clusterNo', clusterNo);
     }
 
-    console.log("Query Params:", queryParams.toString()); // will show ?clusterNo=0
-
     const response = await axiosConfig.get(`cluster/clusters/optimize-routes?${queryParams}`);
     return response.data;
   } catch (error) {
@@ -126,6 +129,46 @@ export const fetchClusterRoutes = async (clusterNo) => {
       return response.data;
     } catch (error) {
       console.error('Error fetching missed delivery logs:', error);
+      throw error;
+    }
+  };
+
+   export const fetchClusterDropdown = async () => {
+    try {
+      const response = await axiosConfig.get('clusterAssignment/clusters');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Technician Dropdown:', error);
+      throw error;
+    }
+  };
+
+ export const createAssignment = async (assignData) => {
+  try {
+    const response = await axiosConfig.post("clusterAssignment/assign", assignData);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating assignment:", error);
+    throw error;
+  }
+};
+
+ export const fetchClusterAssignment = async () => {
+    try {
+      const response = await axiosConfig.get('clusterAssignment/all');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Technician Dropdown:', error);
+      throw error;
+    }
+  };
+
+    export const delAssignment = async (assignId) => {
+    try {
+      const response = await axiosConfig.delete(`clusterAssignment/delete/${assignId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching delete Assignment :", error);
       throw error;
     }
   };
