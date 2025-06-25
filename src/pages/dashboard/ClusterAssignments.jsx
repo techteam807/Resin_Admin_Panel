@@ -5,7 +5,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { getTechnicianDropDown } from '@/feature/technician/technicianSlice';
-import { createClusterAssignment, getClusterAssignment, getClusterDropDown } from '@/feature/customer/customerSlice';
+import { createClusterAssignment, deleteAssignment, getClusterAssignment, getClusterDropDown } from '@/feature/customer/customerSlice';
 
 const ClusterAssignments = () => {
   const dispatch = useDispatch();
@@ -52,6 +52,15 @@ const ClusterAssignments = () => {
     const matchStatus = statusFilter === "all" ? true : a.status?.toLowerCase() === statusFilter.toLowerCase();
     return matchUser && matchCluster && matchStatus;
   });
+
+  const handleDelete = (assignId) => {
+    console.log("Trying to delete assignment with ID:", assignId);
+    const confirm = window.confirm("Are you sure?");
+    if (confirm) {
+      dispatch(deleteAssignment(assignId));
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gray-100 text-black p-6">
@@ -223,12 +232,13 @@ const ClusterAssignments = () => {
                         >
                           <PencilIcon className="h-5 w-5" />
                         </button>
-                        <button
-                          className="p-1.5 rounded-full hover:bg-red-100 text-red-600 transition duration-150"
-                          title="Delete"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
+                      <button
+                            onClick={() => handleDelete(a._id)} 
+                            className="p-1.5 rounded-full hover:bg-red-100 text-red-600 transition duration-150"
+                            title="Delete"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
                       </div>
                     </td>
                     </tr>

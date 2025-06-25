@@ -162,3 +162,13 @@ export const fetchClusterRoutes = async (clusterNo) => {
       throw error;
     }
   };
+
+    export const delAssignment = async (assignId) => {
+    try {
+      const response = await axiosConfig.delete(`clusterAssignment/delete/${assignId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching delete Assignment :", error);
+      throw error;
+    }
+  };

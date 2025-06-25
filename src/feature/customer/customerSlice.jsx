@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap, fetchClusterRoutes, fetchClusterDropdown, fetchClusterAssignment, createAssignment } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap, fetchClusterRoutes, fetchClusterDropdown, fetchClusterAssignment, createAssignment, delAssignment } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -148,6 +148,21 @@ export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignm
     }
   });
 
+ export const deleteAssignment = createAsyncThunk(
+  "customer/deleteAssignment",
+  async (assignId, { rejectWithValue }) => {
+    try {
+      const data = await delAssignment(assignId); 
+      return { assignId, message: data.message }; 
+    } catch (error) {
+      console.error("Error in delete Assignment thunk:", error);
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Something went wrong"
+      );
+    }
+  }
+);
+
 
 const customerSlice = createSlice({
   name: "customer",
@@ -168,8 +183,10 @@ const customerSlice = createSlice({
     mapLoading: false,
     mapLoading1: false,
     refreshLoading: false,
+    deleteLoading: false,
     deliveryLoading: false,
     clusterLoading: false,
+    delete: null,
     create: null,
     error: null,
     pagination: {
@@ -356,6 +373,23 @@ const customerSlice = createSlice({
       .addCase(getClusterAssignment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+      .addCase(deleteAssignment.pending, (state) => {
+        state.deleteLoading = true;
+      })
+      .addCase(deleteAssignment.fulfilled, (state, action) => {
+        state.deleteLoading = false;
+        state.delete = action.payload;
+        state.assignment = state.assignment.filter(
+        (ass) => ass._id !== action.payload.assignId
+      );
+        state.message = action.payload.message;
+        toast.success(state.message);
+      })
+      .addCase(deleteAssignment.rejected, (state, action) => {
+        state.deleteLoading = false;
+        state.error = action.error.message;
+        toast.error(state.error);
       })
   },
 });
