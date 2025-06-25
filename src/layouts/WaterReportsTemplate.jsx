@@ -9,7 +9,8 @@ import page7 from '../../public/img/wp7.png';
 import { ChevronLeftIcon, ChevronRightIcon, DocumentIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { Button } from '@material-tailwind/react';
 import { generateWaterReports, uploadWaterReport } from '@/feature/waterReports/waterReportsSlice';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useLocation } from 'react-router-dom';
 
 
 const waitForPaint = () =>
@@ -17,12 +18,39 @@ const waitForPaint = () =>
     requestAnimationFrame(() => setTimeout(resolve, 0))
 })
 
-const WaterReportsTemplate = ({ customerData, closeTemplate }) => {
+const WaterReportsTemplate = () => {
+  const location = useLocation();
   const dispatch = useDispatch();
-  const userName = customerData?.name;
+
+  const { customer, month, year } = location.state || {};
+
+  const userName = customer?.user?.display_name;
+  
   const safeName = userName.replace(/\s+/g, "_");
-  const logIds = customerData?.waterQualityData.map((w) => w.id);
-  const customerId = customerData?.id;
+
+    const formatDate = (isoDate) => {
+    const date = new Date(isoDate);
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const y = String(date.getFullYear()).slice(2);
+    return `${d}/${m}/${y}`;
+  };
+
+  const waterQualityData = Object.values(customer.scores)
+      .flat()
+      .filter(item => !item.status)
+      .map(item => ({
+        date: formatDate(item.createdAt),
+        hardness: Number(item.score),
+        id: item.id,
+      }))
+      .slice(0, 4);
+  console.log("water",waterQualityData);
+      
+  
+  const customerId = customer?.user?._id;
+  const logIds = waterQualityData.map((w) => w.id);
+
   const totalPages = 7
   const [currentPage, setCurrentPage] = useState(1);
   const base = "w-full h-full relative bg-cover bg-center bg-no-repeat"
@@ -49,9 +77,9 @@ const WaterReportsTemplate = ({ customerData, closeTemplate }) => {
               <div>2025-01-01</div>
               <div>2025-01-01</div>
             </div> */}
-            {Array.isArray(customerData?.waterQualityData) && (
+            {Array.isArray(waterQualityData) && (
   <div className='absolute right-[140px] text-[#f3daa5] space-y-4 text-[25px] top-[340px]'>
-    {customerData.waterQualityData.map((entry) => (
+    {waterQualityData.map((entry) => (
       <div key={entry.id}>{entry.date}</div>
     ))}
   </div>
@@ -74,18 +102,18 @@ const WaterReportsTemplate = ({ customerData, closeTemplate }) => {
               <div>2025-01-01</div>
               <div>2025-01-01</div>
             </div> */}
-            {Array.isArray(customerData?.waterQualityData) && (
+            {Array.isArray(waterQualityData) && (
   <>
     {/* Hardness values */}
     <div className='absolute bottom-[240px] flex left-[200px] gap-[40px]'>
-      {customerData.waterQualityData.map((entry) => (
+      {waterQualityData.map((entry) => (
         <div key={entry.id}>{entry.hardness} mg/L</div>
       ))}
     </div>
 
     {/* Dates */}
     <div className='absolute bottom-[120px] flex left-[190px] gap-[20px]'>
-      {customerData.waterQualityData.map((entry) => {
+      {waterQualityData.map((entry) => {
         const [day, month, year] = entry.date.split('/');
         const formattedDate = `20${year}-${month}-${day}`; // Converts DD/MM/YY to YYYY-MM-DD
         return <div key={entry.id}>{formattedDate}</div>;
@@ -199,56 +227,136 @@ const WaterReportsTemplate = ({ customerData, closeTemplate }) => {
     }
   }
 
-  async function handleDownload() {
-  const { default: html2canvas } = await import("html2canvas")
-  const { jsPDF } = await import("jspdf")
+//   async function handleDownload() {
+//   const { default: html2canvas } = await import("html2canvas")
+//   const { jsPDF } = await import("jspdf")
 
-  const pdf = new jsPDF("p", "mm", "a4")
+//   const pdf = new jsPDF("p", "mm", "a4")
+
+//   for (let p = 1; p <= totalPages; p++) {
+//     setCurrentPage(p)
+//     await waitForPaint()
+
+//     // Give time for page render
+//     await new Promise((resolve) => setTimeout(resolve, 300))
+
+//     const node = document.getElementById("pdf-page")
+//     if (!node) continue
+
+//     const canvas = await html2canvas(node, {
+//       scale: 3, // sharper but still reasonable
+//       useCORS: true, // make sure external images render
+//     })
+//     const img = canvas.toDataURL("image/jpeg", 0.92) // JPEG helps reduce size
+
+//     const width = pdf.internal.pageSize.getWidth()
+//     const height = (canvas.height * width) / canvas.width
+
+//     if (p > 1) pdf.addPage()
+//     pdf.addImage(img, "JPEG", 0, 0, width, height)
+//   }
+
+//   try {
+//  const blob = pdf.output("blob");
+//  const uploadResult = await dispatch(uploadWaterReport(blob)).unwrap();
+//     const docUrl = uploadResult.data.uploadedUrl;
+//      dispatch(generateWaterReports({ customerId, logIds, docUrl }));
+//       pdf.save(`${safeName}_30_Day_Report.pdf`);
+//   }
+//   catch (error) {
+//     console.error("Error generating/uploading PDF:", error);
+//   }
+//   }
+
+  async function handleDownload() {
+  const { default: html2canvas } = await import("html2canvas");
+  const { jsPDF } = await import("jspdf");
+
+  const pdf = new jsPDF("p", "mm", "a4");
 
   for (let p = 1; p <= totalPages; p++) {
-    setCurrentPage(p)
-    await waitForPaint()
+    setCurrentPage(p);
+    await waitForPaint();
 
-    // Give time for page render
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const node = document.getElementById("pdf-page")
-    if (!node) continue
+    const node = document.getElementById("pdf-page");
+    if (!node) continue;
 
     const canvas = await html2canvas(node, {
-      scale: 3, // sharper but still reasonable
-      useCORS: true, // make sure external images render
-    })
-    const img = canvas.toDataURL("image/jpeg", 0.92) // JPEG helps reduce size
+      scale: 3,
+      useCORS: true,
+    });
+    const img = canvas.toDataURL("image/jpeg", 0.92);
 
-    const width = pdf.internal.pageSize.getWidth()
-    const height = (canvas.height * width) / canvas.width
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (canvas.height * width) / canvas.width;
 
-    if (p > 1) pdf.addPage()
-    pdf.addImage(img, "JPEG", 0, 0, width, height)
+    if (p > 1) pdf.addPage();
+    pdf.addImage(img, "JPEG", 0, 0, width, height);
+  }
+
+  pdf.save(`${safeName}_30_Day_Report.pdf`);
+}
+
+async function handleUpload() {
+  const { default: html2canvas } = await import("html2canvas");
+  const { jsPDF } = await import("jspdf");
+
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  for (let p = 1; p <= totalPages; p++) {
+    setCurrentPage(p);
+    await waitForPaint();
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const node = document.getElementById("pdf-page");
+    if (!node) continue;
+
+    const canvas = await html2canvas(node, {
+      scale: 3,
+      useCORS: true,
+    });
+    const img = canvas.toDataURL("image/jpeg", 0.92);
+
+    const width = pdf.internal.pageSize.getWidth();
+    const height = (canvas.height * width) / canvas.width;
+
+    if (p > 1) pdf.addPage();
+    pdf.addImage(img, "JPEG", 0, 0, width, height);
   }
 
   try {
- const blob = pdf.output("blob");
- const uploadResult = await dispatch(uploadWaterReport(blob)).unwrap();
+    const blob = pdf.output("blob");
+    const uploadResult = await dispatch(uploadWaterReport(blob)).unwrap();
     const docUrl = uploadResult.data.uploadedUrl;
-     dispatch(generateWaterReports({ customerId, logIds, docUrl }));
-      pdf.save(`${safeName}_30_Day_Report.pdf`);
+    dispatch(generateWaterReports({ customerId, logIds, docUrl }));
+  } catch (error) {
+    console.error("Error uploading PDF:", error);
   }
-  catch (error) {
-    console.error("Error generating/uploading PDF:", error);
-  }
-  }
+}
+
+const {loading} = useSelector((state) => state.waterReport);
 
   return (
     <>
     <div className="max-w-4xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col items-center mb-4 w-full max-w-2xl mx-auto rounded-lg bg-gray-300 p-4">
+        <div className='flex w-full justify-between mb-4'>
         <h1 className="text-xl font-bold">Better Water – 30 Day Report</h1>
-        <Button onClick={handleDownload} className="flex items-center gap-2">
+        <Link to='/dashboard/water-reports' className='hover:underline'>Back To Water Reports</Link>
+        </div>
+        <div className='flex w-full justify-between'>
+          <Button onClick={handleDownload} className="flex items-center gap-2">
           <DocumentIcon className="h-4 w-4" />
           Download PDF
         </Button>
+        <Button onClick={handleUpload} className="flex items-center gap-2">
+          <DocumentIcon className="h-4 w-4" />
+          {loading ? "Sending.." : "Send Pdf"}
+        </Button>
+        </div>
       </div>
       <div id="pdf-page" className="aspect-[210/297] w-full max-w-2xl mx-auto rounded-lg overflow-hidden shadow-lg">
         {renderPage(currentPage)}
@@ -259,7 +367,7 @@ const WaterReportsTemplate = ({ customerData, closeTemplate }) => {
           size="sm"
           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           disabled={currentPage === 1}
-          className='flex items-center gap-2'
+          className='flex items-center justify-center gap-2'
         >
           <ChevronLeftIcon className="h-4 w-4" />
           Prev
@@ -272,17 +380,13 @@ const WaterReportsTemplate = ({ customerData, closeTemplate }) => {
           size="sm"
           onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
-          className='flex items-center gap-2'
+          className='flex items-center justify-center gap-2'
 
         >
           Next
           <ChevronRightIcon className="h-4 w-4" />
         </Button>
       </div>
-      <Button onClick={closeTemplate} className="flex items-center gap-2">
-          <XMarkIcon className="h-4 w-4" />
-          Close Tempalte
-        </Button>
     </div>
 </>
   )
