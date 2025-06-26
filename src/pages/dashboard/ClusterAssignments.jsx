@@ -252,7 +252,7 @@ const closeModal = () => {
          <EditModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        assignment={selectedAssignment}
+        assignment={selectedAssignment?._id}
       />
 
       </div>

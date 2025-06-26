@@ -172,3 +172,15 @@ export const fetchClusterRoutes = async (clusterNo) => {
       throw error;
     }
   };
+
+  export const assignemntDetail = async (assignId) => {
+    try {
+      const response = await axiosConfig.get(`clusterAssignment/clusterAssignmentById?assignmentId=${assignId}`);
+      return response.data;
+    }
+    catch (error)
+    {
+      console.error("Error fetching  details Assignment :", error);
+      throw error;
+    }
+  }
