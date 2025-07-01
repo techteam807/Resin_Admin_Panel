@@ -1016,6 +1016,8 @@ const MapCluster = () => {
     (state) => state.customer
   );
   console.log("clusteroute:", clusteroute);
+  console.log("customersClusterMap:",customersClusterMap);
+  
 
 
   const [data, setData] = useState([]);
@@ -1094,14 +1096,17 @@ const MapCluster = () => {
         name: `Cluster ${cluster.clusterNo + 1}`,
         clusterName: cluster.clusterName,
         cartridge_qty: cluster.cartridge_qty,
+        size:cluster.cartridgeSizeCounts,
         customers: cluster.customers.map((c) => ({
           code: c.contact_number,
           customerId: c.customerId,
           displayName: c.name,
           vistSequnceNo: c.sequenceNo,
+          indexNo:c.indexNo,
           lat: Number(c.geoCoordinates?.coordinates[1]),
           lng: Number(c.geoCoordinates?.coordinates[0]),
-        })),
+        }))
+        .sort((a, b) => a.indexNo - b.indexNo),
       }));
       setData(formatted);
     } else {
@@ -1228,22 +1233,37 @@ const MapCluster = () => {
 
   const handleSave = () => {
     const reassignments = [];
+data.forEach((cluster) => {
+  cluster.customers.forEach((customer, idx) => {
+    const originalCluster = customersClusterMap.find((c) =>
+      c.customers.some((orig) => orig._id === customer.customerId)
+    );
+    const originalClusterNo = originalCluster?.clusterNo;
 
-    data.forEach((cluster, clusterIndex) => {
-      cluster.customers.forEach((customer) => {
-        const originalCluster = customersClusterMap.find((c) =>
-          c.customers.some((orig) => orig._id === customer.customerId)
-        );
-        const originalClusterNo = originalCluster?.clusterNo;
-
-        if (originalClusterNo !== clusterIndex) {
-          reassignments.push({
-            customerId: customer.customerId,
-            newClusterNo: clusterIndex,
-          });
-        }
+    if (originalClusterNo !== cluster.clusterNo || idx !== originalIndexInOriginalCluster) {
+      reassignments.push({
+        customerId: customer.customerId,
+        newClusterNo: cluster.clusterNo,
+        indexNo: idx,
       });
-    });
+    }
+  });
+});
+    // data.forEach((cluster, clusterIndex) => {
+    //   cluster.customers.forEach((customer) => {
+    //     const originalCluster = customersClusterMap.find((c) =>
+    //       c.customers.some((orig) => orig._id === customer.customerId)
+    //     );
+    //     const originalClusterNo = originalCluster?.clusterNo;
+
+    //     if (originalClusterNo !== clusterIndex) {
+    //       reassignments.push({
+    //         customerId: customer.customerId,
+    //         newClusterNo: clusterIndex,
+    //       });
+    //     }
+    //   });
+    // });
 
     console.log("reassignments:", reassignments);
 
@@ -1252,11 +1272,11 @@ const MapCluster = () => {
         .unwrap()
         .then(() => {
           dispatch(getCustomersClusterMap());
-          dispatch(fetchClusterRoute());
+          // dispatch(fetchClusterRoute());
         })
         .catch(() => {
           dispatch(getCustomersClusterMap());
-          dispatch(fetchClusterRoute());
+          // dispatch(fetchClusterRoute());
         });
     }
   };
@@ -1679,9 +1699,18 @@ const MapCluster = () => {
                         )}
                       </Droppable>
 
-                      <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700">
+                      <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                        <div className="text-left">
                         {cluster.customers.length} Customers <br />
                         {cluster.cartridge_qty} Cartridge Quantity
+                        </div>
+                        <div>
+                        {Object.entries(cluster.size).map(([size, count]) => (
+    <div key={size}>
+      {size}: {count}
+    </div>
+  ))}
+  </div>
                       </div>
                     </div>
                   ))}
