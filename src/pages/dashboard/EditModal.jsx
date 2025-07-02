@@ -82,14 +82,14 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                 </h3>
                 {assignmentDetails?.clusterId?.customers
                   ?.filter((c) => !c.CustomerReplaceMentStatus)
-                  .sort((a, b) => a.sequenceNo - b.sequenceNo)
+                  .sort((a, b) => a.indexNo - b.indexNo)
                   .map((customer, index) => (
                     <div
                       key={`pending-${index}`}
                       className="flex gap-2 p-3 mb-2 bg-white rounded-lg shadow-sm border-l-4 border-orange-600"
                     >
                       <div className="font-bold text-lg text-orange-600">
-                        {customer?.sequenceNo}
+                        {customer?.indexNo + 1}
                       </div>
                       <div>
                         <p className="font-semibold text-sm">
@@ -110,14 +110,14 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                 </h3>
                 {assignmentDetails?.clusterId?.customers
                   ?.filter((c) => c.CustomerReplaceMentStatus)
-                  .sort((a, b) => a.sequenceNo - b.sequenceNo)
+                  .sort((a, b) => a.indexNo - b.indexNo)
                   .map((customer, index) => (
                     <div
                       key={`completed-${index}`}
                       className="flex gap-2 p-3 mb-2 bg-white rounded-lg shadow-sm border-l-4 border-green-500"
                     >
                       <div className="font-bold text-lg text-green-600">
-                        {customer?.sequenceNo}
+                        {customer?.indexNo + 1}
                       </div>
                       <div>
                         <p className="font-semibold text-sm">
