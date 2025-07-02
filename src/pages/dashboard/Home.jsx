@@ -285,7 +285,7 @@ const handlePaginationChange = (page) => {
                                   color="blue-gray"
                                   className="font-normal text-center"
                                 >
-                                  {customer?.cf_cartridge_qty || "1"}
+                                  {customer?.cf_cartridge_qty || "0"}
                                 </Typography>
                               </td>
                               <td className='text-center'>
