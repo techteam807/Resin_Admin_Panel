@@ -195,6 +195,7 @@ const closeModal = () => {
             <table className="w-full border text-sm text-black">
               <thead>
                 <tr className="bg-gray-200">
+                  <th className="p-2 border">No.</th>
                   <th className="p-2 border">User</th>
                   <th className="p-2 border">Cluster</th>
                   <th className="p-2 border">Date</th>
@@ -210,8 +211,9 @@ const closeModal = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredAssignments.map((a) => (
-                    <tr key={a._id} className="border-t border-gray-200">
+                  filteredAssignments.map((a,idx) => (
+                    <tr key={idx} className="border-t border-gray-200">
+                      <td className="p-2 border text-center">{idx +1}</td>
                       <td className="p-2 border text-center">{a.userId?.user_name || "N/A"}</td>
                       <td className="p-2 border text-center">Cluster {a.clusterId?.clusterNo ?? "N/A"} <br/> ({a.clusterId?.clusterName})</td>
                       <td className="p-2 border text-center">

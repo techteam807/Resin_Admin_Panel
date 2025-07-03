@@ -82,7 +82,7 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                 </h3>
                 {assignmentDetails?.clusterId?.customers
                   ?.filter((c) => !c.CustomerReplaceMentStatus)
-                  .sort((a, b) => a.indexNo - b.indexNo)
+                  // .sort((a, b) => a.indexNo - b.indexNo)
                   .map((customer, index) => (
                     <div
                       key={`pending-${index}`}
@@ -110,7 +110,7 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                 </h3>
                 {assignmentDetails?.clusterId?.customers
                   ?.filter((c) => c.CustomerReplaceMentStatus)
-                  .sort((a, b) => a.indexNo - b.indexNo)
+                  // .sort((a, b) => a.indexNo - b.indexNo)
                   .map((customer, index) => (
                     <div
                       key={`completed-${index}`}
