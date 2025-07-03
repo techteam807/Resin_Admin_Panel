@@ -991,6 +991,7 @@ const clusterColors = [
   "orange",
   "cyan",
   "magenta",
+  "SteelBlue"
 ];
 
 const LIBRARIES = ["places"];
@@ -1093,7 +1094,7 @@ const MapCluster = () => {
     if (customersClusterMap?.length) {
       const formatted = customersClusterMap.map((cluster) => ({
         clusterNo: cluster.clusterNo,
-        name: `Cluster ${cluster.clusterNo + 1}`,
+        name: `Cluster ${cluster.clusterNo}`,
         clusterName: cluster.clusterName,
         cartridge_qty: cluster.cartridge_qty,
         size:cluster.cartridgeSizeCounts,
@@ -1106,7 +1107,6 @@ const MapCluster = () => {
           lat: Number(c.geoCoordinates?.coordinates[1]),
           lng: Number(c.geoCoordinates?.coordinates[0]),
         }))
-        .sort((a, b) => a.indexNo - b.indexNo),
       }));
       setData(formatted);
     } else {
@@ -1202,6 +1202,7 @@ const MapCluster = () => {
       }
     );
   }, [selectedCluster, clusteroute]);
+  
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -1231,7 +1232,7 @@ const MapCluster = () => {
       });
   };
 
-  const handleSave = () => {
+  const handleSaveold = () => {
     const reassignments = [];
 data.forEach((cluster) => {
   cluster.customers.forEach((customer, idx) => {
@@ -1249,6 +1250,9 @@ data.forEach((cluster) => {
     }
   });
 });
+
+console.log("data:",data);
+
     // data.forEach((cluster, clusterIndex) => {
     //   cluster.customers.forEach((customer) => {
     //     const originalCluster = customersClusterMap.find((c) =>
@@ -1281,6 +1285,49 @@ data.forEach((cluster) => {
     }
   };
 
+const handleSave = () => {
+  const reassignments = [];
+
+  // Build a fast lookup: customerId → original clusterNo and index
+  const originalMap = new Map();
+
+  customersClusterMap.forEach((cluster) => {
+    cluster.customers.forEach((customer, index) => {
+      originalMap.set(customer._id, {
+        clusterNo: cluster.clusterNo,
+        indexNo: index
+      });
+    });
+  });
+
+  // Compare each customer in new data
+  data.forEach((cluster) => {
+    cluster.customers.forEach((customer, index) => {
+      const original = originalMap.get(customer.customerId);
+      
+      if (!original || original.clusterNo !== cluster.clusterNo || original.indexNo !== index) {
+        reassignments.push({
+          customerId: customer.customerId,
+          newClusterNo: cluster.clusterNo,
+          indexNo: index
+        });
+      }
+    });
+  });
+
+  console.log("Filtered reassignments:", reassignments);
+
+  if (reassignments.length > 0) {
+    dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
+      .unwrap()
+      .then(() => {
+        dispatch(getCustomersClusterMap());
+      })
+      .catch(() => {
+        dispatch(getCustomersClusterMap());
+      });
+  }
+};
 
   const handleClusterSelect = (value) => {
     setSelectedCluster(value);
@@ -1679,7 +1726,7 @@ data.forEach((cluster) => {
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       {...provided.dragHandleProps}
-                                      className={`bg-white rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
+                                      className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
                                         }`}
                                       style={{
                                         ...provided.draggableProps.style,
@@ -1687,8 +1734,11 @@ data.forEach((cluster) => {
                                         color: clusterColor,
                                       }}
                                     >
+                                      <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
+                                      <div>
                                       {customer.code} <br />
                                       {customer.displayName}
+                                      </div>
                                     </div>
                                   )}
                                 </Draggable>
