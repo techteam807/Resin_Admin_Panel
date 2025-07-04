@@ -1099,6 +1099,8 @@ const MapCluster = () => {
         cartridge_qty: cluster.cartridge_qty,
         size:cluster.cartridgeSizeCounts,
         customers: cluster.customers.map((c) => ({
+          qty:c.cf_cartridge_qty,
+          size:c.cf_cartridge_size,
           code: c.contact_number,
           customerId: c.customerId,
           displayName: c.name,
@@ -1722,24 +1724,35 @@ const handleSave = () => {
                                   index={idx}
                                 >
                                   {(provided, snapshot) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
-                                        }`}
-                                      style={{
-                                        ...provided.draggableProps.style,
-                                        borderLeftColor: clusterColor,
-                                        color: clusterColor,
-                                      }}
-                                    >
-                                      <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
-                                      <div>
-                                      {customer.code} <br />
-                                      {customer.displayName}
-                                      </div>
-                                    </div>
+<div
+  ref={provided.innerRef}
+  {...provided.draggableProps}
+  {...provided.dragHandleProps}
+  className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${
+    snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
+  }`}
+  style={{
+    ...provided.draggableProps.style,
+    borderLeftColor: clusterColor,
+    color: clusterColor,
+  }}
+>
+  {/* Index */}
+  <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
+
+  {/* Main Info */}
+  <div className="flex-1">
+    <div>{customer.code}</div>
+    <div>{customer.displayName}</div>
+  </div>
+
+  {/* Right-aligned Details */}
+  <div className="ml-auto flex flex-col justify-end items-end text-right">
+    <div>Qty: {customer.qty}</div>
+    <div>Size: {customer.size}</div>
+  </div>
+</div>
+
                                   )}
                                 </Draggable>
                               );
