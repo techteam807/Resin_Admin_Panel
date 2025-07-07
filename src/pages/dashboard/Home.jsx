@@ -58,7 +58,7 @@ function Home() {
   const handleRefresh = () => {
     dispatch(refreshcustomers()).then((action) => {
       if (refreshcustomers.fulfilled.match(action)) {
-        dispatch(getCustomers({ page: 1 }));
+        dispatch(getCustomers({ page: 1, Day: dayValue }));
       }
     });
   };
@@ -90,7 +90,7 @@ function Home() {
   }
 
   const handlePaginationChange = (page) => {
-    const payload = { page };
+    const payload = { page, Day: dayValue };
 
     if (searchValue) {
       payload.search = searchValue;
