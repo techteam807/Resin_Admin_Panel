@@ -1,16 +1,20 @@
 import {
-  PencilIcon,
+  EyeIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { getTechnicianDropDown } from '@/feature/technician/technicianSlice';
 import { createClusterAssignment, deleteAssignment, getClusterAssignment, getClusterDropDown } from '@/feature/customer/customerSlice';
+import EditModal from "./EditModal";
 
 const ClusterAssignments = () => {
   const dispatch = useDispatch();
   const { technicianDrop } = useSelector((state) => state.technician);
   const { clusterDrop, assignment, clusterLoading } = useSelector((state) => state.customer);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+const [selectedAssignment, setSelectedAssignment] = useState(null);
+
 
   const [formData, setFormData] = useState({
     userId: "",
@@ -60,8 +64,18 @@ const ClusterAssignments = () => {
       dispatch(deleteAssignment(assignId));
     }
   };
-  
 
+  const handleEditClick = (assignment) => {
+  setSelectedAssignment(assignment);
+  setIsModalOpen(true);
+};
+
+const closeModal = () => {
+  setIsModalOpen(false);
+  setSelectedAssignment(null);
+};
+
+  
   return (
     <div className="min-h-screen bg-gray-100 text-black p-6">
       <div className="max-w-7xl mx-auto">
@@ -176,25 +190,12 @@ const ClusterAssignments = () => {
                   ))}
                 </select>
               </div>
-
-              {/* <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">Filter by Status</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-black"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div> */}
             </div>
 
             <table className="w-full border text-sm text-black">
               <thead>
                 <tr className="bg-gray-200">
+                  <th className="p-2 border">No.</th>
                   <th className="p-2 border">User</th>
                   <th className="p-2 border">Cluster</th>
                   <th className="p-2 border">Date</th>
@@ -210,8 +211,9 @@ const ClusterAssignments = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredAssignments.map((a) => (
-                    <tr key={a._id} className="border-t border-gray-200">
+                  filteredAssignments.map((a,idx) => (
+                    <tr key={idx} className="border-t border-gray-200">
+                      <td className="p-2 border text-center">{idx +1}</td>
                       <td className="p-2 border text-center">{a.userId?.user_name || "N/A"}</td>
                       <td className="p-2 border text-center">Cluster {a.clusterId?.clusterNo ?? "N/A"} <br/> ({a.clusterId?.clusterName})</td>
                       <td className="p-2 border text-center">
@@ -228,9 +230,10 @@ const ClusterAssignments = () => {
                       <div className="flex justify-center gap-3">
                         <button
                           className="p-1.5 rounded-full hover:bg-blue-100 text-blue-600 transition duration-150"
-                          title="Edit"
+                          title="Details"
+                          onClick={() => handleEditClick(a)}
                         >
-                          <PencilIcon className="h-5 w-5" />
+                          <EyeIcon className="h-5 w-5" />
                         </button>
                       <button
                             onClick={() => handleDelete(a._id)} 
@@ -248,6 +251,12 @@ const ClusterAssignments = () => {
             </table>
           </div>
         )}
+         <EditModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        assignment={selectedAssignment?._id}
+      />
+
       </div>
     </div>
   );

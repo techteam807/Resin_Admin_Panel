@@ -991,6 +991,7 @@ const clusterColors = [
   "orange",
   "cyan",
   "magenta",
+  "SteelBlue"
 ];
 
 const LIBRARIES = ["places"];
@@ -1016,6 +1017,8 @@ const MapCluster = () => {
     (state) => state.customer
   );
   console.log("clusteroute:", clusteroute);
+  console.log("customersClusterMap:",customersClusterMap);
+  
 
 
   const [data, setData] = useState([]);
@@ -1091,17 +1094,21 @@ const MapCluster = () => {
     if (customersClusterMap?.length) {
       const formatted = customersClusterMap.map((cluster) => ({
         clusterNo: cluster.clusterNo,
-        name: `Cluster ${cluster.clusterNo + 1}`,
+        name: `Cluster ${cluster.clusterNo}`,
         clusterName: cluster.clusterName,
         cartridge_qty: cluster.cartridge_qty,
+        size:cluster.cartridgeSizeCounts,
         customers: cluster.customers.map((c) => ({
+          qty:c.cf_cartridge_qty,
+          size:c.cf_cartridge_size,
           code: c.contact_number,
           customerId: c.customerId,
           displayName: c.name,
           vistSequnceNo: c.sequenceNo,
+          indexNo:c.indexNo,
           lat: Number(c.geoCoordinates?.coordinates[1]),
           lng: Number(c.geoCoordinates?.coordinates[0]),
-        })),
+        }))
       }));
       setData(formatted);
     } else {
@@ -1197,6 +1204,7 @@ const MapCluster = () => {
       }
     );
   }, [selectedCluster, clusteroute]);
+  
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -1226,24 +1234,42 @@ const MapCluster = () => {
       });
   };
 
-  const handleSave = () => {
+  const handleSaveold = () => {
     const reassignments = [];
+data.forEach((cluster) => {
+  cluster.customers.forEach((customer, idx) => {
+    const originalCluster = customersClusterMap.find((c) =>
+      c.customers.some((orig) => orig._id === customer.customerId)
+    );
+    const originalClusterNo = originalCluster?.clusterNo;
 
-    data.forEach((cluster, clusterIndex) => {
-      cluster.customers.forEach((customer) => {
-        const originalCluster = customersClusterMap.find((c) =>
-          c.customers.some((orig) => orig._id === customer.customerId)
-        );
-        const originalClusterNo = originalCluster?.clusterNo;
-
-        if (originalClusterNo !== clusterIndex) {
-          reassignments.push({
-            customerId: customer.customerId,
-            newClusterNo: clusterIndex,
-          });
-        }
+    if (originalClusterNo !== cluster.clusterNo || idx !== originalIndexInOriginalCluster) {
+      reassignments.push({
+        customerId: customer.customerId,
+        newClusterNo: cluster.clusterNo,
+        indexNo: idx,
       });
-    });
+    }
+  });
+});
+
+console.log("data:",data);
+
+    // data.forEach((cluster, clusterIndex) => {
+    //   cluster.customers.forEach((customer) => {
+    //     const originalCluster = customersClusterMap.find((c) =>
+    //       c.customers.some((orig) => orig._id === customer.customerId)
+    //     );
+    //     const originalClusterNo = originalCluster?.clusterNo;
+
+    //     if (originalClusterNo !== clusterIndex) {
+    //       reassignments.push({
+    //         customerId: customer.customerId,
+    //         newClusterNo: clusterIndex,
+    //       });
+    //     }
+    //   });
+    // });
 
     console.log("reassignments:", reassignments);
 
@@ -1252,15 +1278,58 @@ const MapCluster = () => {
         .unwrap()
         .then(() => {
           dispatch(getCustomersClusterMap());
-          dispatch(fetchClusterRoute());
+          // dispatch(fetchClusterRoute());
         })
         .catch(() => {
           dispatch(getCustomersClusterMap());
-          dispatch(fetchClusterRoute());
+          // dispatch(fetchClusterRoute());
         });
     }
   };
 
+const handleSave = () => {
+  const reassignments = [];
+
+  // Build a fast lookup: customerId → original clusterNo and index
+  const originalMap = new Map();
+
+  customersClusterMap.forEach((cluster) => {
+    cluster.customers.forEach((customer, index) => {
+      originalMap.set(customer._id, {
+        clusterNo: cluster.clusterNo,
+        indexNo: index
+      });
+    });
+  });
+
+  // Compare each customer in new data
+  data.forEach((cluster) => {
+    cluster.customers.forEach((customer, index) => {
+      const original = originalMap.get(customer.customerId);
+      
+      if (!original || original.clusterNo !== cluster.clusterNo || original.indexNo !== index) {
+        reassignments.push({
+          customerId: customer.customerId,
+          newClusterNo: cluster.clusterNo,
+          indexNo: index
+        });
+      }
+    });
+  });
+
+  console.log("Filtered reassignments:", reassignments);
+
+  if (reassignments.length > 0) {
+    dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
+      .unwrap()
+      .then(() => {
+        dispatch(getCustomersClusterMap());
+      })
+      .catch(() => {
+        dispatch(getCustomersClusterMap());
+      });
+  }
+};
 
   const handleClusterSelect = (value) => {
     setSelectedCluster(value);
@@ -1655,21 +1724,35 @@ const MapCluster = () => {
                                   index={idx}
                                 >
                                   {(provided, snapshot) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      {...provided.dragHandleProps}
-                                      className={`bg-white rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
-                                        }`}
-                                      style={{
-                                        ...provided.draggableProps.style,
-                                        borderLeftColor: clusterColor,
-                                        color: clusterColor,
-                                      }}
-                                    >
-                                      {customer.code} <br />
-                                      {customer.displayName}
-                                    </div>
+<div
+  ref={provided.innerRef}
+  {...provided.draggableProps}
+  {...provided.dragHandleProps}
+  className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${
+    snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
+  }`}
+  style={{
+    ...provided.draggableProps.style,
+    borderLeftColor: clusterColor,
+    color: clusterColor,
+  }}
+>
+  {/* Index */}
+  <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
+
+  {/* Main Info */}
+  <div className="flex-1">
+    <div>{customer.code}</div>
+    <div>{customer.displayName}</div>
+  </div>
+
+  {/* Right-aligned Details */}
+  <div className="ml-auto flex flex-col justify-end items-end text-right">
+    <div>Qty: {customer.qty}</div>
+    <div>Size: {customer.size}</div>
+  </div>
+</div>
+
                                   )}
                                 </Draggable>
                               );
@@ -1679,9 +1762,18 @@ const MapCluster = () => {
                         )}
                       </Droppable>
 
-                      <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700">
+                      <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                        <div className="text-left">
                         {cluster.customers.length} Customers <br />
                         {cluster.cartridge_qty} Cartridge Quantity
+                        </div>
+                        <div>
+                        {Object.entries(cluster.size).map(([size, count]) => (
+    <div key={size}>
+      {size}: {count}
+    </div>
+  ))}
+  </div>
                       </div>
                     </div>
                   ))}

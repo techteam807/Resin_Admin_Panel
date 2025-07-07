@@ -1,12 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap, fetchClusterRoutes, fetchClusterDropdown, fetchClusterAssignment, createAssignment, delAssignment } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap, fetchClusterRoutes, fetchClusterDropdown, fetchClusterAssignment, createAssignment, delAssignment, assignemntDetail } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
-export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ page = 1, search = '', isSubscription }) => {
+export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ page = 1, search = '', isSubscription, Day = '' }) => {  
   try {
-    const data = await fetchCustomers(page, search, isSubscription);
+    const data = await fetchCustomers(page, search, isSubscription, Day);
     return data;
   } catch (error) {
     console.error("Error in getCustomers thunk:", error);
@@ -163,6 +163,21 @@ export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignm
   }
 );
 
+export const detailAssignment = createAsyncThunk(
+  "customer/detailAssignment",
+  async (assignId, { rejectWithValue }) => {
+    try {
+      const data = await assignemntDetail(assignId);       
+      return data;
+    } catch (error) {
+      console.error("Error in detail Assignment thunk:", error);
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Something went wrong"
+      );
+    }
+  }
+);
+
 
 const customerSlice = createSlice({
   name: "customer",
@@ -176,6 +191,7 @@ const customerSlice = createSlice({
     clusteroute: [],
     clusterDrop: [],
     assignment: [],
+    assignmentDetails:[],
     missedDelivery: null,
     clusterAssign: null,
     loading: false,
@@ -195,7 +211,11 @@ const customerSlice = createSlice({
       totalPages: 1,
     },
   },
-  reducers: {},
+  reducers: {
+    clearAssignmentDetail(state) {
+    state.assignmentDetails = null;
+  },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getCustomers.pending, (state) => {
@@ -391,7 +411,19 @@ const customerSlice = createSlice({
         state.error = action.error.message;
         toast.error(state.error);
       })
+      .addCase(detailAssignment.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(detailAssignment.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assignmentDetails = action.payload.data;
+        state.message = action.payload.message;
+      })
+      .addCase(detailAssignment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
   },
 });
-
+export const { clearAssignmentDetail } = customerSlice.actions;
 export default customerSlice.reducer;

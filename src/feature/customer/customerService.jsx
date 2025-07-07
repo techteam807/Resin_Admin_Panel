@@ -1,14 +1,20 @@
 import axiosConfig from "@/app/axiosConfig";
 
 
-export const fetchCustomers = async (page = 1, search = '',isSubscription) => {
+export const fetchCustomers = async (page = 1, search = '', isSubscription, Day = '') => {
     try {
       const queryParams = new URLSearchParams({
         page: page,
         isSubscription: isSubscription,
       });
+
       if (search) {
         queryParams.append('search', search);
+      }
+
+      if(Day)
+      {
+        queryParams.append('Day', Day);
       }
       const response = await axiosConfig.get(`customers?${queryParams}`);
       return response.data;
@@ -172,3 +178,15 @@ export const fetchClusterRoutes = async (clusterNo) => {
       throw error;
     }
   };
+
+  export const assignemntDetail = async (assignId) => {
+    try {
+      const response = await axiosConfig.get(`clusterAssignment/clusterAssignmentById?assignmentId=${assignId}`);
+      return response.data;
+    }
+    catch (error)
+    {
+      console.error("Error fetching  details Assignment :", error);
+      throw error;
+    }
+  }

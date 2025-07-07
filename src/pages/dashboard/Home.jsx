@@ -25,6 +25,8 @@ import CustomerDetails from './CustomerDetails';
 function Home() {
   const dispatch = useDispatch();
   const [searchValue, setSearchValue] = useState("");
+  console.log("serch:",searchValue);
+  
   const { customers, loading, pagination, sendLoading } = useSelector((state) => state.customer);
   console.log("customers", customers)
   console.log("pagination", pagination)
@@ -33,28 +35,30 @@ function Home() {
   const [customerId, setCustomerId] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [statusValue, setStatusValue] = useState("");
+  const [dayValue, setDayValue] = useState("");
 
-useEffect(() => {
-  if (statusValue === 'active' || statusValue === 'inactive') {
-    const isSubscription = statusValue === 'inactive' ? false : true;
-    dispatch(getCustomers({ page: 1, isSubscription }));
-  } else {
-    // Optional: if "no status" selected, get all without filtering
-    dispatch(getCustomers({ page: 1 }));
-  }
-}, [dispatch, statusValue]);
+
+  useEffect(() => {
+    if (statusValue === 'active' || statusValue === 'inactive') {
+      const isSubscription = statusValue === 'inactive' ? false : true;
+      dispatch(getCustomers({ page: 1, isSubscription, Day: dayValue }));
+    } else {
+      // Optional: if "no status" selected, get all without filtering
+      dispatch(getCustomers({ page: 1, Day: dayValue }));
+    }
+  }, [dispatch, statusValue, dayValue]);
 
 
   const handleSearch = () => {
-  const payload = { page: 1, search: searchValue };
-  dispatch(getCustomers(payload)); // No isSubscription here
-};
+    const payload = { page: 1, search: searchValue, Day: dayValue, };
+    dispatch(getCustomers(payload)); // No isSubscription here
+  };
 
 
   const handleRefresh = () => {
     dispatch(refreshcustomers()).then((action) => {
       if (refreshcustomers.fulfilled.match(action)) {
-        dispatch(getCustomers({ page: 1 }));
+        dispatch(getCustomers({ page: 1, Day: dayValue }));
       }
     });
   };
@@ -85,20 +89,20 @@ useEffect(() => {
     dispatch(getCustomers({ page: 1 }));
   }
 
-const handlePaginationChange = (page) => {
-  const payload = { page };
+  const handlePaginationChange = (page) => {
+    const payload = { page, Day: dayValue };
 
-  if (searchValue) {
-    payload.search = searchValue;
-  } else if (statusValue === 'active' || statusValue === 'inactive') {
-    payload.isSubscription = statusValue === 'inactive' ? false : true;
-  }
+    if (searchValue) {
+      payload.search = searchValue;
+    } else if (statusValue === 'active' || statusValue === 'inactive') {
+      payload.isSubscription = statusValue === 'inactive' ? false : true;
+    }
 
-  dispatch(getCustomers(payload));
-};
+    dispatch(getCustomers(payload));
+  };
 
 
-  const TABLE_HEAD = ["Index", "Customer", "Number / Email", "Barcode", "Missed Delivery", "No. of Cartridge", "Action"];
+  const TABLE_HEAD = ["Index", "Customer", "Number / Email", "Barcode", "Replacement Day", "Missed Delivery", "No. of Cartridge", "Action"];
 
   return (
     <div className="">
@@ -115,33 +119,36 @@ const handlePaginationChange = (page) => {
                     See information about all <span className='font-semibold'>{pagination?.totalData || 0} </span> customers
                   </Typography>
                 </div>
-                {/* <div className="flex gap-3 w-full sm:w-40">
-                <h1 className='pt-1 text-gray-800'>Status:</h1>
-       <select className='border border-gray-500 py-1.5 px-6 rounded-md'>
-        <option>Select Status</option>
-        <option value="true">True</option>
-        <option value="false">False</option>
-
-       </select>
-      </div> */}
-                <div className="w-full sm:w-40">
-<select
-  className="border border-gray-500 py-1.5 px-4 rounded-md"
-  value={statusValue}
-  onChange={(e) => {
-    const selectedStatus = e.target.value;
-    setStatusValue(selectedStatus); // triggers useEffect
-  }}
->
-  <option value="">All</option>
-  <option value="active">Active</option>
-  <option value="inactive">Inactive</option>
-</select>
-
-                </div>
-
-
                 <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                  <select
+                    className="border border-gray-500 py-1.5 px-4 rounded-md"
+                    value={statusValue}
+                    onChange={(e) => {
+                      const selectedStatus = e.target.value;
+                      setStatusValue(selectedStatus); // triggers useEffect
+                    }}
+                  >
+                    <option value="">All</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <select
+                    className="border border-gray-500 py-1.5 px-4 rounded-md"
+                    value={dayValue}
+                    onChange={(e) => {
+                      const selectedDay = e.target.value;
+                      setDayValue(selectedDay); // triggers useEffect
+                    }}
+                  >
+                    <option value="">All Day</option>
+                    <option value="Sunday">Sunday</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                  </select>
                   <Button onClick={handleRefresh} className="flex items-center gap-3 whitespace-nowrap" size="sm" variant='gradient'>
                     <ArrowPathIcon strokeWidth={2} className="h-4 w-4" /> Refresh Customer
                   </Button>
@@ -273,6 +280,9 @@ const handlePaginationChange = (page) => {
                                 </div>
                               </td>
                               <td className={classes}>
+                                {customer.cf_replacement_day}
+                              </td>
+                              <td className={classes}>
                                 <Tooltip content="Missed Delivery">
                                   <IconButton size='sm' variant="outlined" color='red' onClick={() => { setOpen(true); setCustomerId(customer?._id) }}>
                                     <FlagIcon className="h-4 w-4" />
@@ -285,7 +295,7 @@ const handlePaginationChange = (page) => {
                                   color="blue-gray"
                                   className="font-normal text-center"
                                 >
-                                  {customer?.cf_cartridge_qty || "1"}
+                                  {customer?.cf_cartridge_qty || "0"}
                                 </Typography>
                               </td>
                               <td className='text-center'>
