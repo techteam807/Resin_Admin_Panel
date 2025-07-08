@@ -412,7 +412,25 @@ function WaterReports() {
     }
 
     // Add checkmark if status is true
-    cellContent = hasStatus ? `${scoresText} ✔️` : scoresText;
+    cellContent = (
+  <div className="flex items-center justify-center gap-2">
+    <span>{scoresText}</span>
+    {hasStatus && (
+      <div className="ml-4 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm border border-black">
+        <svg
+          className="w-4 h-4 text-green-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="4"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+    )}
+  </div>
+);
+
     } else {
       const scoreValues = entries.map((e) => e.score);
       const hasHigh = scoreValues.some((score) => score > 100);
