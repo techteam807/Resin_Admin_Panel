@@ -361,7 +361,7 @@ function WaterReports() {
                   <td className="sticky left-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[180px]">
                     {userData.user.display_name}
                   </td>
-                  {Array.from({ length: daysInMonth }, (_, day) => {
+                  {/* {Array.from({ length: daysInMonth }, (_, day) => {
                     const currentDay = day + 1;
                     const entries = userData.scores[currentDay];
 
@@ -381,7 +381,68 @@ function WaterReports() {
                         {entries ? entries.map((e) => e.score).join(", ") : "-"}
                       </td>
                     );
-                  })}
+                  })} */}
+                  {Array.from({ length: daysInMonth }, (_, day) => {
+  const currentDay = day + 1;
+  const entries = userData.scores[currentDay];
+
+  let bgClass = "";
+  let cellContent = "-";
+
+  if (entries?.length) {
+    const scores = entries.map((e) => e.score).join(", ");
+    const hasStatus = entries.some((e) => e.status);
+
+    if (hasStatus) {
+      const scoreValues = entries.map((e) => e.score);
+    const hasStatus = entries.some((e) => e.status);
+    const scoresText = scoreValues.join(", ");
+
+    // Assign background color based on score, regardless of status
+    const hasHigh = scoreValues.some((score) => score > 100);
+    const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
+    const hasLow = scoreValues.some((score) => score < 60);
+
+    if (hasHigh) {
+      bgClass = "bg-red-500 text-white";
+    } else if (hasMid) {
+      bgClass = "bg-yellow-400 text-black";
+    } else if (hasLow) {
+      bgClass = "bg-green-500 text-white";
+    }
+
+    // Add checkmark if status is true
+    cellContent = hasStatus ? `${scoresText} ✔️` : scoresText;
+    } else {
+      const scoreValues = entries.map((e) => e.score);
+      const hasHigh = scoreValues.some((score) => score > 100);
+      const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
+      const hasLow = scoreValues.some((score) => score < 60);
+
+      if (hasHigh) {
+        bgClass = "bg-red-500 text-white";
+      } else if (hasMid) {
+        bgClass = "bg-yellow-400 text-black";
+      } else if (hasLow) {
+        bgClass = "bg-green-500 text-white";
+      }
+
+      cellContent = scores;
+    }
+  }
+
+  return (
+    <td
+      key={currentDay}
+      className={`border border-gray-300 text-center min-w-[90px] p-2 cursor-pointer ${bgClass}`}
+      onClick={() => handleCellClick(entries, currentDay, userData.user)}
+    >
+      {cellContent}
+    </td>
+  );
+})}
+
+
                   <td className="sticky right-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[150px]">
                     <button
                       className="bg-black text-white px-3 py-1 rounded text-sm"
