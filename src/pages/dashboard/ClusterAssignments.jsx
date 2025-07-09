@@ -7,11 +7,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getTechnicianDropDown } from '@/feature/technician/technicianSlice';
 import { createClusterAssignment, deleteAssignment, getClusterAssignment, getClusterDropDown } from '@/feature/customer/customerSlice';
 import EditModal from "./EditModal";
+import Loader from "../Loader";
 
 const ClusterAssignments = () => {
   const dispatch = useDispatch();
   const { technicianDrop } = useSelector((state) => state.technician);
-  const { clusterDrop, assignment, clusterLoading } = useSelector((state) => state.customer);
+  const { clusterDrop, assignment, clusterLoading, loading } = useSelector((state) => state.customer);
   const [isModalOpen, setIsModalOpen] = useState(false);
 const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [startDate, setStartDate] = useState('');
@@ -251,7 +252,10 @@ const closeModal = () => {
   </div>
 </div>
 
-
+<>
+{loading ? (
+          <Loader />
+        ) : (
             <table className="w-full border text-sm text-black">
               <thead>
                 <tr className="bg-gray-200">
@@ -309,6 +313,8 @@ const closeModal = () => {
                 )}
               </tbody>
             </table>
+            )}
+            </>
           </div>
         )}
          <EditModal
