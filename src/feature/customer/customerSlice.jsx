@@ -138,13 +138,26 @@ export const createClusterAssignment = createAsyncThunk(
   }
 );
 
-export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignment", async () => {
+export const getWaterReports = createAsyncThunk(
+    'waterReports/getWaterReports',
+    async ({ month, year, startDate, endDate }, { rejectWithValue }) => {
+        try {
+            const data = await fetchWaterReports(month, year, startDate, endDate);
+            return data;
+        } catch (error) {
+            console.error('Error in getWaterReports thunk:', error);
+            return rejectWithValue(error.response?.data?.error || error.message);
+        }
+    }
+);
+
+export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignment", async ({startDate, endDate}, { rejectWithValue }) => {
     try {
-      const data = await fetchClusterAssignment();
+      const data = await fetchClusterAssignment(startDate, endDate);
       return data;
     } catch (error) {
       console.error("Error in getTechnicianDropDown thunk:", error);
-      throw error.response?.data?.error || error.message;
+      return rejectWithValue(error.response?.data?.error || error.message);
     }
   });
 
