@@ -159,9 +159,9 @@ export const fetchClusterRoutes = async (clusterNo) => {
   }
 };
 
- export const fetchClusterAssignment = async () => {
+ export const fetchClusterAssignment = async (startDate, endDate) => {
     try {
-      const response = await axiosConfig.get('clusterAssignment/all');
+      const response = await axiosConfig.get('clusterAssignment/all',{ params: { startDate, endDate } });
       return response.data;
     } catch (error) {
       console.error('Error fetching Technician Dropdown:', error);
