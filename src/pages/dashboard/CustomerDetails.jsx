@@ -77,6 +77,7 @@ const CustomerDetails = ({ customer, onBack}) => {
                     <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5" />
                     <div className="ml-3">
                       <p className="text-sm font-medium text-gray-900">Location</p>
+                      <p className="text-sm text-gray-500">- {customer?.cf_detailed_address || 'No Address Found -'} </p>
                       <p className="text-sm text-gray-500">Place of Contact: {customer?.place_of_contact}</p>
                       <p className="text-sm text-gray-500 mt-1">
                         Coordinates: {customer?.geoCoordinates?.coordinates[1]}, {customer?.geoCoordinates?.coordinates[0]}
