@@ -115,9 +115,9 @@ export const getMissedDeliveryLogs = createAsyncThunk("customer/getMissedDeliver
   }
 });
 
-export const getClusterDropDown = createAsyncThunk("customer/getClusterDropDown", async () => {
+export const getClusterDropDown = createAsyncThunk("customer/getClusterDropDown", async (vehicleNo) => {
     try {
-      const data = await fetchClusterDropdown();
+      const data = await fetchClusterDropdown(vehicleNo);
       return data;
     } catch (error) {
       console.error("Error in getTechnicianDropDown thunk:", error);

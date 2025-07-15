@@ -981,6 +981,7 @@ import { jsPDF } from "jspdf";
 import { autoTable } from 'jspdf-autotable';
 import customerIcon from '../../../public/img/customerroute.png';
 import WareHouseIcon from '../../../public/img/warehouse.png';
+import vehicles from '../../global.js';
 // import "./Home.css";
 
 const clusterColors = [
@@ -1465,12 +1466,6 @@ const MapCluster = () => {
       dispatch(getCustomersClusterMap({ vehicleNo }));
     }
   };
-
-  const vehicles = [
-    { id: 1, name: "Vehicle 1" },
-    { id: 2, name: "Vehicle 2" },
-    { id: 3, name: "Vehicle 3" },
-  ];
 
   useEffect(() => {
     // Ensure showCluster and showRoute are mutually exclusive

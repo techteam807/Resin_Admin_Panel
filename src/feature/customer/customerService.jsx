@@ -143,9 +143,17 @@ export const fetchClusterRoutes = async (clusterNo) => {
     }
   };
 
-   export const fetchClusterDropdown = async () => {
+   export const fetchClusterDropdown = async (vehicleNo) => {
+    console.log(vehicleNo);
+    
     try {
-      const response = await axiosConfig.get('clusterAssignment/clusters');
+
+      const queryParams = new URLSearchParams();
+
+      if(vehicleNo !== undefined && vehicleNo !== null) {
+        queryParams.append('vehicleNo', vehicleNo);
+      }    
+      const response = await axiosConfig.get(`clusterAssignment/clusters?${queryParams}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching Technician Dropdown:', error);

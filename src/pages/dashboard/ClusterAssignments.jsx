@@ -7,6 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getTechnicianDropDown } from '@/feature/technician/technicianSlice';
 import { createClusterAssignment, deleteAssignment, getClusterAssignment, getClusterDropDown } from '@/feature/customer/customerSlice';
 import EditModal from "./EditModal";
+import { Input, Option, Select } from "@material-tailwind/react";
+import vehicles from '../../global.js';
 
 const ClusterAssignments = () => {
   const dispatch = useDispatch();
@@ -14,6 +16,13 @@ const ClusterAssignments = () => {
   const { clusterDrop, assignment, clusterLoading } = useSelector((state) => state.customer);
   const [isModalOpen, setIsModalOpen] = useState(false);
 const [selectedAssignment, setSelectedAssignment] = useState(null);
+const [selectedVehicle, setSelectedVehicle] = useState(1);
+
+  console.log("clusterDrop",clusterDrop);
+  
+  useEffect(() => {
+    dispatch(getClusterDropDown(1)); 
+  }, [dispatch]);;
 
 
   const [formData, setFormData] = useState({
@@ -31,7 +40,6 @@ const [selectedAssignment, setSelectedAssignment] = useState(null);
 
   useEffect(() => {
     dispatch(getTechnicianDropDown());
-    dispatch(getClusterDropDown());
     dispatch(getClusterAssignment());
   }, [dispatch]);
 
@@ -75,6 +83,22 @@ const closeModal = () => {
   setSelectedAssignment(null);
 };
 
+  const handleVehicleSelect = (value) => {
+    
+    if (value) {
+      setSelectedVehicle(value);
+      console.log("log:", value);
+
+      const vehicleNo = value;
+      dispatch(getClusterDropDown(vehicleNo));  
+    }
+  };
+
+const handleTechnicianSelect = (value) => {
+  if (value) {
+    setFormData((prev) => ({ ...prev, userId: value }));
+  }
+};
   
   return (
     <div className="min-h-screen bg-gray-100 text-black p-6">
@@ -97,44 +121,61 @@ const closeModal = () => {
         {activeTab === "assign" && (
           <div className="bg-white p-6 rounded shadow border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Assign Cluster to User</h2>
-            <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-3">
+            <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-4">
               <div>
-                <label className="block mb-2 text-sm text-gray-700">Select Technician</label>
-                <select
-                  className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
+                {/* <label className="block mb-2 text-sm text-gray-700">Select Technician</label> */}
+                <Select
+                  label="Select Technician"
+                  // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
                   value={formData.userId}
-                  onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, userId: value })}
                    required
                 >
-                  <option value="">Choose a Technician</option>
+                  {/* <Option value="">Choose a Technician</Option> */}
                   {filteredTechnicians.map((tech) => (
-                    <option key={tech._id} value={tech._id}>
+                    <Option key={tech._id} value={tech._id}>
                       {tech.user_name}
-                    </option>
+                    </Option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div>
-                <label className="block mb-2 text-sm text-gray-700">Select Cluster</label>
-                <select
-                  className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
+                {/* <label className="block mb-2 text-sm text-gray-700">Select Technician</label> */}
+                  <Select
+                    label="Select Vehicle"
+                    onChange={handleVehicleSelect}
+                    value={selectedVehicle}
+                  >
+                    {vehicles.map((vehicle) => (
+                      <Option key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+              <div>
+                {/* <label className="block mb-2 text-sm text-gray-700">Select Cluster</label> */}
+                <Select
+                  // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
+                  label="Select Cluster"
                   value={formData.clusterId}
-                  onChange={(e) => setFormData({ ...formData, clusterId: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, clusterId: value })}
                    required
                 >
-                  <option value="">Choose a cluster</option>
+                  {/* <Option value="">Choose a cluster</Option> */}
                   {clusterDrop.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      Cluster {c.clusterNo}  - ({c.clusterName})
-                    </option>
+                    <Option key={c._id} value={c._id}>
+                      Cluster {c.clusterNo}  - ({c.clusterName}) -{c.vehicleNo}
+                    </Option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div>
-                <label className="block mb-2 text-sm text-gray-700">Assignment Date</label>
-                <input
+                {/* <label className="block mb-2 text-sm text-gray-700">Assignment Date</label> */}
+                <Input
+                label="Assignment Date"
                   type="date"
-                  className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
+                  // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                   min={new Date().toISOString().split("T")[0]}
