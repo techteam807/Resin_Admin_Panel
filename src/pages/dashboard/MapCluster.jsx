@@ -1043,27 +1043,41 @@ const MapCluster = () => {
     libraries: LIBRARIES,
   });
 
-  useEffect(() => {
-    if (showMap && showCluster) {
-      dispatch(getCustomersClusterMap());
-    }
-  }, [dispatch, showMap, showCluster,]);
+//   useEffect(() => {
+//     if (showMap && showCluster) {
+//       const payload = selectedVehicle ? { vehicleNo: selectedVehicle } : undefined;
+//       dispatch(getCustomersClusterMap(payload));
+//     }
+//   }, [dispatch, showMap, showCluster, selectedVehicle]);
 
-  useEffect(() => {
-    if (showMap && showRoute && selectedCluster !== "") {
-      dispatch(fetchClusterRoute(selectedCluster));
-    }
-  }, [dispatch, showMap, showRoute, selectedCluster])
+//   useEffect(() => {
+//     if (showMap && showRoute && selectedCluster !== "") {
+//       dispatch(fetchClusterRoute(selectedCluster));
+//     }
+//   }, [dispatch, showMap, showRoute, selectedCluster])
 
-  useEffect(() => {
-    const payload = selectedVehicle
-      ? { vehicleNo: selectedVehicle }
-      : undefined;
+// useEffect(() => {
+//   const payload = selectedVehicle ? { vehicleNo: selectedVehicle } : undefined;
+//   dispatch(getCustomersClusterMap(payload));
+// }, [dispatch, selectedVehicle]);
 
+// 🚗 Fetch clusters based on vehicle + map/cluster visibility
+useEffect(() => {
+    const payload = { vehicleNo: selectedVehicle };
+
+  if (showMap && showCluster && selectedVehicle) {
     dispatch(getCustomersClusterMap(payload));
-  }, [dispatch, selectedVehicle]);
+  }
+  dispatch(getCustomersClusterMap(payload))
+}, [dispatch, showMap, showCluster, selectedVehicle]);
 
-
+// 📍 Fetch route data for a selected cluster
+useEffect(() => {
+  if (showMap && showRoute && selectedVehicle && selectedCluster !== "") {
+    const payload = { clusterNo:selectedCluster, vehicleNo: selectedVehicle };
+    dispatch(fetchClusterRoute(payload));
+  }
+}, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
 
   useEffect(() => {
     if (!mapRef.current || !data.length) return;
@@ -1104,6 +1118,8 @@ const MapCluster = () => {
     // once loading is finished, format what came back
     if (customersClusterMap?.length) {
       const formatted = customersClusterMap.map((cluster) => ({
+        clusterId: cluster._id,
+        vehicle:cluster.vehicleNo,
         clusterNo: cluster.clusterNo,
         name: `Cluster ${cluster.clusterNo}`,
         clusterName: cluster.clusterName,
@@ -1122,6 +1138,8 @@ const MapCluster = () => {
         }))
       }));
       setData(formatted);
+      console.log("v:",selectedVehicle);
+      
     } else {
       setData([]);          // nothing came back ⇒ empty
     }
@@ -1257,7 +1275,7 @@ const MapCluster = () => {
         if (originalClusterNo !== cluster.clusterNo || idx !== originalIndexInOriginalCluster) {
           reassignments.push({
             customerId: customer.customerId,
-            newClusterNo: cluster.clusterNo,
+            newClusterId: cluster.clusterNo,
             indexNo: idx,
           });
         }
@@ -1307,25 +1325,31 @@ const MapCluster = () => {
     customersClusterMap.forEach((cluster) => {
       cluster.customers.forEach((customer, index) => {
         originalMap.set(customer._id, {
-          clusterNo: cluster.clusterNo,
+          clusterId: cluster._id,
           indexNo: index
         });
       });
     });
+
+    console.log("org:",originalMap);
+    
 
     // Compare each customer in new data
     data.forEach((cluster) => {
       cluster.customers.forEach((customer, index) => {
         const original = originalMap.get(customer.customerId);
 
-        if (!original || original.clusterNo !== cluster.clusterNo || original.indexNo !== index) {
+        if (!original || original.clusterId !== cluster._id || original.indexNo !== index) {
           reassignments.push({
             customerId: customer.customerId,
-            newClusterNo: cluster.clusterNo,
+            newClusterId: cluster.clusterId,
             indexNo: index
           });
         }
       });
+
+      console.log("res:",reassignments);
+      
     });
 
     console.log("Filtered reassignments:", reassignments);
@@ -1474,6 +1498,8 @@ const MapCluster = () => {
     }
   }, [showRoute, showCluster])
 
+  console.log("data:",data);
+  
 
   if (!isLoaded) {
     return (
@@ -1560,7 +1586,7 @@ const MapCluster = () => {
                               <Option key={item.clusterNo} value={item.clusterNo}>
                                 <div className="flex items-center h-4">
                                   <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span>
-                                  {item.name}
+                                  {item.name} {item.vehicle}
                                 </div>
                               </Option>
                             );

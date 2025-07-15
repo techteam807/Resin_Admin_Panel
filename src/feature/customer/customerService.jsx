@@ -93,15 +93,19 @@ export const fetchCustomers = async (page = 1, search = '', isSubscription, Day 
     }
   };
 
-export const fetchClusterRoutes = async (clusterNo) => {
-  console.log("clno:", clusterNo);
+export const fetchClusterRoutes = async ({clusterId, vehicleNo}) => {
+  console.log("clno:", clusterId);
 
   try {
     const queryParams = new URLSearchParams();
 
     // Fix: Allow 0 as a valid value
-    if (clusterNo !== undefined && clusterNo !== null) {
-      queryParams.append('clusterNo', clusterNo);
+    if (clusterId !== undefined && clusterId !== null) {
+      queryParams.append('clusterId', clusterId);
+    }
+
+        if (vehicleNo !== undefined && vehicleNo !== null) {
+      queryParams.append('vehicleNo', vehicleNo);
     }
 
     const response = await axiosConfig.get(`cluster/clusters/optimize-routes?${queryParams}`);

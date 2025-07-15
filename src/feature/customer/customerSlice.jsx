@@ -55,11 +55,11 @@ export const editCustomersClusterMap = createAsyncThunk("customer/editCustomersC
   }
 });
 
-export const fetchClusterRoute = createAsyncThunk("customer/fetchClusterRoute", async (clusterNo) => {
-  console.log(clusterNo,"no");
+export const fetchClusterRoute = createAsyncThunk("customer/fetchClusterRoute", async ({clusterId,vehicleNo}) => {
+  console.log(clusterId,"no");
   
   try {
-    const data = await fetchClusterRoutes(clusterNo);
+    const data = await fetchClusterRoutes(clusterId,vehicleNo);
     return data;
   } catch (error) {
     console.error("Error in fetchClusterRoute thunk:", error);
