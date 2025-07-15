@@ -61,7 +61,7 @@ const [selectedAssignment, setSelectedAssignment] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("assign");
+  const [activeTab, setActiveTab] = useState("view");
 
   const [filterUserId, setFilterUserId] = useState("");
   const [filterClusterId, setFilterClusterId] = useState("");
@@ -116,17 +116,17 @@ const closeModal = () => {
     <div className="min-h-screen bg-gray-100 text-black p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex mb-4 gap-4">
+                    <button
+            onClick={() => setActiveTab("view")}
+            className={`px-4 py-2 rounded border ${activeTab === "view" ? "bg-black text-white" : "bg-white text-black border-gray-400"}`}
+          >
+            View Assignments
+          </button>
           <button
             onClick={() => setActiveTab("assign")}
             className={`px-4 py-2 rounded border ${activeTab === "assign" ? "bg-black text-white" : "bg-white text-black border-gray-400"}`}
           >
             Assign Cluster
-          </button>
-          <button
-            onClick={() => setActiveTab("view")}
-            className={`px-4 py-2 rounded border ${activeTab === "view" ? "bg-black text-white" : "bg-white text-black border-gray-400"}`}
-          >
-            View Assignments
           </button>
         </div>
 
