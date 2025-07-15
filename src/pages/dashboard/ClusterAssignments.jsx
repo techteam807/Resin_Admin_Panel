@@ -9,11 +9,12 @@ import { createClusterAssignment, deleteAssignment, getClusterAssignment, getClu
 import EditModal from "./EditModal";
 import { Input, Option, Select } from "@material-tailwind/react";
 import vehicles from '../../global.js';
+import Loader from "../Loader";
 
 const ClusterAssignments = () => {
   const dispatch = useDispatch();
   const { technicianDrop } = useSelector((state) => state.technician);
-  const { clusterDrop, assignment, clusterLoading } = useSelector((state) => state.customer);
+  const { clusterDrop, assignment, clusterLoading, loading } = useSelector((state) => state.customer);
   const [isModalOpen, setIsModalOpen] = useState(false);
 const [selectedAssignment, setSelectedAssignment] = useState(null);
 const [selectedVehicle, setSelectedVehicle] = useState(1);
@@ -23,7 +24,43 @@ const [selectedVehicle, setSelectedVehicle] = useState(1);
   useEffect(() => {
     dispatch(getClusterDropDown(1)); 
   }, [dispatch]);;
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
+  useEffect(() => {
+  const getWeekDatesInIST = () => {
+    // Get current time in IST
+    const now = new Date();
+    const indiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+
+    // Start of today in IST
+    const start = new Date(indiaTime);
+    start.setHours(0, 0, 0, 0);
+
+    // End of 6 days later (total 7-day range)
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+
+    // Format to YYYY-MM-DD string in IST
+    const formatDateIST = (date) => {
+      const d = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    return {
+      startDateStr: formatDateIST(start),
+      endDateStr: formatDateIST(end)
+    };
+  };
+
+  const { startDateStr, endDateStr } = getWeekDatesInIST();
+  setStartDate(startDateStr);
+  setEndDate(endDateStr);
+}, []);
 
   const [formData, setFormData] = useState({
     userId: "",
@@ -33,15 +70,16 @@ const [selectedVehicle, setSelectedVehicle] = useState(1);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("assign");
+  const [activeTab, setActiveTab] = useState("view");
 
   const [filterUserId, setFilterUserId] = useState("");
   const [filterClusterId, setFilterClusterId] = useState("");
 
   useEffect(() => {
     dispatch(getTechnicianDropDown());
-    dispatch(getClusterAssignment());
-  }, [dispatch]);
+    dispatch(getClusterDropDown());
+    dispatch(getClusterAssignment({startDate, endDate}));
+  }, [dispatch, startDate, endDate]);
 
   const filteredTechnicians = technicianDrop.filter((technician) =>
     technician.user_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -104,17 +142,17 @@ const handleTechnicianSelect = (value) => {
     <div className="min-h-screen bg-gray-100 text-black p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex mb-4 gap-4">
+                    <button
+            onClick={() => setActiveTab("view")}
+            className={`px-4 py-2 rounded border ${activeTab === "view" ? "bg-black text-white" : "bg-white text-black border-gray-400"}`}
+          >
+            View Assignments
+          </button>
           <button
             onClick={() => setActiveTab("assign")}
             className={`px-4 py-2 rounded border ${activeTab === "assign" ? "bg-black text-white" : "bg-white text-black border-gray-400"}`}
           >
             Assign Cluster
-          </button>
-          <button
-            onClick={() => setActiveTab("view")}
-            className={`px-4 py-2 rounded border ${activeTab === "view" ? "bg-black text-white" : "bg-white text-black border-gray-400"}`}
-          >
-            View Assignments
           </button>
         </div>
 
@@ -199,40 +237,68 @@ const handleTechnicianSelect = (value) => {
           <div className="bg-white p-6 rounded shadow border border-gray-200 mt-6">
             <h2 className="text-xl font-semibold mb-4">Assignment History</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">Select Technician</label>
-                <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-black"
-                  value={filterUserId}
-                  onChange={(e) => setFilterUserId(e.target.value)}
-                >
-                  <option value="">All Technicians</option>
-                  {filteredTechnicians.map((tech) => (
-                    <option key={tech._id} value={tech._id}>
-                      {tech.user_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  {/* Technician Select */}
+  <div className="flex flex-col">
+    <label className="mb-1 text-sm font-medium text-gray-700">Select Technician</label>
+    <select
+      className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-black"
+      value={filterUserId}
+      onChange={(e) => setFilterUserId(e.target.value)}
+    >
+      <option value="">All Technicians</option>
+      {filteredTechnicians.map((tech) => (
+        <option key={tech._id} value={tech._id}>
+          {tech.user_name}
+        </option>
+      ))}
+    </select>
+  </div>
 
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">Select Cluster</label>
-                <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-black"
-                  value={filterClusterId}
-                  onChange={(e) => setFilterClusterId(e.target.value)}
-                >
-                  <option value="">All Clusters</option>
-                  {clusterDrop.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      Cluster {c.clusterNo} - ({c.clusterName})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+  {/* Cluster Select */}
+  <div className="flex flex-col">
+    <label className="mb-1 text-sm font-medium text-gray-700">Select Cluster</label>
+    <select
+      className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-black"
+      value={filterClusterId}
+      onChange={(e) => setFilterClusterId(e.target.value)}
+    >
+      <option value="">All Clusters</option>
+      {clusterDrop.map((c) => (
+        <option key={c._id} value={c._id}>
+          Cluster {c.clusterNo} - ({c.clusterName})
+        </option>
+      ))}
+    </select>
+  </div>
 
+  {/* Start Date */}
+  <div className="flex flex-col">
+    <label className="mb-1 text-sm font-medium text-gray-700">Start Date:</label>
+    <input
+      type="date"
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+      value={startDate || ""}
+      onChange={(e) => setStartDate(e.target.value)}
+    />
+  </div>
+
+  {/* End Date */}
+  <div className="flex flex-col">
+    <label className="mb-1 text-sm font-medium text-gray-700">End Date:</label>
+    <input
+      type="date"
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+      value={endDate || ""}
+      onChange={(e) => setEndDate(e.target.value)}
+    />
+  </div>
+</div>
+
+<>
+{loading ? (
+          <Loader />
+        ) : (
             <table className="w-full border text-sm text-black">
               <thead>
                 <tr className="bg-gray-200">
@@ -290,6 +356,8 @@ const handleTechnicianSelect = (value) => {
                 )}
               </tbody>
             </table>
+            )}
+            </>
           </div>
         )}
          <EditModal
