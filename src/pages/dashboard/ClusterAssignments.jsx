@@ -81,7 +81,7 @@ const [selectedAssignment, setSelectedAssignment] = useState(null);
     try {
       await dispatch(createClusterAssignment(formData)).unwrap();
       setFormData({ userId: "", clusterId: "", date: "" });
-      dispatch(getClusterAssignment());
+      dispatch(getClusterAssignment({startDate, endDate}));
     } catch (error) {
       console.error("Submission error:", error);
     }
