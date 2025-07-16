@@ -1544,9 +1544,9 @@ const handleSave = () => {
                 {/* Cluster Action Buttons */}
                 {!showMap && (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="gradient" onClick={refreshCluster}>
+                    {/* <Button size="sm" variant="gradient" onClick={refreshCluster}>
                       Refresh Cluster
-                    </Button>
+                    </Button> */}
                     <Button size="sm" variant="gradient" onClick={handleSave}>
                       Save
                     </Button>
