@@ -298,6 +298,7 @@ const ClusterAssignments = () => {
               {loading ? (
                 <Loader />
               ) : (
+                <div className="max-h-[75vh] overflow-auto">
                 <table className="w-full border text-sm text-black">
                   <thead>
                     <tr className="bg-gray-200">
@@ -357,6 +358,7 @@ const ClusterAssignments = () => {
                     )}
                   </tbody>
                 </table>
+                </div>
               )}
             </>
           </div>

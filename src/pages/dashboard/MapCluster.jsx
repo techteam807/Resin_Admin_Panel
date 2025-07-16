@@ -1028,13 +1028,13 @@ const MapCluster = () => {
   console.log("route:", route)
   const [showMap, setShowMap] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [selectedCluster, setSelectedCluster] = useState("");
+  const [selectedCluster, setSelectedCluster] = useState(null);
   const [showRoute, setShowRoute] = useState(false);
   const [showCluster, setShowCluster] = useState(false)
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [searchValue, setSearchValue] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState(1);
-  console.log(selectedVehicle);
+  console.log("ms", selectedCluster);
 
 
 
@@ -1043,41 +1043,45 @@ const MapCluster = () => {
     libraries: LIBRARIES,
   });
 
-//   useEffect(() => {
-//     if (showMap && showCluster) {
-//       const payload = selectedVehicle ? { vehicleNo: selectedVehicle } : undefined;
-//       dispatch(getCustomersClusterMap(payload));
-//     }
-//   }, [dispatch, showMap, showCluster, selectedVehicle]);
+  //   useEffect(() => {
+  //     if (showMap && showCluster) {
+  //       const payload = selectedVehicle ? { vehicleNo: selectedVehicle } : undefined;
+  //       dispatch(getCustomersClusterMap(payload));
+  //     }
+  //   }, [dispatch, showMap, showCluster, selectedVehicle]);
 
-//   useEffect(() => {
-//     if (showMap && showRoute && selectedCluster !== "") {
-//       dispatch(fetchClusterRoute(selectedCluster));
-//     }
-//   }, [dispatch, showMap, showRoute, selectedCluster])
+  //   useEffect(() => {
+  //     if (showMap && showRoute && selectedCluster !== "") {
+  //       dispatch(fetchClusterRoute(selectedCluster));
+  //     }
+  //   }, [dispatch, showMap, showRoute, selectedCluster])
 
-// useEffect(() => {
-//   const payload = selectedVehicle ? { vehicleNo: selectedVehicle } : undefined;
-//   dispatch(getCustomersClusterMap(payload));
-// }, [dispatch, selectedVehicle]);
+  // useEffect(() => {
+  //   const payload = selectedVehicle ? { vehicleNo: selectedVehicle } : undefined;
+  //   dispatch(getCustomersClusterMap(payload));
+  // }, [dispatch, selectedVehicle]);
 
-// 🚗 Fetch clusters based on vehicle + map/cluster visibility
-useEffect(() => {
+  // 🚗 Fetch clusters based on vehicle + map/cluster visibility
+  useEffect(() => {
     const payload = { vehicleNo: selectedVehicle };
 
-  if (showMap && showCluster && selectedVehicle) {
-    dispatch(getCustomersClusterMap(payload));
-  }
-  dispatch(getCustomersClusterMap(payload))
-}, [dispatch, showMap, showCluster, selectedVehicle]);
+    if (showMap && showCluster && selectedVehicle) {
+      dispatch(getCustomersClusterMap(payload));
+    }
+    dispatch(getCustomersClusterMap(payload))
+  }, [dispatch, showMap, showCluster, selectedVehicle]);
 
-// 📍 Fetch route data for a selected cluster
-useEffect(() => {
-  if (showMap && showRoute && selectedVehicle && selectedCluster !== "") {
-    const payload = { clusterNo:selectedCluster, vehicleNo: selectedVehicle };
-    dispatch(fetchClusterRoute(payload));
-  }
-}, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
+  // 📍 Fetch route data for a selected cluster
+  useEffect(() => {
+    if (showMap && showRoute && selectedVehicle && selectedCluster !== "") {
+      const payload = { clusterId: selectedCluster, vehicleNo: selectedVehicle };
+      dispatch(fetchClusterRoute(payload));
+    }
+    else
+    {
+      dispatch(fetchClusterRoute({ vehicleNo: selectedVehicle }));
+    }
+  }, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
 
   useEffect(() => {
     if (!mapRef.current || !data.length) return;
@@ -1119,7 +1123,7 @@ useEffect(() => {
     if (customersClusterMap?.length) {
       const formatted = customersClusterMap.map((cluster) => ({
         clusterId: cluster._id,
-        vehicle:cluster.vehicleNo,
+        vehicle: cluster.vehicleNo,
         clusterNo: cluster.clusterNo,
         name: `Cluster ${cluster.clusterNo}`,
         clusterName: cluster.clusterName,
@@ -1138,8 +1142,8 @@ useEffect(() => {
         }))
       }));
       setData(formatted);
-      console.log("v:",selectedVehicle);
-      
+      console.log("v:", selectedVehicle);
+
     } else {
       setData([]);          // nothing came back ⇒ empty
     }
@@ -1152,6 +1156,7 @@ useEffect(() => {
     }
     if (clusteroute?.length) {
       const formatted = clusteroute.map((cluster) => ({
+        clusterId: cluster.clusterId,
         clusterNo: cluster.clusterNo,
         name: `Cluster ${cluster.clusterNo + 1}`,
         cartridge_qty: cluster.cartridge_qty,
@@ -1175,7 +1180,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (showRoute && selectedCluster === "" && route.length > 0) {
-      setSelectedCluster(route[0]?.clusterNo)
+      setSelectedCluster(route[0]?.clusterId)
     }
   }, [showRoute, data, selectedCluster]);
 
@@ -1186,7 +1191,7 @@ useEffect(() => {
     }
 
     const cluster = clusteroute.find(
-      (c) => String(c.clusterNo) === String(selectedCluster)
+      (c) => String(c.clusterId) === selectedCluster
     );
 
 
@@ -1331,8 +1336,8 @@ useEffect(() => {
       });
     });
 
-    console.log("org:",originalMap);
-    
+    console.log("org:", originalMap);
+
 
     // Compare each customer in new data
     data.forEach((cluster) => {
@@ -1348,8 +1353,8 @@ useEffect(() => {
         }
       });
 
-      console.log("res:",reassignments);
-      
+      console.log("res:", reassignments);
+
     });
 
     console.log("Filtered reassignments:", reassignments);
@@ -1373,9 +1378,12 @@ useEffect(() => {
 
 
   const exportToPDF = (clusteroute, selectedCluster) => {
+    console.log("cr:",clusteroute);
+    
     const clustersToExport =
-      typeof selectedCluster === "number"
-        ? clusteroute.filter((c) => c.clusterNo === selectedCluster)
+      // typeof selectedCluster === "number"
+        selectedCluster
+        ? clusteroute.filter((c) => c.clusterId === selectedCluster)
         : clusteroute;
 
     if (!clustersToExport || clustersToExport.length === 0) {
@@ -1396,7 +1404,7 @@ useEffect(() => {
 
       doc.setFontSize(14);
       doc.text(
-        `Cluster ${clusteRoute.clusterNo + 1} - Total Distance: ${clusteRoute.totalDistance} KM [Cartridge Qty: ${clusteRoute.cartridge_qty}]`,
+        `Cluster ${clusteRoute.clusterNo} (vehicle - ${selectedVehicle}) - Total Distance: ${clusteRoute.totalDistance} KM [Cartridge Qty: ${clusteRoute.cartridge_qty}]`,
         14,
         15
       );
@@ -1426,10 +1434,11 @@ useEffect(() => {
       });
     });
 
-    const fileName =
-      typeof selectedCluster === "number"
-        ? `Cluster_${selectedCluster + 1}.pdf`
-        : `All_Clusters_Report.pdf`;
+    let fileName = "All_Clusters_Report.pdf";
+  if (selectedCluster && clustersToExport.length === 1) {
+    const name = clustersToExport[0].clusterNo;
+    fileName = `Cluster_${name}/Vehicle_${selectedVehicle}.pdf`;
+  }
 
     doc.save(fileName);
   };
@@ -1440,7 +1449,7 @@ useEffect(() => {
       // When switching to map view, default to cluster view
       setShowCluster(true)
       setShowRoute(false)
-      setSelectedCluster("")
+      setSelectedCluster(null)
       setDirectionsResponse(null)
     } else {
       // When switching to list view, reset map-related states
@@ -1454,7 +1463,7 @@ useEffect(() => {
       // Switch to cluster mode
       setShowRoute(false)
       setShowCluster(true)
-      setSelectedCluster("")
+      setSelectedCluster(null)
       setDirectionsResponse(null)
     } else {
       // Switch to route mode and auto-select first cluster
@@ -1463,7 +1472,7 @@ useEffect(() => {
 
       // Auto-select the first cluster if data is available
       if (data.length > 0) {
-        setSelectedCluster(data[0].clusterNo)
+        setSelectedCluster(data[0].clusterId)
       }
     }
   }
@@ -1498,8 +1507,8 @@ useEffect(() => {
     }
   }, [showRoute, showCluster])
 
-  console.log("data:",data);
-  
+  console.log("data:", data);
+
 
   if (!isLoaded) {
     return (
@@ -1519,108 +1528,108 @@ useEffect(() => {
         </div>
       ) : (
         <>
-                    <div className="mt-2 rounded-lg p-2 px-3 flex items-center justify-between">
-              <Typography variant="h5" color="blue-gray">
-                Cluster {showMap ? "Map" : "List"}
-              </Typography>
-              <div className="flex items-center gap-2">
-                <div >
-                  <Select
-                    label="Select Vehicle"
-                    onChange={handleVehicleSelect}
-                    value={selectedVehicle}
-                  >
-                    {vehicles.map((vehicle) => (
-                      <Option key={vehicle.id} value={vehicle.id}>
-                        {vehicle.name}
-                      </Option>
-                    ))}
-                  </Select>
+          <div className="mt-2 rounded-lg p-2 px-3 flex items-center justify-between">
+            <Typography variant="h5" color="blue-gray">
+              Cluster {showMap ? "Map" : "List"}
+            </Typography>
+            <div className="flex items-center gap-2">
+              <div >
+                <Select
+                  label="Select Vehicle"
+                  onChange={handleVehicleSelect}
+                  value={selectedVehicle}
+                >
+                  {vehicles.map((vehicle) => (
+                    <Option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name}
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+              {!showMap && (
+                <div className="w-full md:w-72 relative flex gap-2">
+                  <Input
+                    label="Search"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    icon={searchValue ? <XMarkIcon onClick={searchClear} className="h-5 w-5 cursor-pointer" /> : null}
+                  />
+                  <Button onClick={handleSearch} variant="gradient" className="px-2.5" size="sm">
+                    <MagnifyingGlassIcon className="h-5 w-5" />
+                  </Button>
                 </div>
-                {!showMap && (
-                  <div className="w-full md:w-72 relative flex gap-2">
-                    <Input
-                      label="Search"
-                      value={searchValue}
-                      onChange={(e) => setSearchValue(e.target.value)}
-                      icon={searchValue ? <XMarkIcon onClick={searchClear} className="h-5 w-5 cursor-pointer" /> : null}
-                    />
-                    <Button onClick={handleSearch} variant="gradient" className="px-2.5" size="sm">
-                      <MagnifyingGlassIcon className="h-5 w-5" />
-                    </Button>
+              )}
+              {/* Map Icons */}
+              {showMap && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 cursor-pointer text-red-500" onClick={() => exportToPDF(clusteroute, selectedCluster, dispatch)}>
+                    <DocumentIcon className="w-5 h-5" />
+                    <span>PDF</span>
                   </div>
-                )}
-                {/* Map Icons */}
-                {showMap && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 cursor-pointer text-red-500" onClick={() => exportToPDF(clusteroute, selectedCluster, dispatch)}>
-                      <DocumentIcon className="w-5 h-5" />
-                      <span>PDF</span>
-                    </div>
-                    {/* <div className="flex items-center gap-1 cursor-pointer text-green-500"  onClick={() => exportToExcel(clusteroute, selectedCluster, dispatch)}>
+                  {/* <div className="flex items-center gap-1 cursor-pointer text-green-500"  onClick={() => exportToExcel(clusteroute, selectedCluster, dispatch)}>
                         <DocumentChartBarIcon className="w-5 h-5" />
                         <span>Excel</span>
                       </div> */}
+                </div>
+              )}
+
+              {/* Cluster Selector */}
+              {showMap && (
+                <>
+                  {/* Button toggles route/cluster view */}
+                  <div>
+                    <Button onClick={handleToggleMapMode}>{showRoute ? "Show Clusters" : "Show Routes"}</Button>
                   </div>
-                )}
 
-                {/* Cluster Selector */}
-                {showMap && (
-                  <>
-                    {/* Button toggles route/cluster view */}
+                  {/* Dropdown visible only when showRoute is true */}
+                  {showRoute && (
                     <div>
-                      <Button onClick={handleToggleMapMode}>{showRoute ? "Show Clusters" : "Show Routes"}</Button>
+                      <Select
+                        label="Select Cluster"
+                        onChange={handleClusterSelect}
+                        value={selectedCluster}
+                      >
+                        {data.map((item, index) => {
+                          const color = clusterColors[index % clusterColors.length];
+                          return (
+                            <Option key={item.clusterId} value={item.clusterId}>
+                              <div className="flex items-center h-4">
+                                <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span>
+                                {item.name}
+                              </div>
+                            </Option>
+                          );
+                        })}
+                      </Select>
                     </div>
-
-                    {/* Dropdown visible only when showRoute is true */}
-                    {showRoute && (
-                      <div>
-                        <Select
-                          label="Select Cluster"
-                          onChange={handleClusterSelect}
-                          value={selectedCluster}
-                        >
-                          {data.map((item, index) => {
-                            const color = clusterColors[index % clusterColors.length];
-                            return (
-                              <Option key={item.clusterNo} value={item.clusterNo}>
-                                <div className="flex items-center h-4">
-                                  <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span>
-                                  {item.name} {item.vehicle}
-                                </div>
-                              </Option>
-                            );
-                          })}
-                        </Select>
-                      </div>
-                    )}
-                  </>
-                )}
+                  )}
+                </>
+              )}
 
 
 
 
-                {/* Toggle Button */}
-                <div>
-                  <Button size="sm" variant="outlined" onClick={handleToggleView}>
-                    {showMap ? "Show Customers" : "Show Map"}
+              {/* Toggle Button */}
+              <div>
+                <Button size="sm" variant="outlined" onClick={handleToggleView}>
+                  {showMap ? "Show Customers" : "Show Map"}
+                </Button>
+              </div>
+
+              {/* Cluster Action Buttons */}
+              {!showMap && (
+                <div className="flex gap-2">
+                  <Button size="sm" variant="gradient" onClick={refreshCluster}>
+                    Refresh Cluster
+                  </Button>
+                  <Button size="sm" variant="gradient" onClick={handleSave}>
+                    Save
                   </Button>
                 </div>
-
-                {/* Cluster Action Buttons */}
-                {!showMap && (
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="gradient" onClick={refreshCluster}>
-                      Refresh Cluster
-                    </Button>
-                    <Button size="sm" variant="gradient" onClick={handleSave}>
-                      Save
-                    </Button>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
-            <hr className="mt-2"/>
+          </div>
+          <hr className="mt-2" />
           <div className="overflow-auto max-h-[75vh] mt-4">
 
             {data.length === 0 && (
@@ -1689,7 +1698,7 @@ useEffect(() => {
                       (cluster) =>
                         cluster.customers &&
                         cluster.customers.length > 0 &&
-                        String(cluster.clusterNo) === String(selectedCluster),
+                        cluster.clusterId === selectedCluster,
                       // cluster.clusterNo !== 7
                     )
                     .map((cluster, clusterIndex) =>
@@ -1727,7 +1736,10 @@ useEffect(() => {
                     directions={directionsResponse}
                     options={{
                       polylineOptions: {
-                        strokeColor: clusterColors[selectedCluster % clusterColors.length] || "#000",
+                        strokeColor:
+                          clusterColors[
+                          route.findIndex(c => c.clusterId === selectedCluster) % clusterColors.length
+                          ] || "#000",
                         strokeOpacity: 0.8,
                         strokeWeight: 5,
                         zIndex: -1,

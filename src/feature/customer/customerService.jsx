@@ -93,14 +93,14 @@ export const fetchCustomers = async (page = 1, search = '', isSubscription, Day 
     }
   };
 
-export const fetchClusterRoutes = async ({clusterId, vehicleNo}) => {
+export const fetchClusterRoutes = async (clusterId, vehicleNo) => {
   console.log("clno:", clusterId);
 
   try {
     const queryParams = new URLSearchParams();
 
     // Fix: Allow 0 as a valid value
-    if (clusterId !== undefined && clusterId !== null) {
+    if (clusterId) {
       queryParams.append('clusterId', clusterId);
     }
 
