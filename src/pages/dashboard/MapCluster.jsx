@@ -1137,8 +1137,8 @@ const MapCluster = () => {
           displayName: c.name,
           vistSequnceNo: c.sequenceNo,
           indexNo: c.indexNo,
-          lat: Number(c.geoCoordinates?.coordinates[1]),
-          lng: Number(c.geoCoordinates?.coordinates[0]),
+          lat: Number(c.geoCoordinates?.coordinates[1]) || "",
+          lng: Number(c.geoCoordinates?.coordinates[0]) || "",
         }))
       }));
       setData(formatted);
@@ -1329,7 +1329,7 @@ const MapCluster = () => {
 
     customersClusterMap.forEach((cluster) => {
       cluster.customers.forEach((customer, index) => {
-        originalMap.set(customer._id, {
+        originalMap.set(customer.customerId, {
           clusterId: cluster._id,
           indexNo: index
         });
@@ -1343,8 +1343,8 @@ const MapCluster = () => {
     data.forEach((cluster) => {
       cluster.customers.forEach((customer, index) => {
         const original = originalMap.get(customer.customerId);
-
-        if (!original || original.clusterId !== cluster._id || original.indexNo !== index) {
+        console.log("org:",original);
+        if (!original || original.clusterId !== cluster.clusterId) {
           reassignments.push({
             customerId: customer.customerId,
             newClusterId: cluster.clusterId,
@@ -1357,7 +1357,7 @@ const MapCluster = () => {
 
     });
 
-    console.log("Filtered reassignments:", reassignments);
+    // console.log("Filtered reassignments:", reassignments);
 
     if (reassignments.length > 0) {
       dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
@@ -1368,7 +1368,7 @@ const MapCluster = () => {
         .catch(() => {
           dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
         });
-    }
+    } 
   };
 
   const handleClusterSelect = (value) => {
