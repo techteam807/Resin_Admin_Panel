@@ -21,8 +21,8 @@ const ClusterAssignments = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  console.log("assign:",assignment);
-  
+  console.log("assign:", assignment);
+
 
   useEffect(() => {
     const getWeekDatesInIST = () => {
@@ -156,68 +156,74 @@ const ClusterAssignments = () => {
         {activeTab === "assign" && (
           <div className="bg-white p-6 rounded shadow border border-gray-200">
             <h2 className="text-xl font-semibold mb-4">Assign Cluster to User</h2>
-            <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-4">
-              <div>
-                {/* <label className="block mb-2 text-sm text-gray-700">Select Technician</label> */}
-                <Select
-                  label="Select Technician"
-                  // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
-                  value={formData.userId}
-                  onChange={(value) => setFormData({ ...formData, userId: value })}
-                  required
-                >
-                  {/* <Option value="">Choose a Technician</Option> */}
-                  {filteredTechnicians.map((tech) => (
-                    <Option key={tech._id} value={tech._id}>
-                      {tech.user_name}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                {/* <label className="block mb-2 text-sm text-gray-700">Select Technician</label> */}
-                <Select
-                  label="Select Vehicle"
-                  onChange={handleVehicleSelect}
-                  value={selectedVehicle}
-                >
-                  {vehicles.map((vehicle) => (
-                    <Option key={vehicle.id} value={vehicle.id}>
-                      {vehicle.name}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-              {selectedVehicle && (
+            <form onSubmit={handleSubmit}>
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-4 pb-5">
                 <div>
-                  {/* <label className="block mb-2 text-sm text-gray-700">Select Cluster</label> */}
+                  {/* <label className="block mb-2 text-sm text-gray-700">Select Technician</label> */}
                   <Select
+                    label="Select Technician"
                     // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
-                    label="Select Cluster"
-                    value={formData.clusterId}
-                    onChange={(value) => setFormData({ ...formData, clusterId: value })}
+                    value={formData.userId}
+                    onChange={(value) => setFormData({ ...formData, userId: value })}
                     required
                   >
-                    {/* <Option value="">Choose a cluster</Option> */}
-                    {clusterDrop.map((c) => (
-                      <Option key={c._id} value={c._id}>
-                        Cluster {c.clusterNo}  - ({c.clusterName})
+                    {/* <Option value="">Choose a Technician</Option> */}
+                    {filteredTechnicians.map((tech) => (
+                      <Option key={tech._id} value={tech._id}>
+                        {tech.user_name}
                       </Option>
                     ))}
                   </Select>
                 </div>
-              )}
-              <div>
-                {/* <label className="block mb-2 text-sm text-gray-700">Assignment Date</label> */}
-                <Input
-                  label="Assignment Date"
-                  type="date"
-                  // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  min={new Date().toISOString().split("T")[0]}
-                  required
-                />
+                <div>
+                  {/* <label className="block mb-2 text-sm text-gray-700">Select Technician</label> */}
+                  <Select
+                    label="Select Vehicle"
+                    onChange={handleVehicleSelect}
+                    value={selectedVehicle}
+                  >
+                    {vehicles.map((vehicle) => (
+                      <Option key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div>
+                  {/* {selectedVehicle && (
+                    <> */}
+                      {/* <label className="block mb-2 text-sm text-gray-700">Select Cluster</label> */}
+                      <Select
+                        // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
+                        label="Select Cluster"
+                        value={formData.clusterId}
+                        onChange={(value) => setFormData({ ...formData, clusterId: value })}
+                        disabled={!selectedVehicle}
+                      >
+                        {/* <Option value="">Choose a cluster</Option> */}
+                        {clusterDrop.map((c) => (
+                          <Option key={c._id} value={c._id}>
+                            Cluster {c.clusterNo}  - ({c.clusterName})
+                          </Option>
+                        ))}
+                      </Select>
+                    {/* </> */}
+                  {/* )} */}
+                </div>
+
+                <div>
+                  {/* <label className="block mb-2 text-sm text-gray-700">Assignment Date</label> */}
+                  <Input
+                    label="Assignment Date"
+                    type="date"
+                    // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    min={new Date().toISOString().split("T")[0]}
+                    required
+                  />
+                </div>
               </div>
               <div className="md:col-span-3">
                 <button
@@ -299,65 +305,65 @@ const ClusterAssignments = () => {
                 <Loader />
               ) : (
                 <div className="max-h-[75vh] overflow-auto">
-                <table className="w-full border text-sm text-black">
-                  <thead>
-                    <tr className="bg-gray-200">
-                      <th className="p-2 border">No.</th>
-                      <th className="p-2 border">User</th>
-                      <th className="p-2 border">vehicle</th>
-                      <th className="p-2 border">Cluster</th>
-                      <th className="p-2 border">Date</th>
-                      <th className="p-2 border">Status</th>
-                      <th className="p-2 border">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAssignments.length === 0 ? (
-                      <tr>
-                        <td colSpan="5" className="text-center p-4 text-gray-500">
-                          No assignments found.
-                        </td>
+                  <table className="w-full border text-sm text-black">
+                    <thead>
+                      <tr className="bg-gray-200">
+                        <th className="p-2 border">No.</th>
+                        <th className="p-2 border">User</th>
+                        <th className="p-2 border">vehicle</th>
+                        <th className="p-2 border">Cluster</th>
+                        <th className="p-2 border">Date</th>
+                        <th className="p-2 border">Status</th>
+                        <th className="p-2 border">Actions</th>
                       </tr>
-                    ) : (
-                      filteredAssignments.map((a, idx) => (
-                        <tr key={idx} className="border-t border-gray-200">
-                          <td className="p-2 border text-center">{idx + 1}</td>
-                          <td className="p-2 border text-center">{a.userId?.user_name || "N/A"}</td>
-                           <td className="p-2 border text-center">{a.clusterId?.vehicleNo || "N/A"}</td>
-                          <td className="p-2 border text-center">Cluster {a.clusterId?.clusterNo ?? "N/A"} <br /> ({a.clusterId?.clusterName})</td>
-                          <td className="p-2 border text-center">
-                            {a.date
-                              ? `${new Date(a.date).toLocaleDateString("en-GB")} (${new Date(a.date).toLocaleDateString("en-US", { weekday: "long" })})`
-                              : "N/A"}
-                          </td>
-                          <td className="p-2 border text-center">
-                            <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">
-                              {a.status || "Active"}
-                            </span>
-                          </td>
-                          <td className="p-2 border text-center">
-                            <div className="flex justify-center gap-3">
-                              <button
-                                className="p-1.5 rounded-full hover:bg-blue-100 text-blue-600 transition duration-150"
-                                title="Details"
-                                onClick={() => handleEditClick(a)}
-                              >
-                                <EyeIcon className="h-5 w-5" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(a._id)}
-                                className="p-1.5 rounded-full hover:bg-red-100 text-red-600 transition duration-150"
-                                title="Delete"
-                              >
-                                <TrashIcon className="h-5 w-5" />
-                              </button>
-                            </div>
+                    </thead>
+                    <tbody>
+                      {filteredAssignments.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="text-center p-4 text-gray-500">
+                            No assignments found.
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        filteredAssignments.map((a, idx) => (
+                          <tr key={idx} className="border-t border-gray-200">
+                            <td className="p-2 border text-center">{idx + 1}</td>
+                            <td className="p-2 border text-center">{a.userId?.user_name || "N/A"}</td>
+                            <td className="p-2 border text-center">{a.clusterId?.vehicleNo || "N/A"}</td>
+                            <td className="p-2 border text-center">Cluster {a.clusterId?.clusterNo ?? "N/A"} <br /> ({a.clusterId?.clusterName})</td>
+                            <td className="p-2 border text-center">
+                              {a.date
+                                ? `${new Date(a.date).toLocaleDateString("en-GB")} (${new Date(a.date).toLocaleDateString("en-US", { weekday: "long" })})`
+                                : "N/A"}
+                            </td>
+                            <td className="p-2 border text-center">
+                              <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">
+                                {a.status || "Active"}
+                              </span>
+                            </td>
+                            <td className="p-2 border text-center">
+                              <div className="flex justify-center gap-3">
+                                <button
+                                  className="p-1.5 rounded-full hover:bg-blue-100 text-blue-600 transition duration-150"
+                                  title="Details"
+                                  onClick={() => handleEditClick(a)}
+                                >
+                                  <EyeIcon className="h-5 w-5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(a._id)}
+                                  className="p-1.5 rounded-full hover:bg-red-100 text-red-600 transition duration-150"
+                                  title="Delete"
+                                >
+                                  <TrashIcon className="h-5 w-5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </>
