@@ -1073,15 +1073,15 @@ const MapCluster = () => {
 
   // 📍 Fetch route data for a selected cluster
   useEffect(() => {
-    if (showMap && showRoute && selectedVehicle && selectedCluster !== "") {
-      const payload = { clusterId: selectedCluster, vehicleNo: selectedVehicle };
-      dispatch(fetchClusterRoute(payload));
-    }
-    else
-    {
-      dispatch(fetchClusterRoute({ vehicleNo: selectedVehicle }));
-    }
-  }, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
+  if (!selectedVehicle) return;
+
+  const payload = showMap && showRoute && selectedCluster !== "" 
+    ? { clusterId: selectedCluster, vehicleNo: selectedVehicle } 
+    : { vehicleNo: selectedVehicle };
+
+  dispatch(fetchClusterRoute(payload));
+}, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
+
 
   useEffect(() => {
     if (!mapRef.current || !data.length) return;
@@ -1182,7 +1182,7 @@ const MapCluster = () => {
     if (showRoute && selectedCluster === "" && route.length > 0) {
       setSelectedCluster(route[0]?.clusterId)
     }
-  }, [showRoute, data, selectedCluster]);
+  }, [showRoute, route, selectedCluster]);
 
   useEffect(() => {
     if (!showRoute && selectedCluster === "") {
