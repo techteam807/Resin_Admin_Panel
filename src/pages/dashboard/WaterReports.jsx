@@ -4,7 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import Loader from "../Loader";
 import { useNavigate } from "react-router-dom";
 import DayDetailModal from "@/component/DayDetailModal";
-
+import {batchSendWaterReports} from "@/layouts/batchSendWaterReports";
+import { Button } from "@material-tailwind/react";
+import { DocumentArrowUpIcon, EyeIcon } from "@heroicons/react/24/outline";
 function WaterReports() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -25,6 +27,7 @@ function WaterReports() {
   const [modalData, setModalData] = useState([]);
   const [modalDay, setModalDay] = useState(null);
   const [modalUser, setModalUser] = useState(null);
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
 
   useEffect(() => {
   const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -147,6 +150,45 @@ function WaterReports() {
     const formattedMonth = month < 10 ? `0${month}` : month;
     dispatch(getWaterReports({ month: formattedMonth, year }));
   };
+
+  const handleSelectCustomer = (userId) => {
+  setSelectedCustomers((prev) =>
+    prev.includes(userId)
+      ? prev.filter((id) => id !== userId)
+      : [...prev, userId]
+  );
+};
+
+const handleSelectAll = (e) => {
+  if (e.target.checked) {
+    setSelectedCustomers(Object.values(groupedData).map((u) => u.user._id));
+  } else {
+    setSelectedCustomers([]);
+  }
+};
+
+const handleBatchSend = async () => {
+ const customers = selectedCustomers.map((id) => {
+    const customer = groupedData[id];
+
+    const filteredScores = {};
+    for (const [day, entries] of Object.entries(customer.scores)) {
+      const filtered = entries.filter(entry => entry.status !== true);
+      if (filtered.length > 0) {
+        filteredScores[day] = filtered;
+      }
+    }
+
+    return {
+      user: customer.user,
+      scores: filteredScores
+    };
+  });
+  console.log("c:",customers);
+  
+  await batchSendWaterReports(customers, month, year, dispatch);
+  alert("Reports sent!");
+};
 
   return (
     //     <div className="flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
@@ -328,6 +370,17 @@ function WaterReports() {
               ))}
             </select>
           </div>
+          <div className="flex items-center gap-2">
+            {/* <label className="text-sm text-gray-700">Year : </label> */}
+            <Button
+            className="flex items-center gap-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+  disabled={selectedCustomers.length === 0}
+  onClick={handleBatchSend}
+>
+  <DocumentArrowUpIcon   className="w-4 h-4" />
+  Send Reports
+</Button>
+          </div>
         </div>
       </div>
 
@@ -350,9 +403,21 @@ function WaterReports() {
                     {day}
                   </th>
                 ))}
-                <th className="sticky top-0 right-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[150px]">
-                  Actions
-                </th>
+                <th className="sticky top-0 right-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 min-w-[120px] text-center p-2">
+  <div className="flex items-center justify-center gap-2">
+    <span className="font-semibold">Actions</span>
+    <input
+      type="checkbox"
+      className="w-4 h-4 accent-blue-600"
+      checked={
+        selectedCustomers.length === Object.values(groupedData).length &&
+        selectedCustomers.length > 0
+      }
+      onChange={handleSelectAll}
+    />
+  </div>
+</th>
+
               </tr>
             </thead>
             <tbody>
@@ -461,18 +526,31 @@ function WaterReports() {
 })}
 
 
-                  <td className="sticky right-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[150px]">
-                    <button
-                      className="bg-black text-white px-3 py-1 rounded text-sm"
-                      onClick={() => handleNavigation(userData)}
-                    >
-                      View Report
-                    </button>
-                  </td>
+                  <td className="sticky right-0 z-20 bg-gray-100 border border-gray-300 min-w-[120px] text-center px-2 py-2">
+  <div className="flex items-center justify-center gap-3">
+    
+    {/* View Icon */}
+    <EyeIcon className="w-5 h-5 text-gray-700 cursor-pointer" onClick={() => handleNavigation(userData)} />
+    {/* Upload + Checkbox */}
+    <div className="flex items-center gap-1">
+      <DocumentArrowUpIcon className="w-5 h-5 text-blue-600" />
+      <input
+        type="checkbox"
+        className="w-4 h-4 accent-blue-600"
+        checked={selectedCustomers.includes(userData.user._id)}
+        onChange={() => handleSelectCustomer(userData.user._id)}
+      />
+    </div>
+
+  </div>
+</td>
+
                 </tr>
               ))}
             </tbody>
+            
           </table>
+
         )}
         {!loading && Data.length === 0 && (
           <p className="text-center text-gray-500 py-4">No data available.</p>

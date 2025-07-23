@@ -18,43 +18,8 @@ const waitForPaint = () =>
     requestAnimationFrame(() => setTimeout(resolve, 0))
 })
 
-const WaterReportsTemplate = () => {
-  const location = useLocation();
-  const dispatch = useDispatch();
-
-  const { customer, month, year } = location.state || {};
-
-  const userName = customer?.user?.display_name;
-  
-  const safeName = userName.replace(/\s+/g, "_");
-
-    const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
-    const d = String(date.getDate()).padStart(2, '0');
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const y = String(date.getFullYear()).slice(2);
-    return `${d}/${m}/${y}`;
-  };
-
-  const waterQualityData = Object.values(customer.scores)
-      .flat()
-      .filter(item => !item.status)
-      .map(item => ({
-        date: formatDate(item.createdAt),
-        hardness: Number(item.score),
-        id: item.id,
-      }))
-      .slice(0, 4);
-  console.log("water",waterQualityData);
-      
-  
-  const customerId = customer?.user?._id;
-  const logIds = waterQualityData.map((w) => w.id);
-
-  const totalPages = 7
-  const [currentPage, setCurrentPage] = useState(1);
+  export function renderPage(page, { userName, waterQualityData }) {
   const base = "w-full h-full relative bg-cover bg-center bg-no-repeat"
-  function renderPage(page) {
     switch (page) {
       case 1:
         return (
@@ -227,6 +192,43 @@ const WaterReportsTemplate = () => {
     }
   }
 
+const WaterReportsTemplate = () => {
+  const location = useLocation();
+  const dispatch = useDispatch();
+
+  const { customer, month, year } = location.state || {};
+
+  const userName = customer?.user?.display_name;
+  
+  const safeName = userName.replace(/\s+/g, "_");
+
+    const formatDate = (isoDate) => {
+    const date = new Date(isoDate);
+    const d = String(date.getDate()).padStart(2, '0');
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const y = String(date.getFullYear()).slice(2);
+    return `${d}/${m}/${y}`;
+  };
+
+  const waterQualityData = Object.values(customer.scores)
+      .flat()
+      .filter(item => !item.status)
+      .map(item => ({
+        date: formatDate(item.createdAt),
+        hardness: Number(item.score),
+        id: item.id,
+      }))
+      .slice(0, 4);
+  console.log("water",waterQualityData);
+      
+  
+  const customerId = customer?.user?._id;
+  const logIds = waterQualityData.map((w) => w.id);
+
+  const totalPages = 7
+  const [currentPage, setCurrentPage] = useState(1);
+  const base = "w-full h-full relative bg-cover bg-center bg-no-repeat"
+
 //   async function handleDownload() {
 //   const { default: html2canvas } = await import("html2canvas")
 //   const { jsPDF } = await import("jspdf")
@@ -278,7 +280,7 @@ const WaterReportsTemplate = () => {
     setCurrentPage(p);
     await waitForPaint();
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const node = document.getElementById("pdf-page");
     if (!node) continue;
@@ -309,7 +311,7 @@ async function handleUpload() {
     setCurrentPage(p);
     await waitForPaint();
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const node = document.getElementById("pdf-page");
     if (!node) continue;
