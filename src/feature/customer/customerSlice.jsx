@@ -24,9 +24,9 @@ export const getCustomersMap = createAsyncThunk("customer/getCustomersMap", asyn
   }
 });
 
-export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async (customer_code) => {
+export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({customer_code,vehicleNo}) => {
   try {
-    const data = await fetchCustomersClusterMap(customer_code);
+    const data = await fetchCustomersClusterMap({customer_code,vehicleNo});
     return data;
   } catch (error) {
     console.error("Error in getCustomersClusterMap thunk:", error);
@@ -55,11 +55,11 @@ export const editCustomersClusterMap = createAsyncThunk("customer/editCustomersC
   }
 });
 
-export const fetchClusterRoute = createAsyncThunk("customer/fetchClusterRoute", async (clusterNo) => {
-  console.log(clusterNo,"no");
+export const fetchClusterRoute = createAsyncThunk("customer/fetchClusterRoute", async ({clusterId,vehicleNo}) => {
+  console.log(clusterId,"no");
   
   try {
-    const data = await fetchClusterRoutes(clusterNo);
+    const data = await fetchClusterRoutes(clusterId,vehicleNo);
     return data;
   } catch (error) {
     console.error("Error in fetchClusterRoute thunk:", error);
@@ -115,9 +115,9 @@ export const getMissedDeliveryLogs = createAsyncThunk("customer/getMissedDeliver
   }
 });
 
-export const getClusterDropDown = createAsyncThunk("customer/getClusterDropDown", async () => {
+export const getClusterDropDown = createAsyncThunk("customer/getClusterDropDown", async (vehicleNo) => {
     try {
-      const data = await fetchClusterDropdown();
+      const data = await fetchClusterDropdown(vehicleNo);
       return data;
     } catch (error) {
       console.error("Error in getTechnicianDropDown thunk:", error);

@@ -329,7 +329,7 @@
 //     (state) => state.customer
 //   );
 //   console.log("clusteroute:",clusteroute);
-  
+
 
 //   const [data, setData] = useState([]);
 //   console.log("data:",data);
@@ -376,7 +376,7 @@
 //   if (!mapRef.current || !clusteroute.length) return;
 
 //   const bounds = new window.google.maps.LatLngBounds();
-  
+
 //   clusteroute.forEach((cluster) => {
 //     cluster.visitSequence.forEach((visit) => {
 //       if (!isNaN(visit.lat) && !isNaN(visit.lng)) {
@@ -714,7 +714,7 @@
 // )}
 
 
-                
+
 
 //                 {/* Toggle Button */}
 //                 <Button size="sm" variant="outlined" onClick={() => setShowMap(!showMap)}>
@@ -859,7 +859,7 @@
 //                     </div>
 //                   </OverlayView>
 //                 )}
-      
+
 
 
 //                 {/* {showRoute ? (
@@ -981,6 +981,7 @@ import { jsPDF } from "jspdf";
 import { autoTable } from 'jspdf-autotable';
 import customerIcon from '../../../public/img/customerroute.png';
 import WareHouseIcon from '../../../public/img/warehouse.png';
+import vehicles from '../../global.js';
 // import "./Home.css";
 
 const clusterColors = [
@@ -1017,8 +1018,8 @@ const MapCluster = () => {
     (state) => state.customer
   );
   console.log("clusteroute:", clusteroute);
-  console.log("customersClusterMap:",customersClusterMap);
-  
+  console.log("customersClusterMap:", customersClusterMap);
+
 
 
   const [data, setData] = useState([]);
@@ -1027,32 +1028,60 @@ const MapCluster = () => {
   console.log("route:", route)
   const [showMap, setShowMap] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [selectedCluster, setSelectedCluster] = useState("");
+  const [selectedCluster, setSelectedCluster] = useState(null);
   const [showRoute, setShowRoute] = useState(false);
   const [showCluster, setShowCluster] = useState(false)
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [searchValue, setSearchValue] = useState("");
+  const [selectedVehicle, setSelectedVehicle] = useState(1);
+  console.log("ms", selectedCluster);
+
+
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: LIBRARIES,
   });
 
-  useEffect(() => {
-    if (showMap && showCluster) {
-      dispatch(getCustomersClusterMap());
-    }
-  }, [dispatch, showMap, showCluster]);
+  //   useEffect(() => {
+  //     if (showMap && showCluster) {
+  //       const payload = selectedVehicle ? { vehicleNo: selectedVehicle } : undefined;
+  //       dispatch(getCustomersClusterMap(payload));
+  //     }
+  //   }, [dispatch, showMap, showCluster, selectedVehicle]);
 
-  useEffect(() => {
-    if (showMap && showRoute && selectedCluster !== "") {
-      dispatch(fetchClusterRoute(selectedCluster));
-    }
-  }, [dispatch, showMap, showRoute, selectedCluster])
+  //   useEffect(() => {
+  //     if (showMap && showRoute && selectedCluster !== "") {
+  //       dispatch(fetchClusterRoute(selectedCluster));
+  //     }
+  //   }, [dispatch, showMap, showRoute, selectedCluster])
 
+  // useEffect(() => {
+  //   const payload = selectedVehicle ? { vehicleNo: selectedVehicle } : undefined;
+  //   dispatch(getCustomersClusterMap(payload));
+  // }, [dispatch, selectedVehicle]);
+
+  // 🚗 Fetch clusters based on vehicle + map/cluster visibility
   useEffect(() => {
-    dispatch(getCustomersClusterMap());
-  }, [dispatch]);
+    const payload = { vehicleNo: selectedVehicle };
+
+    if (showMap && showCluster && selectedVehicle) {
+      dispatch(getCustomersClusterMap(payload));
+    }
+    dispatch(getCustomersClusterMap(payload))
+  }, [dispatch, showMap, showCluster, selectedVehicle]);
+
+  // 📍 Fetch route data for a selected cluster
+  useEffect(() => {
+  if (!selectedVehicle) return;
+
+  const payload = showMap && showRoute && selectedCluster !== "" 
+    ? { clusterId: selectedCluster, vehicleNo: selectedVehicle } 
+    : { vehicleNo: selectedVehicle };
+
+  dispatch(fetchClusterRoute(payload));
+}, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
+
 
   useEffect(() => {
     if (!mapRef.current || !data.length) return;
@@ -1093,24 +1122,28 @@ const MapCluster = () => {
     // once loading is finished, format what came back
     if (customersClusterMap?.length) {
       const formatted = customersClusterMap.map((cluster) => ({
+        clusterId: cluster._id,
+        vehicle: cluster.vehicleNo,
         clusterNo: cluster.clusterNo,
         name: `Cluster ${cluster.clusterNo}`,
         clusterName: cluster.clusterName,
         cartridge_qty: cluster.cartridge_qty,
-        size:cluster.cartridgeSizeCounts,
+        size: cluster.cartridgeSizeCounts,
         customers: cluster.customers.map((c) => ({
-          qty:c.cf_cartridge_qty,
-          size:c.cf_cartridge_size,
+          qty: c.cf_cartridge_qty,
+          size: c.cf_cartridge_size,
           code: c.contact_number,
           customerId: c.customerId,
           displayName: c.name,
           vistSequnceNo: c.sequenceNo,
-          indexNo:c.indexNo,
-          lat: Number(c.geoCoordinates?.coordinates[1]),
-          lng: Number(c.geoCoordinates?.coordinates[0]),
+          indexNo: c.indexNo,
+          lat: Number(c.geoCoordinates?.coordinates[1]) || "",
+          lng: Number(c.geoCoordinates?.coordinates[0]) || "",
         }))
       }));
       setData(formatted);
+      console.log("v:", selectedVehicle);
+
     } else {
       setData([]);          // nothing came back ⇒ empty
     }
@@ -1123,6 +1156,7 @@ const MapCluster = () => {
     }
     if (clusteroute?.length) {
       const formatted = clusteroute.map((cluster) => ({
+        clusterId: cluster.clusterId,
         clusterNo: cluster.clusterNo,
         name: `Cluster ${cluster.clusterNo + 1}`,
         cartridge_qty: cluster.cartridge_qty,
@@ -1146,9 +1180,9 @@ const MapCluster = () => {
 
   useEffect(() => {
     if (showRoute && selectedCluster === "" && route.length > 0) {
-      setSelectedCluster(route[0]?.clusterNo)
+      setSelectedCluster(route[0]?.clusterId)
     }
-  }, [showRoute, data, selectedCluster]);
+  }, [showRoute, route, selectedCluster]);
 
   useEffect(() => {
     if (!showRoute && selectedCluster === "") {
@@ -1157,7 +1191,7 @@ const MapCluster = () => {
     }
 
     const cluster = clusteroute.find(
-      (c) => String(c.clusterNo) === String(selectedCluster)
+      (c) => String(c.clusterId) === selectedCluster
     );
 
 
@@ -1204,7 +1238,7 @@ const MapCluster = () => {
       }
     );
   }, [selectedCluster, clusteroute]);
-  
+
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -1236,24 +1270,24 @@ const MapCluster = () => {
 
   const handleSaveold = () => {
     const reassignments = [];
-data.forEach((cluster) => {
-  cluster.customers.forEach((customer, idx) => {
-    const originalCluster = customersClusterMap.find((c) =>
-      c.customers.some((orig) => orig._id === customer.customerId)
-    );
-    const originalClusterNo = originalCluster?.clusterNo;
+    data.forEach((cluster) => {
+      cluster.customers.forEach((customer, idx) => {
+        const originalCluster = customersClusterMap.find((c) =>
+          c.customers.some((orig) => orig._id === customer.customerId)
+        );
+        const originalClusterNo = originalCluster?.clusterNo;
 
-    if (originalClusterNo !== cluster.clusterNo || idx !== originalIndexInOriginalCluster) {
-      reassignments.push({
-        customerId: customer.customerId,
-        newClusterNo: cluster.clusterNo,
-        indexNo: idx,
+        if (originalClusterNo !== cluster.clusterNo || idx !== originalIndexInOriginalCluster) {
+          reassignments.push({
+            customerId: customer.customerId,
+            newClusterId: cluster.clusterNo,
+            indexNo: idx,
+          });
+        }
       });
-    }
-  });
-});
+    });
 
-console.log("data:",data);
+    console.log("data:", data);
 
     // data.forEach((cluster, clusterIndex) => {
     //   cluster.customers.forEach((customer) => {
@@ -1287,49 +1321,55 @@ console.log("data:",data);
     }
   };
 
-const handleSave = () => {
-  const reassignments = [];
+  const handleSave = () => {
+    const reassignments = [];
 
-  // Build a fast lookup: customerId → original clusterNo and index
-  const originalMap = new Map();
+    // Build a fast lookup: customerId → original clusterNo and index
+    const originalMap = new Map();
 
-  customersClusterMap.forEach((cluster) => {
-    cluster.customers.forEach((customer, index) => {
-      originalMap.set(customer._id, {
-        clusterNo: cluster.clusterNo,
-        indexNo: index
-      });
-    });
-  });
-
-  // Compare each customer in new data
-  data.forEach((cluster) => {
-    cluster.customers.forEach((customer, index) => {
-      const original = originalMap.get(customer.customerId);
-      
-      if (!original || original.clusterNo !== cluster.clusterNo || original.indexNo !== index) {
-        reassignments.push({
-          customerId: customer.customerId,
-          newClusterNo: cluster.clusterNo,
+    customersClusterMap.forEach((cluster) => {
+      cluster.customers.forEach((customer, index) => {
+        originalMap.set(customer.customerId, {
+          clusterId: cluster._id,
           indexNo: index
         });
-      }
-    });
-  });
-
-  console.log("Filtered reassignments:", reassignments);
-
-  if (reassignments.length > 0) {
-    dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
-      .unwrap()
-      .then(() => {
-        dispatch(getCustomersClusterMap());
-      })
-      .catch(() => {
-        dispatch(getCustomersClusterMap());
       });
-  }
-};
+    });
+
+    console.log("org:", originalMap);
+
+
+    // Compare each customer in new data
+    data.forEach((cluster) => {
+      cluster.customers.forEach((customer, index) => {
+        const original = originalMap.get(customer.customerId);
+        console.log("org:",original);
+        if (!original || original.clusterId !== cluster.clusterId) {
+          reassignments.push({
+            customerId: customer.customerId,
+            newClusterId: cluster.clusterId,
+            indexNo: index
+          });
+        }
+      });
+
+      console.log("res:", reassignments);
+
+    });
+
+    // console.log("Filtered reassignments:", reassignments);
+
+    if (reassignments.length > 0) {
+      dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
+        .unwrap()
+        .then(() => {
+          dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
+        })
+        .catch(() => {
+          dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
+        });
+    } 
+  };
 
   const handleClusterSelect = (value) => {
     setSelectedCluster(value);
@@ -1338,9 +1378,12 @@ const handleSave = () => {
 
 
   const exportToPDF = (clusteroute, selectedCluster) => {
+    console.log("cr:",clusteroute);
+    
     const clustersToExport =
-      typeof selectedCluster === "number"
-        ? clusteroute.filter((c) => c.clusterNo === selectedCluster)
+      // typeof selectedCluster === "number"
+        selectedCluster
+        ? clusteroute.filter((c) => c.clusterId === selectedCluster)
         : clusteroute;
 
     if (!clustersToExport || clustersToExport.length === 0) {
@@ -1361,7 +1404,7 @@ const handleSave = () => {
 
       doc.setFontSize(14);
       doc.text(
-        `Cluster ${clusteRoute.clusterNo + 1} - Total Distance: ${clusteRoute.totalDistance} KM [Cartridge Qty: ${clusteRoute.cartridge_qty}]`,
+        `Cluster ${clusteRoute.clusterNo} (vehicle - ${selectedVehicle}) - Total Distance: ${clusteRoute.totalDistance} KM [Cartridge Qty: ${clusteRoute.cartridge_qty}]`,
         14,
         15
       );
@@ -1391,10 +1434,11 @@ const handleSave = () => {
       });
     });
 
-    const fileName =
-      typeof selectedCluster === "number"
-        ? `Cluster_${selectedCluster + 1}.pdf`
-        : `All_Clusters_Report.pdf`;
+    let fileName = "All_Clusters_Report.pdf";
+  if (selectedCluster && clustersToExport.length === 1) {
+    const name = clustersToExport[0].clusterNo;
+    fileName = `Cluster_${name}/Vehicle_${selectedVehicle}.pdf`;
+  }
 
     doc.save(fileName);
   };
@@ -1405,7 +1449,7 @@ const handleSave = () => {
       // When switching to map view, default to cluster view
       setShowCluster(true)
       setShowRoute(false)
-      setSelectedCluster("")
+      setSelectedCluster(null)
       setDirectionsResponse(null)
     } else {
       // When switching to list view, reset map-related states
@@ -1419,7 +1463,7 @@ const handleSave = () => {
       // Switch to cluster mode
       setShowRoute(false)
       setShowCluster(true)
-      setSelectedCluster("")
+      setSelectedCluster(null)
       setDirectionsResponse(null)
     } else {
       // Switch to route mode and auto-select first cluster
@@ -1428,7 +1472,7 @@ const handleSave = () => {
 
       // Auto-select the first cluster if data is available
       if (data.length > 0) {
-        setSelectedCluster(data[0].clusterNo)
+        setSelectedCluster(data[0].clusterId)
       }
     }
   }
@@ -1437,7 +1481,7 @@ const handleSave = () => {
     if (searchValue) {
       console.log(searchValue);
       const customer_code = searchValue;
-      dispatch(getCustomersClusterMap(customer_code));
+      dispatch(getCustomersClusterMap({ customer_code }));
     }
   }
 
@@ -1446,12 +1490,24 @@ const handleSave = () => {
     dispatch(getCustomersClusterMap());
   }
 
+  const handleVehicleSelect = (value) => {
+    if (value) {
+      setSelectedVehicle(value);
+      console.log("log:", value);
+
+      const vehicleNo = value;
+      dispatch(getCustomersClusterMap({ vehicleNo }));
+    }
+  };
+
   useEffect(() => {
     // Ensure showCluster and showRoute are mutually exclusive
     if (showRoute && showCluster) {
       setShowCluster(false)
     }
   }, [showRoute, showCluster])
+
+  console.log("data:", data);
 
 
   if (!isLoaded) {
@@ -1462,6 +1518,8 @@ const handleSave = () => {
     );
   }
 
+
+
   return (
     <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
       {mapLoading1 || mapLoading ? (
@@ -1470,48 +1528,62 @@ const handleSave = () => {
         </div>
       ) : (
         <>
-          <div className="p-4 border-blue-gray-100">
-            <div className="mb-4 border rounded-lg p-2 px-3 flex items-center justify-between">
-              <Typography variant="h5" color="blue-gray">
-                Cluster {showMap ? "Map" : "List"}
-              </Typography>
-              <div className="flex items-center gap-2">
-                {!showMap && (
-                  <div className="w-full md:w-72 relative flex gap-2">
-                    <Input
-                      label="Search"
-                      value={searchValue}
-                      onChange={(e) => setSearchValue(e.target.value)}
-                      icon={searchValue ? <XMarkIcon onClick={searchClear} className="h-5 w-5 cursor-pointer" /> : null}
-                    />
-                    <Button onClick={handleSearch} variant="gradient" className="px-2.5" size="sm">
-                      <MagnifyingGlassIcon className="h-5 w-5" />
-                    </Button>
+          <div className="mt-2 rounded-lg p-2 px-3 flex items-center justify-between">
+            <Typography variant="h5" color="blue-gray">
+              Cluster {showMap ? "Map" : "List"}
+            </Typography>
+            <div className="flex items-center gap-2">
+              <div >
+                <Select
+                  label="Select Vehicle"
+                  onChange={handleVehicleSelect}
+                  value={selectedVehicle}
+                >
+                  {vehicles.map((vehicle) => (
+                    <Option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name}
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+              {!showMap && (
+                <div className="w-full md:w-72 relative flex gap-2">
+                  <Input
+                    label="Search"
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                    icon={searchValue ? <XMarkIcon onClick={searchClear} className="h-5 w-5 cursor-pointer" /> : null}
+                  />
+                  <Button onClick={handleSearch} variant="gradient" className="px-2.5" size="sm">
+                    <MagnifyingGlassIcon className="h-5 w-5" />
+                  </Button>
+                </div>
+              )}
+              {/* Map Icons */}
+              {showMap && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 cursor-pointer text-red-500" onClick={() => exportToPDF(clusteroute, selectedCluster, dispatch)}>
+                    <DocumentIcon className="w-5 h-5" />
+                    <span>PDF</span>
                   </div>
-                )}
-                {/* Map Icons */}
-                {showMap && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 cursor-pointer text-red-500" onClick={() => exportToPDF(clusteroute, selectedCluster, dispatch)}>
-                      <DocumentIcon className="w-5 h-5" />
-                      <span>PDF</span>
-                    </div>
-                    {/* <div className="flex items-center gap-1 cursor-pointer text-green-500"  onClick={() => exportToExcel(clusteroute, selectedCluster, dispatch)}>
+                  {/* <div className="flex items-center gap-1 cursor-pointer text-green-500"  onClick={() => exportToExcel(clusteroute, selectedCluster, dispatch)}>
                         <DocumentChartBarIcon className="w-5 h-5" />
                         <span>Excel</span>
                       </div> */}
-                  </div>
-                )}
+                </div>
+              )}
 
-                {/* Cluster Selector */}
-                {showMap && (
-                  <>
-                    {/* Button toggles route/cluster view */}
+              {/* Cluster Selector */}
+              {showMap && (
+                <>
+                  {/* Button toggles route/cluster view */}
+                  <div>
                     <Button onClick={handleToggleMapMode}>{showRoute ? "Show Clusters" : "Show Routes"}</Button>
+                  </div>
 
-
-                    {/* Dropdown visible only when showRoute is true */}
-                    {showRoute && (
+                  {/* Dropdown visible only when showRoute is true */}
+                  {showRoute && (
+                    <div>
                       <Select
                         label="Select Cluster"
                         onChange={handleClusterSelect}
@@ -1520,7 +1592,7 @@ const handleSave = () => {
                         {data.map((item, index) => {
                           const color = clusterColors[index % clusterColors.length];
                           return (
-                            <Option key={item.clusterNo} value={item.clusterNo}>
+                            <Option key={item.clusterId} value={item.clusterId}>
                               <div className="flex items-center h-4">
                                 <span className="text-5xl mr-2" style={{ color: color }}>&bull;</span>
                                 {item.name}
@@ -1529,17 +1601,20 @@ const handleSave = () => {
                           );
                         })}
                       </Select>
-                    )}
-                  </>
-                )}
+                    </div>
+                  )}
+                </>
+              )}
 
 
 
 
-                {/* Toggle Button */}
+              {/* Toggle Button */}
+              <div>
                 <Button size="sm" variant="outlined" onClick={handleToggleView}>
                   {showMap ? "Show Customers" : "Show Map"}
                 </Button>
+              </div>
 
                 {/* Cluster Action Buttons */}
                 {!showMap && (
@@ -1554,6 +1629,9 @@ const handleSave = () => {
                 )}
               </div>
             </div>
+
+            <hr className="mt-2" />
+          <div className="overflow-auto max-h-[75vh] mt-4">
 
             {data.length === 0 && (
               <div className="flex h-[70vh] items-center justify-center">
@@ -1621,7 +1699,8 @@ const handleSave = () => {
                       (cluster) =>
                         cluster.customers &&
                         cluster.customers.length > 0 &&
-                        String(cluster.clusterNo) === String(selectedCluster),
+                        cluster.clusterId === selectedCluster,
+                      // cluster.clusterNo !== 7
                     )
                     .map((cluster, clusterIndex) =>
                       cluster.customers.map((cust, idx) => {
@@ -1651,13 +1730,17 @@ const handleSave = () => {
                       }),
                     )}
 
+
                 {/* Directions renderer */}
                 {showMap && showRoute && directionsResponse && (
                   <DirectionsRenderer
                     directions={directionsResponse}
                     options={{
                       polylineOptions: {
-                        strokeColor: clusterColors[selectedCluster % clusterColors.length] || "#000",
+                        strokeColor:
+                          clusterColors[
+                          route.findIndex(c => c.clusterId === selectedCluster) % clusterColors.length
+                          ] || "#000",
                         strokeOpacity: 0.8,
                         strokeWeight: 5,
                         zIndex: -1,
@@ -1698,85 +1781,164 @@ const handleSave = () => {
               </GoogleMap>
             ) : (
               <DragDropContext onDragEnd={onDragEnd}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                  {data.map((cluster, index) => (
-                    <div
-                      key={index}
-                      className="bg-white rounded-lg shadow-md min-w-[23vw] max-w-[320px] flex flex-col overflow-hidden"
-                    >
-                      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
-                        {cluster.name} ({cluster.clusterName})
-                      </div>
-
-                      <Droppable droppableId={`${index}`}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
-                          >
-                            {cluster.customers.map((customer, idx) => {
-                              const clusterColor = clusterColors[index % clusterColors.length];
-                              return (
-                                <Draggable
-                                  key={customer.code}
-                                  draggableId={customer.code}
-                                  index={idx}
-                                >
-                                  {(provided, snapshot) => (
-<div
-  ref={provided.innerRef}
-  {...provided.draggableProps}
-  {...provided.dragHandleProps}
-  className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${
-    snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
-  }`}
-  style={{
-    ...provided.draggableProps.style,
-    borderLeftColor: clusterColor,
-    color: clusterColor,
-  }}
->
-  {/* Index */}
-  <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
-
-  {/* Main Info */}
-  <div className="flex-1">
-    <div>{customer.code}</div>
-    <div>{customer.displayName}</div>
-  </div>
-
-  {/* Right-aligned Details */}
-  <div className="ml-auto flex flex-col justify-end items-end text-right">
-    <div>Qty: {customer.qty}</div>
-    <div>Size: {customer.size}</div>
-  </div>
-</div>
-
-                                  )}
-                                </Draggable>
-                              );
-                            })}
-                            {provided.placeholder}
+                <div className="w-full grid grid-cols-3 gap-6 scrollbar-thin">
+                  <div className="max-h-[75vh] overflow-auto scrollbar-thin col-span-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {data.slice(0, 7).map((cluster, index) => (
+                        <div
+                          key={index}
+                          className="bg-white rounded-lg shadow-md min-w-[23vw] max-w-[320px] flex flex-col overflow-hidden"
+                        >
+                          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
+                            {cluster.name} ({cluster.clusterName})
                           </div>
-                        )}
-                      </Droppable>
 
-                      <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
-                        <div className="text-left">
-                        {cluster.customers.length} Customers <br />
-                        {cluster.cartridge_qty} Cartridge Quantity
+                          <Droppable droppableId={`${index}`}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                                className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                              >
+                                {cluster.customers.map((customer, idx) => {
+                                  const clusterColor = clusterColors[index % clusterColors.length];
+                                  return (
+                                    <Draggable
+                                      key={customer.code}
+                                      draggableId={customer.code}
+                                      index={idx}
+                                    >
+                                      {(provided, snapshot) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                          className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
+                                            }`}
+                                          style={{
+                                            ...provided.draggableProps.style,
+                                            borderLeftColor: clusterColor,
+                                            color: clusterColor,
+                                          }}
+                                        >
+                                          {/* Index */}
+                                          <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
+
+                                          {/* Main Info */}
+                                          <div className="flex-1">
+                                            <div>{customer.code}</div>
+                                            <div>{customer.displayName}</div>
+                                          </div>
+
+                                          {/* Right-aligned Details */}
+                                          <div className="ml-auto flex flex-col justify-end items-end text-right">
+                                            <div>Qty: {customer.qty}</div>
+                                            <div>Size: {customer.size}</div>
+                                          </div>
+                                        </div>
+
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+
+                          <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                            <div className="text-left">
+                              {cluster.customers.length} Customers <br />
+                              {cluster.cartridge_qty} Cartridge Quantity
+                            </div>
+                            <div>
+                              {Object.entries(cluster.size).map(([size, count]) => (
+                                <div key={size}>
+                                  {size}: {count}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                        {Object.entries(cluster.size).map(([size, count]) => (
-    <div key={size}>
-      {size}: {count}
-    </div>
-  ))}
-  </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 col-span-1 relative">
+                    {data.slice(7, 8).map((cluster, index) => {
+                      const actualIndex = index + 7;
+                      const clusterColor = clusterColors[actualIndex % clusterColors.length];
+
+                      return (
+                        <div
+                          key={actualIndex}
+                          className="bg-white rounded-lg shadow-md min-w-[23vw] max-w-[320px] flex flex-col overflow-hidden fixed"
+                        >
+                          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
+                            {cluster.name} ({cluster.clusterName})
+                          </div>
+
+                          <Droppable droppableId={`${actualIndex}`}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.droppableProps}
+                                className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                              >
+                                {cluster.customers.map((customer, idx) => (
+                                  <Draggable
+                                    key={customer.code}
+                                    draggableId={customer.code}
+                                    index={idx}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <div
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
+                                          }`}
+                                        style={{
+                                          ...provided.draggableProps.style,
+                                          borderLeftColor: clusterColor,
+                                          color: clusterColor,
+                                        }}
+                                      >
+                                        <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
+                                        <div className="flex-1">
+                                          <div>{customer.code}</div>
+                                          <div>{customer.displayName}</div>
+                                        </div>
+                                        <div className="ml-auto flex flex-col justify-end items-end text-right">
+                                          <div>Qty: {customer.qty}</div>
+                                          <div>Size: {customer.size}</div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </Draggable>
+                                ))}
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+
+                          <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                            <div className="text-left">
+                              {cluster.customers.length} Customers <br />
+                              {cluster.cartridge_qty} Cartridge Quantity
+                            </div>
+                            <div>
+                              {Object.entries(cluster.size).map(([size, count]) => (
+                                <div key={size}>
+                                  {size}: {count}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                  </div>
                 </div>
               </DragDropContext>
             )}
