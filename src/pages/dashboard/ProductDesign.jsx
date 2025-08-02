@@ -218,6 +218,7 @@ const ProductDesign = () => {
                 <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md">
                   <div className="border-b border-blue-gray-100 p-4 text-center text-blue-600 font-semibold">NEW ({newProducts.length})</div>
                   <div className="space-y-3 p-3 h-[74vh] overflow-y-auto scrollbar-custom-blue">
+                    
                     {/* {newProducts.length > 0 ? (
                         newProducts.map((product, index) => (
                           <Button
