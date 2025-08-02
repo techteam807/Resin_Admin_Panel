@@ -1616,20 +1616,21 @@ const MapCluster = () => {
                 </Button>
               </div>
 
-              {/* Cluster Action Buttons */}
-              {!showMap && (
-                <div className="flex gap-2">
-                  <Button size="sm" variant="gradient" onClick={refreshCluster}>
-                    Refresh Cluster
-                  </Button>
-                  <Button size="sm" variant="gradient" onClick={handleSave}>
-                    Save
-                  </Button>
-                </div>
-              )}
+                {/* Cluster Action Buttons */}
+                {!showMap && (
+                  <div className="flex gap-2">
+                    {/* <Button size="sm" variant="gradient" onClick={refreshCluster}>
+                      Refresh Cluster
+                    </Button> */}
+                    <Button size="sm" variant="gradient" onClick={handleSave}>
+                      Save
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <hr className="mt-2" />
+
+            <hr className="mt-2" />
           <div className="overflow-auto max-h-[75vh] mt-4">
 
             {data.length === 0 && (
