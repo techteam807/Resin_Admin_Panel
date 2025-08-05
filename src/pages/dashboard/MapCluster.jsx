@@ -976,13 +976,12 @@ import {
 import Loader from "../Loader";
 import { Button, Input, Option, Select, Typography } from "@material-tailwind/react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { DocumentIcon, DocumentChartBarIcon, XMarkIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { DocumentIcon, DocumentChartBarIcon, XMarkIcon, MagnifyingGlassIcon, XCircleIcon, EyeIcon } from "@heroicons/react/24/solid";
 import { jsPDF } from "jspdf";
 import { autoTable } from 'jspdf-autotable';
 import customerIcon from '../../../public/img/customerroute.png';
 import WareHouseIcon from '../../../public/img/warehouse.png';
 import vehicles from '../../global.js';
-// import "./Home.css";
 
 const clusterColors = [
   "red",
@@ -1017,15 +1016,9 @@ const MapCluster = () => {
   const { customersClusterMap, mapLoading1, mapLoading, clusteroute } = useSelector(
     (state) => state.customer
   );
-  console.log("clusteroute:", clusteroute);
-  console.log("customersClusterMap:", customersClusterMap);
-
-
 
   const [data, setData] = useState([]);
-  console.log("data:", data);
   const [route, setRoute] = useState([]);
-  console.log("route:", route)
   const [showMap, setShowMap] = useState(false);
   const [selected, setSelected] = useState(null);
   const [selectedCluster, setSelectedCluster] = useState(null);
@@ -1034,7 +1027,8 @@ const MapCluster = () => {
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [searchValue, setSearchValue] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState(1);
-  console.log("ms", selectedCluster);
+  const [isVisible, setIsVisible] = useState(true);
+  const cluster = data[7];
 
 
 
@@ -1073,14 +1067,14 @@ const MapCluster = () => {
 
   // 📍 Fetch route data for a selected cluster
   useEffect(() => {
-  if (!selectedVehicle) return;
+    if (!selectedVehicle) return;
 
-  const payload = showMap && showRoute && selectedCluster !== "" 
-    ? { clusterId: selectedCluster, vehicleNo: selectedVehicle } 
-    : { vehicleNo: selectedVehicle };
+    const payload = showMap && showRoute && selectedCluster !== ""
+      ? { clusterId: selectedCluster, vehicleNo: selectedVehicle }
+      : { vehicleNo: selectedVehicle };
 
-  dispatch(fetchClusterRoute(payload));
-}, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
+    dispatch(fetchClusterRoute(payload));
+  }, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
 
 
   useEffect(() => {
@@ -1142,8 +1136,6 @@ const MapCluster = () => {
         }))
       }));
       setData(formatted);
-      console.log("v:", selectedVehicle);
-
     } else {
       setData([]);          // nothing came back ⇒ empty
     }
@@ -1287,7 +1279,6 @@ const MapCluster = () => {
       });
     });
 
-    console.log("data:", data);
 
     // data.forEach((cluster, clusterIndex) => {
     //   cluster.customers.forEach((customer) => {
@@ -1305,7 +1296,6 @@ const MapCluster = () => {
     //   });
     // });
 
-    console.log("reassignments:", reassignments);
 
     if (reassignments.length > 0) {
       dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
@@ -1336,14 +1326,12 @@ const MapCluster = () => {
       });
     });
 
-    console.log("org:", originalMap);
 
 
     // Compare each customer in new data
     data.forEach((cluster) => {
       cluster.customers.forEach((customer, index) => {
         const original = originalMap.get(customer.customerId);
-        console.log("org:",original);
         if (!original || original.clusterId !== cluster.clusterId) {
           reassignments.push({
             customerId: customer.customerId,
@@ -1353,11 +1341,9 @@ const MapCluster = () => {
         }
       });
 
-      console.log("res:", reassignments);
 
     });
 
-    // console.log("Filtered reassignments:", reassignments);
 
     if (reassignments.length > 0) {
       dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
@@ -1368,7 +1354,7 @@ const MapCluster = () => {
         .catch(() => {
           dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
         });
-    } 
+    }
   };
 
   const handleClusterSelect = (value) => {
@@ -1378,11 +1364,10 @@ const MapCluster = () => {
 
 
   const exportToPDF = (clusteroute, selectedCluster) => {
-    console.log("cr:",clusteroute);
-    
+
     const clustersToExport =
       // typeof selectedCluster === "number"
-        selectedCluster
+      selectedCluster
         ? clusteroute.filter((c) => c.clusterId === selectedCluster)
         : clusteroute;
 
@@ -1435,10 +1420,10 @@ const MapCluster = () => {
     });
 
     let fileName = "All_Clusters_Report.pdf";
-  if (selectedCluster && clustersToExport.length === 1) {
-    const name = clustersToExport[0].clusterNo;
-    fileName = `Cluster_${name}/Vehicle_${selectedVehicle}.pdf`;
-  }
+    if (selectedCluster && clustersToExport.length === 1) {
+      const name = clustersToExport[0].clusterNo;
+      fileName = `Cluster_${name}/Vehicle_${selectedVehicle}.pdf`;
+    }
 
     doc.save(fileName);
   };
@@ -1479,7 +1464,6 @@ const MapCluster = () => {
 
   const handleSearch = () => {
     if (searchValue) {
-      console.log(searchValue);
       const customer_code = searchValue;
       dispatch(getCustomersClusterMap({ customer_code }));
     }
@@ -1493,7 +1477,6 @@ const MapCluster = () => {
   const handleVehicleSelect = (value) => {
     if (value) {
       setSelectedVehicle(value);
-      console.log("log:", value);
 
       const vehicleNo = value;
       dispatch(getCustomersClusterMap({ vehicleNo }));
@@ -1507,7 +1490,6 @@ const MapCluster = () => {
     }
   }, [showRoute, showCluster])
 
-  console.log("data:", data);
 
 
   if (!isLoaded) {
@@ -1616,21 +1598,21 @@ const MapCluster = () => {
                 </Button>
               </div>
 
-                {/* Cluster Action Buttons */}
-                {!showMap && (
-                  <div className="flex gap-2">
-                    {/* <Button size="sm" variant="gradient" onClick={refreshCluster}>
+              {/* Cluster Action Buttons */}
+              {!showMap && (
+                <div className="flex gap-2">
+                  {/* <Button size="sm" variant="gradient" onClick={refreshCluster}>
                       Refresh Cluster
                     </Button> */}
-                    <Button size="sm" variant="gradient" onClick={handleSave}>
-                      Save
-                    </Button>
-                  </div>
-                )}
-              </div>
+                  <Button size="sm" variant="gradient" onClick={handleSave}>
+                    Save
+                  </Button>
+                </div>
+              )}
             </div>
+          </div>
 
-            <hr className="mt-2" />
+          <hr className="mt-2" />
           <div className="overflow-auto max-h-[75vh] mt-4">
 
             {data.length === 0 && (
@@ -1660,7 +1642,7 @@ const MapCluster = () => {
                   data
                     .filter((cluster) => cluster.customers && cluster.customers.length > 0)
                     .map((cluster, clusterIndex) => {
-                      const clusterColor = clusterColors[clusterIndex % clusterColors.length]
+                      const clusterColor = clusterColors[7 % clusterColors.length];
 
                       return cluster.customers.map((cust, idx) => (
                         <React.Fragment key={cust.customerId || `cust-${clusterIndex}-${idx}`}>
@@ -1749,7 +1731,6 @@ const MapCluster = () => {
                   />
                 )}
 
-                {/* Info window */}
                 {selected && (
                   <OverlayView
                     position={{ lat: selected.lat, lng: selected.lng }}
@@ -1782,8 +1763,13 @@ const MapCluster = () => {
             ) : (
               <DragDropContext onDragEnd={onDragEnd}>
                 <div className="w-full grid grid-cols-3 gap-6 scrollbar-thin">
-                  <div className="max-h-[75vh] overflow-auto scrollbar-thin col-span-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className={`${isVisible ? "col-span-2" : "col-span-3"} overflow-auto max-h-full`}>
+                    <div
+                      className={`grid gap-6 pl-6 ${isVisible
+                        ? "grid-cols-1 sm:grid-cols-2"
+                        : "grid-cols-1 sm:grid-cols-3"
+                        }`}
+                    >
                       {data.slice(0, 7).map((cluster, index) => (
                         <div
                           key={index}
@@ -1826,11 +1812,18 @@ const MapCluster = () => {
 
                                           {/* Main Info */}
                                           <div className="flex-1">
-                                            <div>{customer.code}</div>
+                                            <div
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(customer.code);
+                                              }}
+                                              title="Click to copy"
+                                              className="cursor-pointer hover:underline transition"
+                                            >
+                                              {customer.code}
+                                            </div>
                                             <div>{customer.displayName}</div>
                                           </div>
 
-                                          {/* Right-aligned Details */}
                                           <div className="ml-auto flex flex-col justify-end items-end text-right">
                                             <div>Qty: {customer.qty}</div>
                                             <div>Size: {customer.size}</div>
@@ -1863,81 +1856,109 @@ const MapCluster = () => {
                       ))}
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 col-span-1 relative">
-                    {data.slice(7, 8).map((cluster, index) => {
-                      const actualIndex = index + 7;
-                      const clusterColor = clusterColors[actualIndex % clusterColors.length];
+                  <div className="relative">
+                    {!isVisible && (
+                      <button
+                        onClick={() => setIsVisible(true)}
+                        className="fixed bottom-5 right-5 z-30 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white rounded-full p-3 shadow-lg transition"
+                        title="Show Unassigned Cluster"
+                      >
+                        <EyeIcon className="w-6 h-6" />
+                      </button>
+                    )}
 
-                      return (
-                        <div
-                          key={actualIndex}
-                          className="bg-white rounded-lg shadow-md min-w-[23vw] max-w-[320px] flex flex-col overflow-hidden fixed"
-                        >
-                          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
-                            {cluster.name} ({cluster.clusterName})
-                          </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 col-span-1 relative">
+                      {isVisible &&
+                        data.slice(7, 8).map((cluster, index) => {
+                          const actualIndex = index + 7;
+                          const clusterColor = clusterColors[actualIndex % clusterColors.length];
 
-                          <Droppable droppableId={`${actualIndex}`}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
-                              >
-                                {cluster.customers.map((customer, idx) => (
-                                  <Draggable
-                                    key={customer.code}
-                                    draggableId={customer.code}
-                                    index={idx}
-                                  >
-                                    {(provided, snapshot) => (
-                                      <div
-                                        ref={provided.innerRef}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
-                                          }`}
-                                        style={{
-                                          ...provided.draggableProps.style,
-                                          borderLeftColor: clusterColor,
-                                          color: clusterColor,
-                                        }}
-                                      >
-                                        <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
-                                        <div className="flex-1">
-                                          <div>{customer.code}</div>
-                                          <div>{customer.displayName}</div>
-                                        </div>
-                                        <div className="ml-auto flex flex-col justify-end items-end text-right">
-                                          <div>Qty: {customer.qty}</div>
-                                          <div>Size: {customer.size}</div>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </Draggable>
-                                ))}
-                                {provided.placeholder}
+                          return (
+                            <div
+                              key={actualIndex}
+                              className="bg-white rounded-lg shadow-md min-w-[23vw] max-w-[320px] flex flex-col overflow-hidden fixed"
+                            >
+                              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4 relative">
+                                {cluster.name} ({cluster.clusterName})
+                                <button
+                                  onClick={() => setIsVisible(false)}
+                                  className="absolute top-1.5 right-2 text-white hover:text-red-400 transition"
+                                >
+                                  <XCircleIcon className="h-5 w-5" />
+                                </button>
                               </div>
-                            )}
-                          </Droppable>
 
-                          <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
-                            <div className="text-left">
-                              {cluster.customers.length} Customers <br />
-                              {cluster.cartridge_qty} Cartridge Quantity
-                            </div>
-                            <div>
-                              {Object.entries(cluster.size).map(([size, count]) => (
-                                <div key={size}>
-                                  {size}: {count}
+                              <Droppable droppableId={`${actualIndex}`}>
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                                  >
+                                    {cluster.customers.map((customer, idx) => (
+                                      <Draggable
+                                        key={customer.code}
+                                        draggableId={customer.code}
+                                        index={idx}
+                                      >
+                                        {(provided, snapshot) => (
+                                          <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            className={`bg-white flex items-center rounded-md text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
+                                              }`}
+                                            style={{
+                                              ...provided.draggableProps.style,
+                                              borderLeftColor: clusterColor,
+                                              color: clusterColor,
+                                            }}
+                                          >
+                                            <div className="pr-2 text-lg font-semibold">
+                                              {idx + 1}.
+                                            </div>
+                                            <div className="flex-1">
+                                              <div
+                                                onClick={() => {
+                                                  navigator.clipboard.writeText(customer.code);
+                                                }}
+                                                title="Click to copy"
+                                                className="cursor-pointer hover:underline transition"
+                                              >
+                                                {customer.code}
+                                              </div>
+                                              <div>{customer.displayName}</div>
+                                            </div>
+                                            <div className="ml-auto flex flex-col justify-end items-end text-right">
+                                              <div>Qty: {customer.qty}</div>
+                                              <div>Size: {customer.size}</div>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                  </div>
+                                )}
+                              </Droppable>
+
+                              <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                                <div className="text-left">
+                                  {cluster.customers.length} Customers <br />
+                                  {cluster.cartridge_qty} Cartridge Quantity
                                 </div>
-                              ))}
+                                <div>
+                                  {Object.entries(cluster.size).map(([size, count]) => (
+                                    <div key={size}>
+                                      {size}: {count}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-
+                          );
+                        })}
+                    </div>
                   </div>
                 </div>
               </DragDropContext>

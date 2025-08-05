@@ -151,9 +151,9 @@ export const getWaterReports = createAsyncThunk(
     }
 );
 
-export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignment", async ({startDate, endDate}, { rejectWithValue }) => {
+export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignment", async ({startDate, endDate, clusterId, userId, vehicleNo}, { rejectWithValue }) => {
     try {
-      const data = await fetchClusterAssignment(startDate, endDate);
+      const data = await fetchClusterAssignment(startDate, endDate,  clusterId, userId, vehicleNo);
       return data;
     } catch (error) {
       console.error("Error in getTechnicianDropDown thunk:", error);

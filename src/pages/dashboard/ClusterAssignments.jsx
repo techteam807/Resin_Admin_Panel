@@ -21,25 +21,16 @@ const ClusterAssignments = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-  console.log("assign:", assignment);
 
 
   useEffect(() => {
-    const getWeekDatesInIST = () => {
-      // Get current time in IST
+    const getCurrentMonthDateRangeIST = () => {
       const now = new Date();
-      const indiaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
 
-      // Start of today in IST
-      const start = new Date(indiaTime);
-      start.setHours(0, 0, 0, 0);
+      const start = new Date(indiaTime.getFullYear(), indiaTime.getMonth(), 1);
+      const end = new Date(indiaTime.getFullYear(), indiaTime.getMonth() + 1, 0);
 
-      // End of 6 days later (total 7-day range)
-      const end = new Date(start);
-      end.setDate(end.getDate() + 6);
-      end.setHours(23, 59, 59, 999);
-
-      // Format to YYYY-MM-DD string in IST
       const formatDateIST = (date) => {
         const d = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
         const year = d.getFullYear();
@@ -50,11 +41,11 @@ const ClusterAssignments = () => {
 
       return {
         startDateStr: formatDateIST(start),
-        endDateStr: formatDateIST(end)
+        endDateStr: formatDateIST(end),
       };
     };
 
-    const { startDateStr, endDateStr } = getWeekDatesInIST();
+    const { startDateStr, endDateStr } = getCurrentMonthDateRangeIST();
     setStartDate(startDateStr);
     setEndDate(endDateStr);
   }, []);
@@ -74,9 +65,13 @@ const ClusterAssignments = () => {
 
   useEffect(() => {
     dispatch(getTechnicianDropDown());
-    dispatch(getClusterDropDown());
-    dispatch(getClusterAssignment({ startDate, endDate }));
-  }, [dispatch, startDate, endDate]);
+    if (selectedVehicle) {
+      dispatch(getClusterDropDown(selectedVehicle));
+    }
+    dispatch(getClusterAssignment({ startDate, endDate, vehicleNo: selectedVehicle }));
+  }, [dispatch, startDate, endDate, selectedVehicle]);
+
+
 
   const filteredTechnicians = technicianDrop.filter((technician) =>
     technician.user_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -122,7 +117,6 @@ const ClusterAssignments = () => {
 
     if (value) {
       setSelectedVehicle(value);
-      console.log("log:", value);
 
       const vehicleNo = value;
       dispatch(getClusterDropDown(vehicleNo));
@@ -193,22 +187,22 @@ const ClusterAssignments = () => {
                 <div>
                   {/* {selectedVehicle && (
                     <> */}
-                      {/* <label className="block mb-2 text-sm text-gray-700">Select Cluster</label> */}
-                      <Select
-                        // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
-                        label="Select Cluster"
-                        value={formData.clusterId}
-                        onChange={(value) => setFormData({ ...formData, clusterId: value })}
-                        disabled={!selectedVehicle}
-                      >
-                        {/* <Option value="">Choose a cluster</Option> */}
-                        {clusterDrop.map((c) => (
-                          <Option key={c._id} value={c._id}>
-                            Cluster {c.clusterNo}  - ({c.clusterName})
-                          </Option>
-                        ))}
-                      </Select>
-                    {/* </> */}
+                  {/* <label className="block mb-2 text-sm text-gray-700">Select Cluster</label> */}
+                  <Select
+                    // className="w-full border border-gray-400 rounded px-3 py-2 bg-white text-black"
+                    label="Select Cluster"
+                    value={formData.clusterId}
+                    onChange={(value) => setFormData({ ...formData, clusterId: value })}
+                    disabled={!selectedVehicle}
+                  >
+                    {/* <Option value="">Choose a cluster</Option> */}
+                    {clusterDrop.map((c) => (
+                      <Option key={c._id} value={c._id}>
+                        Cluster {c.clusterNo}  - ({c.clusterName})
+                      </Option>
+                    ))}
+                  </Select>
+                  {/* </> */}
                   {/* )} */}
                 </div>
 
@@ -242,7 +236,7 @@ const ClusterAssignments = () => {
           <div className="bg-white p-6 rounded shadow border border-gray-200 mt-6">
             <h2 className="text-xl font-semibold mb-4">Assignment History</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               {/* Technician Select */}
               <div className="flex flex-col">
                 <label className="mb-1 text-sm font-medium text-gray-700">Select Technician</label>
@@ -260,15 +254,31 @@ const ClusterAssignments = () => {
                 </select>
               </div>
 
-              {/* Cluster Select */}
+              <div className="flex flex-col">
+                <label className="mb-1 text-sm font-medium text-gray-700">Select Vehicle</label>
+                <select
+                  onChange={(e) => handleVehicleSelect(e.target.value)}
+                  value={selectedVehicle}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-black bg-white"
+                >
+                  <option value="" disabled>Select a vehicle</option>
+                  {vehicles.map((vehicle) => (
+                    <option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="flex flex-col">
                 <label className="mb-1 text-sm font-medium text-gray-700">Select Cluster</label>
                 <select
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white text-black"
+                  className={`w-full border rounded-lg px-3 py-2 text-black
+                  ${selectedVehicle ? "bg-white border-gray-300" : "bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed"}`}
                   value={filterClusterId}
                   onChange={(e) => setFilterClusterId(e.target.value)}
+                  disabled={!selectedVehicle}
                 >
-                  <option value="">All Clusters</option>
                   {clusterDrop.map((c) => (
                     <option key={c._id} value={c._id}>
                       Cluster {c.clusterNo} - ({c.clusterName})
