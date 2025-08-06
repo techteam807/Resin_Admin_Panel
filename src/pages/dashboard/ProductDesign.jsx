@@ -313,6 +313,14 @@ const ProductDesign = () => {
 
                         >
                           {/* Product List */}
+                          {products[0]?.Warehouse && (
+                            <div className="m-1.5 p-2.5 rounded-lg bg-blue-50 text-xs text-gray-700 font-medium space-y-1">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">WareHouse Code:</span>
+                                <span>{products[0]?.Warehouse?.wareHouseCode || "N/A"}</span>
+                              </div>
+                            </div>
+                          )}
                           {products.map((product, index) => (
                             <div key={product._id} className={`flex group items-center justify-between p-2 ${index !== products.length - 1 ? "border-b border-gray-200" : ""
                               }`}>
@@ -391,14 +399,7 @@ const ProductDesign = () => {
                           ))}
 
                           {/* Customer Details (Once per Group) */}
-                          {products[0]?.Warehouse && (
-                            <div className="m-1.5 p-2.5 rounded-lg bg-blue-50 text-xs text-gray-700 font-medium space-y-1">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">WareHouse Code:</span>
-                                <span>{products[0]?.Warehouse?.wareHouseCode || "N/A"}</span>
-                              </div>
-                            </div>
-                          )}
+                          
                         </Button>
                       ))
                     ) : (
