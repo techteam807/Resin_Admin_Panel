@@ -53,6 +53,7 @@ import { updateProductStatus, updateProductCode } from "./superAdminService";
               .addCase(changeProductStatus.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message;
+                toast.error(state.error);
               })
 
               .addCase(editProductCode.pending, (state) => {
@@ -68,6 +69,7 @@ import { updateProductStatus, updateProductCode } from "./superAdminService";
               .addCase(editProductCode.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message;
+                toast.error(state.error);
               })
           },
         });

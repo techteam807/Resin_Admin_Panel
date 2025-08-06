@@ -54,13 +54,17 @@ export const fetchCustomers = async (page = 1, search = '', isSubscription, Day 
     }
   };
 
-  export const fetchCustomersClusterMap = async (customer_code) => {
+  export const fetchCustomersClusterMap = async ({customer_code,vehicleNo}) => {
     console.log("customerCode:", customer_code);
+    console.log("v:",vehicleNo)
     try {
       const queryParams = new URLSearchParams();
       if(customer_code !== undefined && customer_code !== null) {
         queryParams.append('customer_code', customer_code);
-      }                                 
+      }    
+      if(vehicleNo !== undefined && vehicleNo !== null) {
+        queryParams.append('vehicleNo', vehicleNo);
+      }                               
       const response = await axiosConfig.get(`cluster/clusters?${queryParams}`);
       return response.data;
     } catch (error) {
@@ -89,15 +93,19 @@ export const fetchCustomers = async (page = 1, search = '', isSubscription, Day 
     }
   };
 
-export const fetchClusterRoutes = async (clusterNo) => {
-  console.log("clno:", clusterNo);
+export const fetchClusterRoutes = async (clusterId, vehicleNo) => {
+  console.log("clno:", clusterId);
 
   try {
     const queryParams = new URLSearchParams();
 
     // Fix: Allow 0 as a valid value
-    if (clusterNo !== undefined && clusterNo !== null) {
-      queryParams.append('clusterNo', clusterNo);
+    if (clusterId) {
+      queryParams.append('clusterId', clusterId);
+    }
+
+        if (vehicleNo !== undefined && vehicleNo !== null) {
+      queryParams.append('vehicleNo', vehicleNo);
     }
 
     const response = await axiosConfig.get(`cluster/clusters/optimize-routes?${queryParams}`);
@@ -139,9 +147,17 @@ export const fetchClusterRoutes = async (clusterNo) => {
     }
   };
 
-   export const fetchClusterDropdown = async () => {
+   export const fetchClusterDropdown = async (vehicleNo) => {
+    console.log(vehicleNo);
+    
     try {
-      const response = await axiosConfig.get('clusterAssignment/clusters');
+
+      const queryParams = new URLSearchParams();
+
+      if(vehicleNo !== undefined && vehicleNo !== null) {
+        queryParams.append('vehicleNo', vehicleNo);
+      }    
+      const response = await axiosConfig.get(`clusterAssignment/clusters?${queryParams}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching Technician Dropdown:', error);
@@ -159,9 +175,9 @@ export const fetchClusterRoutes = async (clusterNo) => {
   }
 };
 
- export const fetchClusterAssignment = async (startDate, endDate) => {
+ export const fetchClusterAssignment = async (startDate, endDate, clusterId, userId, vehicleNo) => {
     try {
-      const response = await axiosConfig.get('clusterAssignment/all',{ params: { startDate, endDate } });
+      const response = await axiosConfig.get('clusterAssignment/all',{ params: { startDate, endDate,  clusterId, userId, vehicleNo } });
       return response.data;
     } catch (error) {
       console.error('Error fetching Technician Dropdown:', error);
