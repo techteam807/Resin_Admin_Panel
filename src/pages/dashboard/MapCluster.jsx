@@ -1503,7 +1503,7 @@ const MapCluster = () => {
 
 
   return (
-    <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
+    <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 shadow-sm mr-6 mt-6">
       {mapLoading1 || mapLoading ? (
         <div className="flex h-[80vh] items-center justify-center">
           <Loader />
@@ -1613,7 +1613,7 @@ const MapCluster = () => {
           </div>
 
           <hr className="mt-2" />
-          <div className="overflow-auto max-h-[75vh] mt-4">
+          <div className="overflow-auto max-h-[70vh] mt-4 scrollbar-thin">
 
             {data.length === 0 && (
               <div className="flex h-[70vh] items-center justify-center">
@@ -1762,10 +1762,10 @@ const MapCluster = () => {
               </GoogleMap>
             ) : (
               <DragDropContext onDragEnd={onDragEnd}>
-                <div className="w-full grid grid-cols-3 gap-6 scrollbar-thin">
+                <div className="w-full grid grid-cols-3 gap-4 scrollbar-thin">
                   <div className={`${isVisible ? "col-span-2" : "col-span-3"} overflow-auto max-h-full`}>
                     <div
-                      className={`grid gap-6 pl-6 ${isVisible
+                      className={`grid gap-4 pl-6 ${isVisible
                         ? "grid-cols-1 sm:grid-cols-2"
                         : "grid-cols-1 sm:grid-cols-3"
                         }`}
@@ -1856,18 +1856,17 @@ const MapCluster = () => {
                       ))}
                     </div>
                   </div>
-                  <div className="relative">
-                    {!isVisible && (
+                  {/* <div className="relative"> */}
                       <button
-                        onClick={() => setIsVisible(true)}
-                        className="fixed bottom-5 right-5 z-30 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white rounded-full p-3 shadow-lg transition"
-                        title="Show Unassigned Cluster"
+                        style={{ writingMode: "sideways-lr", textOrientation: "mixed" }}
+                        onClick={() => setIsVisible(prev => !prev)}
+                        className="fixed top-[300px] right-1 z-30 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white font-semibold rounded-lg p-2 shadow-lg transition text-xs"
                       >
-                        <EyeIcon className="w-6 h-6" />
+                        {/* <EyeIcon className="w-6 h-6" /> */}
+                        {isVisible ? "Hide" : "Show" } Unassigned Cluster
                       </button>
-                    )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 col-span-1 relative">
+                    <div className="grid grid-cols-1">
                       {isVisible &&
                         data.slice(7, 8).map((cluster, index) => {
                           const actualIndex = index + 7;
@@ -1880,12 +1879,12 @@ const MapCluster = () => {
                             >
                               <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4 relative">
                                 {cluster.name} ({cluster.clusterName})
-                                <button
+                                {/* <button
                                   onClick={() => setIsVisible(false)}
                                   className="absolute top-1.5 right-2 text-white hover:text-red-400 transition"
                                 >
                                   <XCircleIcon className="h-5 w-5" />
-                                </button>
+                                </button> */}
                               </div>
 
                               <Droppable droppableId={`${actualIndex}`}>
@@ -1893,7 +1892,7 @@ const MapCluster = () => {
                                   <div
                                     ref={provided.innerRef}
                                     {...provided.droppableProps}
-                                    className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                                    className="flex-1 overflow-y-auto max-h-[49vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
                                   >
                                     {cluster.customers.map((customer, idx) => (
                                       <Draggable
@@ -1960,7 +1959,7 @@ const MapCluster = () => {
                         })}
                     </div>
                   </div>
-                </div>
+                {/* </div> */}
               </DragDropContext>
             )}
           </div>
