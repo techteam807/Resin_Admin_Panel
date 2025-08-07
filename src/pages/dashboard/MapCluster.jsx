@@ -1332,13 +1332,22 @@ const MapCluster = () => {
     data.forEach((cluster) => {
       cluster.customers.forEach((customer, index) => {
         const original = originalMap.get(customer.customerId);
-        if (!original || original.clusterId !== cluster.clusterId) {
+        // if (!original || original.clusterId !== cluster.clusterId) {
+        //   reassignments.push({
+        //     customerId: customer.customerId,
+        //     newClusterId: cluster.clusterId,
+        //     indexNo: index
+        //   });
+        // }
+
+        if (!original || original.clusterId !== cluster.clusterId || original.indexNo !== index) {
           reassignments.push({
             customerId: customer.customerId,
             newClusterId: cluster.clusterId,
             indexNo: index
           });
         }
+
       });
 
 
