@@ -1065,16 +1065,17 @@ const MapCluster = () => {
     dispatch(getCustomersClusterMap(payload))
   }, [dispatch, showMap, showCluster, selectedVehicle]);
 
-  // 📍 Fetch route data for a selected cluster
-  useEffect(() => {
-    if (!selectedVehicle) return;
+useEffect(() => {
+  if (!selectedVehicle) return;
+  if (!showMap || !showRoute) return;
 
-    const payload = showMap && showRoute && selectedCluster !== ""
-      ? { clusterId: selectedCluster, vehicleNo: selectedVehicle }
-      : { vehicleNo: selectedVehicle };
+  const payload = selectedCluster !== ""
+    ? { clusterId: selectedCluster, vehicleNo: selectedVehicle }
+    : { vehicleNo: selectedVehicle };
 
-    dispatch(fetchClusterRoute(payload));
-  }, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
+  dispatch(fetchClusterRoute(payload));
+}, [dispatch, showMap, showRoute, selectedCluster, selectedVehicle]);
+
 
 
   useEffect(() => {
@@ -1114,8 +1115,8 @@ const MapCluster = () => {
     }
 
     // once loading is finished, format what came back
-    if (customersClusterMap?.length) {
-      const formatted = customersClusterMap.map((cluster) => ({
+    if (customersClusterMap?.clusters?.length) {
+      const formatted = customersClusterMap.clusters.map((cluster) => ({
         clusterId: cluster._id,
         vehicle: cluster.vehicleNo,
         clusterNo: cluster.clusterNo,
@@ -1523,6 +1524,14 @@ const MapCluster = () => {
             <Typography variant="h5" color="blue-gray">
               Cluster {showMap ? "Map" : "List"}
             </Typography>
+
+            <div className="text-sm text-gray-700">
+      <div>Total In Clusters: <strong>{customersClusterMap?.totalInClusters ?? 0}</strong></div>
+      <div>
+        Total In Vehicle <strong>{selectedVehicle}</strong>: <strong>{customersClusterMap?.totalInRequestedVehicle ?? 0}</strong>(with Includes of Unassigned)
+      </div>
+    </div>
+
             <div className="flex items-center gap-2">
               <div >
                 <Select
@@ -1651,7 +1660,7 @@ const MapCluster = () => {
                   data
                     .filter((cluster) => cluster.customers && cluster.customers.length > 0)
                     .map((cluster, clusterIndex) => {
-                      const clusterColor = clusterColors[7 % clusterColors.length];
+                      const clusterColor = clusterColors[clusterIndex % clusterColors.length];
 
                       return cluster.customers.map((cust, idx) => (
                         <React.Fragment key={cust.customerId || `cust-${clusterIndex}-${idx}`}>

@@ -10,7 +10,7 @@ function WaterReports() {
   const navigate = useNavigate();
   const { waterReports, loading } = useSelector((state) => state.waterReport);
   console.log("waterReport", waterReports)
-  const Data = waterReports;
+  const Data = waterReports?.result;
   const currentDate = new Date();
   console.log("cur:",currentDate);
   
@@ -279,6 +279,7 @@ function WaterReports() {
       {/* Header and filters */}
       <div className="flex justify-between items-center px-5 py-4">
         <h1 className="text-xl font-bold text-gray-800">Water Reports</h1>
+        total : {waterReports?.count}
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">Start Date : </label>
