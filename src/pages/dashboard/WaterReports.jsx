@@ -9,10 +9,8 @@ function WaterReports() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { waterReports, loading } = useSelector((state) => state.waterReport);
-  console.log("waterReport", waterReports)
   const Data = waterReports;
   const currentDate = new Date();
-  console.log("cur:",currentDate);
   
   const currentMonth = currentDate.getMonth() + 1
   const currentYear = currentDate.getFullYear();
@@ -143,10 +141,10 @@ function WaterReports() {
     setModalUser(null);
   };
 
-  const handleModalSave = () => {
-    const formattedMonth = month < 10 ? `0${month}` : month;
-    dispatch(getWaterReports({ month: formattedMonth, year }));
-  };
+  // const handleModalSave = () => {
+  //   const formattedMonth = month < 10 ? `0${month}` : month;
+  //   dispatch(getWaterReports({ month: formattedMonth, year }));
+  // };
 
   return (
     //     <div className="flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
@@ -483,7 +481,7 @@ function WaterReports() {
       <DayDetailModal
         show={showModal}
         onClose={closeModal}
-        onSaved={handleModalSave}
+        // onSaved={handleModalSave}
         data={modalData}
         day={modalDay}
         user={modalUser}
