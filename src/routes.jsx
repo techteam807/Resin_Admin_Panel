@@ -9,7 +9,6 @@ import ProductDesign from "./pages/dashboard/ProductDesign";
 import WareHouse from "./pages/dashboard/WareHouse";
 import ProductLog from "./pages/dashboard/ProductLog";
 import Map from "./pages/dashboard/Map";
-import MapCluster from "./pages/dashboard/MapCluster";
 import MasterAdmin from "./pages/dashboard/MasterAdmin";
 import CustomerLog from "./pages/dashboard/CustomerLog";
 import MissedDeliveryLog from "./pages/dashboard/MissedDeliveryLog";
@@ -18,6 +17,7 @@ import WaterReports from "./pages/dashboard/WaterReports";
 import AdminProductCodeUpdate from "./pages/dashboard/AdminProductCodeUpdate";
 import TechnicianLogAnalytics from "./pages/dashboard/TechnicianLogAnalytics";
 import ClusterAssignments from "./pages/dashboard/ClusterAssignments";
+import MapClusterCopy from "./pages/dashboard/MapClusterCopy";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -67,7 +67,7 @@ export const routes = [
         icon: <ArrowUpOnSquareStackIcon {...icon} />,
         name: "Location Cluster",
         path: "/locationCluster",
-        element: <MapCluster />,
+        element: <MapClusterCopy />,
       },
       {
         icon:<AdjustmentsVerticalIcon {...icon} />,
