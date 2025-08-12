@@ -24,12 +24,8 @@ import CustomerDetails from './CustomerDetails';
 
 function Home() {
   const dispatch = useDispatch();
-  const [searchValue, setSearchValue] = useState("");
-  console.log("serch:",searchValue);
-  
+  const [searchValue, setSearchValue] = useState("");  
   const { customers, loading, pagination, sendLoading } = useSelector((state) => state.customer);
-  console.log("customers", customers)
-  console.log("pagination", pagination)
   const [copiedCustomerId, setCopiedCustomerId] = useState(null);
   const [open, setOpen] = useState(false);
   const [customerId, setCustomerId] = useState(null);
@@ -219,6 +215,13 @@ function Home() {
                                 <div className="flex items-center gap-3">
 
                                   <div className="flex flex-col">
+                                    <Typography
+                                      variant="small"
+                                      color="blue-gray"
+                                      className="font-normal opacity-70"
+                                    >
+                                      {customer?.first_name} {customer?.last_name}
+                                    </Typography>
 
                                     <Typography
                                       variant="small"
@@ -227,13 +230,6 @@ function Home() {
 
                                     >
                                       {customer?.customer_name}
-                                    </Typography>
-                                    <Typography
-                                      variant="small"
-                                      color="blue-gray"
-                                      className="font-normal opacity-70"
-                                    >
-                                      {customer?.first_name} {customer?.last_name}
                                     </Typography>
                                   </div>
                                 </div>

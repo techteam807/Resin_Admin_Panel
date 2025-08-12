@@ -251,7 +251,10 @@ const TechnicianLog = () => {
 
                                             {log.customerId && log.status === 'inuse' && (
                                             <div className="mt-3 text-xs text-gray-600 space-y-1 border-t pt-2">
-                                                <p><span className="font-medium">Customer:</span> {log.customerId.display_name || 'N/A'}</p>
+                                                <p><span className="font-medium">Customer:</span>
+                                                 {log.customerId.first_name || 'N/A'}{" "}
+                                                 {log.customerId.last_name || 'N/A'}
+                                                </p>
                                                 <p><span className="font-medium">Customer Code:</span> {log.customerId.contact_number || 'N/A'}</p>
                                                 <p><span className="font-medium">Mobile:</span> {log.customerId.mobile || 'N/A'}</p>
                                                 <p><span className="font-medium">Email:</span> {log.customerId.email || 'N/A'}</p>

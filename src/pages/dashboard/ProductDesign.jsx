@@ -512,7 +512,10 @@ const ProductDesign = () => {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Name:</span>
-                                <span>{products[0]?.Customer?.display_name || "N/A"}</span>
+                                <span>
+                                  {products[0]?.Customer?.first_name || "N/A"}{" "}
+                                  {products[0]?.Customer?.last_name || "N/A"}
+                                </span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Email:</span>

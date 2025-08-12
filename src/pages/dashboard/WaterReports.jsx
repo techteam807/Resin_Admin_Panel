@@ -8,12 +8,12 @@ import DayDetailModal from "@/component/DayDetailModal";
 function WaterReports() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { waterReports, loading } = useSelector((state) => state.waterReport);
-  console.log("waterReport", waterReports)
+  const { waterReports, loading, totalCount } = useSelector((state) => state.waterReport);
+  console.log("w:",waterReports);
+  
   const Data = waterReports;
   const currentDate = new Date();
-  console.log("cur:",currentDate);
-  
+
   const currentMonth = currentDate.getMonth() + 1
   const currentYear = currentDate.getFullYear();
   const years = Array.from({ length: currentYear - 2024 + 11 }, (_, i) => 2024 + i);
@@ -27,13 +27,13 @@ function WaterReports() {
   const [modalUser, setModalUser] = useState(null);
 
   useEffect(() => {
-  const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
-  const newLastDay = new Date(year, month, 0).getDate();
-  const newEndDate = `${year}-${String(month).padStart(2, '0')}-${String(newLastDay).padStart(2, '0')}`;
+    const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
+    const newLastDay = new Date(year, month, 0).getDate();
+    const newEndDate = `${year}-${String(month).padStart(2, '0')}-${String(newLastDay).padStart(2, '0')}`;
 
-  setStartDate(newFirstDay);
-  setEndDate(newEndDate);
-}, [month, year]);
+    setStartDate(newFirstDay);
+    setEndDate(newEndDate);
+  }, [month, year]);
 
 
   const monthNames = [
@@ -49,7 +49,7 @@ function WaterReports() {
   const getDaysInMonth = (month, year) => {
     return new Date(year, month, 0).getDate();
   };
-  
+
 
   const daysInMonth = getDaysInMonth(month, year)
 
@@ -87,7 +87,7 @@ function WaterReports() {
   //   });
   // });
 
-  Data.forEach((customer) => {
+  Data?.forEach((customer) => {
     const userId = customer._id;
 
     // Initialize user info and scores container
@@ -96,6 +96,8 @@ function WaterReports() {
         user: {
           _id: customer._id,
           display_name: customer.display_name,
+          first_name: customer.first_name,
+          last_name: customer.last_name,
           contact_number: customer.contact_number,
           // Add more fields here if needed
         },
@@ -143,10 +145,10 @@ function WaterReports() {
     setModalUser(null);
   };
 
-  const handleModalSave = () => {
-    const formattedMonth = month < 10 ? `0${month}` : month;
-    dispatch(getWaterReports({ month: formattedMonth, year }));
-  };
+  // const handleModalSave = () => {
+  //   const formattedMonth = month < 10 ? `0${month}` : month;
+  //   dispatch(getWaterReports({ month: formattedMonth, year }));
+  // };
 
   return (
     //     <div className="flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
@@ -280,13 +282,17 @@ function WaterReports() {
       <div className="flex justify-between items-center px-5 py-4">
         <h1 className="text-xl font-bold text-gray-800">Water Reports</h1>
         <div className="flex flex-wrap gap-4">
+          <div className="mt-1.5 border-b border-gray-600">
+            <h1>Total Customer : {totalCount}</h1>
+          </div>
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">Start Date : </label>
             <input
               type="date"
+              disabled
               className="px-2 py-1 border border-gray-300 rounded"
               value={startDate || ""}
-    onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => setStartDate(e.target.value)}
             />
           </div>
 
@@ -295,9 +301,10 @@ function WaterReports() {
             <label className="text-sm font-medium text-gray-700">End Date : </label>
             <input
               type="date"
+              disabled
               className="px-2 py-1 border border-gray-300 rounded"
-               value={endDate || ""}
-    onChange={(e) => setEndDate(e.target.value)}
+              value={endDate || ""}
+              onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
           <div className="flex items-center gap-2">
@@ -339,6 +346,9 @@ function WaterReports() {
           <table className="w-full border-collapse bg-white">
             <thead>
               <tr>
+                <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2">No.
+                </th>
+
                 <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[180px]">
                   User
                 </th>
@@ -356,11 +366,20 @@ function WaterReports() {
               </tr>
             </thead>
             <tbody>
-              {Object.values(groupedData).map((userData) => (
+              {Object.values(groupedData).map((userData, index) => (
                 <tr key={userData.user._id}>
+                  <td className="sticky left-0 z-20 bg-gray-100 border border-gray-300 text-center">{index + 1}</td>
                   <td className="sticky left-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[180px]">
-                    {userData.user.display_name}
+                    <div className="flex flex-col items-center">
+                      <span>
+                        {userData.user.first_name} {userData.user.last_name}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {userData.user?.contact_number}
+                      </span>
+                    </div>
                   </td>
+
                   {/* {Array.from({ length: daysInMonth }, (_, day) => {
                     const currentDay = day + 1;
                     const entries = userData.scores[currentDay];
@@ -383,82 +402,82 @@ function WaterReports() {
                     );
                   })} */}
                   {Array.from({ length: daysInMonth }, (_, day) => {
-  const currentDay = day + 1;
-  const entries = userData.scores[currentDay];
+                    const currentDay = day + 1;
+                    const entries = userData.scores[currentDay];
 
-  let bgClass = "";
-  let cellContent = "-";
+                    let bgClass = "";
+                    let cellContent = "-";
 
-  if (entries?.length) {
-    const scores = entries.map((e) => e.score).join(", ");
-    const hasStatus = entries.some((e) => e.status);
+                    if (entries?.length) {
+                      const scores = entries.map((e) => e.score).join(", ");
+                      const hasStatus = entries.some((e) => e.status);
 
-    if (hasStatus) {
-      const scoreValues = entries.map((e) => e.score);
-    const hasStatus = entries.some((e) => e.status);
-    const scoresText = scoreValues.join(", ");
+                      if (hasStatus) {
+                        const scoreValues = entries.map((e) => e.score);
+                        const hasStatus = entries.some((e) => e.status);
+                        const scoresText = scoreValues.join(", ");
 
-    // Assign background color based on score, regardless of status
-    const hasHigh = scoreValues.some((score) => score > 100);
-    const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
-    const hasLow = scoreValues.some((score) => score < 60);
+                        // Assign background color based on score, regardless of status
+                        const hasHigh = scoreValues.some((score) => score > 100);
+                        const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
+                        const hasLow = scoreValues.some((score) => score < 60);
 
-    if (hasHigh) {
-      bgClass = "bg-red-500 text-white";
-    } else if (hasMid) {
-      bgClass = "bg-yellow-400 text-black";
-    } else if (hasLow) {
-      bgClass = "bg-green-500 text-white";
-    }
+                        if (hasHigh) {
+                          bgClass = "bg-red-500 text-white";
+                        } else if (hasMid) {
+                          bgClass = "bg-yellow-400 text-black";
+                        } else if (hasLow) {
+                          bgClass = "bg-green-500 text-white";
+                        }
 
-    // Add checkmark if status is true
-    cellContent = (
-  <div className="flex items-center justify-center gap-2">
-    <span>{scoresText}</span>
-    {hasStatus && (
-      <div className="ml-4 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm border border-black">
-        <svg
-          className="w-4 h-4 text-green-600"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="4"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-    )}
-  </div>
-);
+                        // Add checkmark if status is true
+                        cellContent = (
+                          <div className="flex items-center justify-center gap-2">
+                            <span>{scoresText}</span>
+                            {hasStatus && (
+                              <div className="ml-4 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm border border-black">
+                                <svg
+                                  className="w-4 h-4 text-green-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        );
 
-    } else {
-      const scoreValues = entries.map((e) => e.score);
-      const hasHigh = scoreValues.some((score) => score > 100);
-      const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
-      const hasLow = scoreValues.some((score) => score < 60);
+                      } else {
+                        const scoreValues = entries.map((e) => e.score);
+                        const hasHigh = scoreValues.some((score) => score > 100);
+                        const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
+                        const hasLow = scoreValues.some((score) => score < 60);
 
-      if (hasHigh) {
-        bgClass = "bg-red-500 text-white";
-      } else if (hasMid) {
-        bgClass = "bg-yellow-400 text-black";
-      } else if (hasLow) {
-        bgClass = "bg-green-500 text-white";
-      }
+                        if (hasHigh) {
+                          bgClass = "bg-red-500 text-white";
+                        } else if (hasMid) {
+                          bgClass = "bg-yellow-400 text-black";
+                        } else if (hasLow) {
+                          bgClass = "bg-green-500 text-white";
+                        }
 
-      cellContent = scores;
-    }
-  }
+                        cellContent = scores;
+                      }
+                    }
 
-  return (
-    <td
-      key={currentDay}
-      className={`border border-gray-300 text-center min-w-[90px] p-2 cursor-pointer ${bgClass}`}
-      onClick={() => handleCellClick(entries, currentDay, userData.user)}
-    >
-      {cellContent}
-    </td>
-  );
-})}
+                    return (
+                      <td
+                        key={currentDay}
+                        className={`border border-gray-300 text-center min-w-[90px] p-2 cursor-pointer ${bgClass}`}
+                        onClick={() => handleCellClick(entries, currentDay, userData.user)}
+                      >
+                        {cellContent}
+                      </td>
+                    );
+                  })}
 
 
                   <td className="sticky right-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[150px]">
@@ -474,7 +493,7 @@ function WaterReports() {
             </tbody>
           </table>
         )}
-        {!loading && Data.length === 0 && (
+        {!loading && Data?.length === 0 && (
           <p className="text-center text-gray-500 py-4">No data available.</p>
         )}
       </div>
@@ -483,7 +502,7 @@ function WaterReports() {
       <DayDetailModal
         show={showModal}
         onClose={closeModal}
-        onSaved={handleModalSave}
+        // onSaved={handleModalSave}
         data={modalData}
         day={modalDay}
         user={modalUser}

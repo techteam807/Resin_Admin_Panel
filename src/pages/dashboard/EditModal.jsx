@@ -93,7 +93,8 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                       </div>
                       <div>
                         <p className="font-semibold text-sm">
-                          {customer?.customerId?.display_name}
+                          {customer?.customerId?.first_name}{" "}
+                          {customer?.customerId?.last_name}
                         </p>
                         <p className="text-xs text-gray-500">
                           {customer?.customerId?.contact_number}
@@ -121,7 +122,8 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                       </div>
                       <div>
                         <p className="font-semibold text-sm">
-                          {customer?.customerId?.display_name}
+                          {customer?.customerId?.first_name}{" "}
+                          {customer?.customerId?.last_name}
                         </p>
                         <p className="text-xs text-gray-500">
                           {customer?.customerId?.contact_number}
@@ -133,7 +135,7 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
             </div>
 
             {/* Footer */}
-            <div className="flex justify-between items-center border-t pt-3 mt-4 text-sm">
+            {/* <div className="flex justify-between items-center border-t pt-3 mt-4 text-sm">
               <div className="flex items-center gap-1">
                 <FaBox className="text-sm" />
                 {assignmentDetails?.clusterId?.customers?.length}
@@ -142,7 +144,21 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                 CARTRIDGE QTY:{" "}
                 {assignmentDetails?.clusterId?.cartridge_qty}
               </div>
-            </div>
+            </div> */}
+            <div className="p-3 border-t border-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                                <div className="text-left">
+                                  {assignmentDetails?.clusterId?.customers.length} Customers <br />
+                                  {assignmentDetails?.clusterId?.cartridge_qty} Cartridge Quantity
+                                </div>
+                                <div>
+                                  {assignmentDetails?.cartridgeSizeCounts &&
+    Object.entries(assignmentDetails.cartridgeSizeCounts).map(([size, count]) => (
+      <div key={size}>
+        {size}: {count}
+      </div>
+    ))}
+                                </div>
+                              </div>
           </>
         )}
       </div>

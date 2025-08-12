@@ -24,9 +24,9 @@ export const getCustomersMap = createAsyncThunk("customer/getCustomersMap", asyn
   }
 });
 
-export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({customer_code,vehicleNo}) => {
+export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({customer_code, vehicleNo, clusterNo}) => {
   try {
-    const data = await fetchCustomersClusterMap({customer_code,vehicleNo});
+    const data = await fetchCustomersClusterMap({customer_code, vehicleNo, clusterNo});
     return data;
   } catch (error) {
     console.error("Error in getCustomersClusterMap thunk:", error);
@@ -46,7 +46,6 @@ export const refreshCustomersClusterMap = createAsyncThunk("customer/refreshCust
 
 export const editCustomersClusterMap = createAsyncThunk("customer/editCustomersClusterMap", async ({ reassignments }) => {
   try {
-    console.log("reassignments", reassignments)
     const data = await updateCustomersClusterMap(reassignments);
     return data;
   } catch (error) {
@@ -115,9 +114,9 @@ export const getMissedDeliveryLogs = createAsyncThunk("customer/getMissedDeliver
   }
 });
 
-export const getClusterDropDown = createAsyncThunk("customer/getClusterDropDown", async (vehicleNo) => {
+export const getClusterDropDown = createAsyncThunk("customer/getClusterDropDown", async (vehicleNo, clusterNo) => {
     try {
-      const data = await fetchClusterDropdown(vehicleNo);
+      const data = await fetchClusterDropdown({vehicleNo, clusterNo});
       return data;
     } catch (error) {
       console.error("Error in getTechnicianDropDown thunk:", error);
@@ -153,7 +152,7 @@ export const getWaterReports = createAsyncThunk(
 
 export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignment", async ({startDate, endDate, clusterId, userId, vehicleNo}, { rejectWithValue }) => {
     try {
-      const data = await fetchClusterAssignment(startDate, endDate,  clusterId, userId, vehicleNo);
+      const data = await fetchClusterAssignment({startDate, endDate,  clusterId, userId, vehicleNo});
       return data;
     } catch (error) {
       console.error("Error in getTechnicianDropDown thunk:", error);

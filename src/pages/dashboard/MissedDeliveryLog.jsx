@@ -198,7 +198,10 @@ const MissedDeliveryLog = () => {
                                             <UserIcon className="h-4 w-4" />
                                             Customer Info
                                             </div>
-                                            <p className='text-sm'><span className="font-medium">Customer:</span> {log.customerId.display_name || 'N/A'}</p>
+                                            <p className='text-sm'><span className="font-medium">Customer:</span> 
+                                            {log.customerId.first_name || 'N/A'}{" "}
+                                            {log.customerId.last_name || 'N/A'}
+                                            </p>
                                             <div className="flex items-center gap-2">
                                             <span className="font-medium text-sm">Customer Code:</span>
                                             <span className="text-xs font-medium text-gray-700 flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-red-300 shadow-sm">

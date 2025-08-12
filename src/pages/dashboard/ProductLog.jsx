@@ -254,7 +254,8 @@ const ProductLog = () => {
                         <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 space-y-1">
                           <div>
                             <span className="font-medium">Customer Name:</span>{' '}
-                            {log.customerId.display_name || "N/A"}
+                            {log.customerId.first_name || "N/A"}{" "}
+                            {log.customerId.last_name || "N/A"}
                           </div>
                           <div>
                             <span className="font-medium">Customer Code:</span>{' '}
