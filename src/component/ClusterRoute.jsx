@@ -192,6 +192,7 @@ import {
     DirectionsRenderer
 } from '@react-google-maps/api';
 import { Option, Select } from '@material-tailwind/react';
+import Loader from '@/pages/Loader';
 
 const clusterColors = [
     'red',
@@ -229,7 +230,6 @@ const ClusterRoute = (
         handleMapLoad
     }
 ) => {
-    console.log("selectedCluster",selectedCluster)
 
     const { isLoaded } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -237,7 +237,9 @@ const ClusterRoute = (
     });
 
     if (!isLoaded) {
-        return <div>Loading...</div>;
+        return <div>
+            <Loader />
+        </div>;
     }
     return (
         <div style={{ width: '100%', height: '80vh', position: 'relative' }}>

@@ -34,7 +34,6 @@ const MapClusterCopy = () => {
     const { customersClusterMap, mapLoading1, mapLoading, clusteroute, clusterDrop } = useSelector(
         (state) => state.customer
     );
-    console.log("customersClusterMap", customersClusterMap)
 
     const [activeTab, setActiveTab] = useState('list');
     const [data, setData] = useState([]);
@@ -47,6 +46,8 @@ const MapClusterCopy = () => {
     const [searchValue, setSearchValue] = useState('');
     const [selectedVehicle, setSelectedVehicle] = useState(1);
     const [isVisible, setIsVisible] = useState(true);
+    const [saveLoading, setSaveLoading] = useState(false);
+
 
     // Fetch clusters based on vehicle
     useEffect(() => {
@@ -232,7 +233,7 @@ const MapClusterCopy = () => {
         data.forEach((cluster) => {
             cluster.customers.forEach((customer, index) => {
                 const original = originalMap.get(customer.customerId);
-                if (!original || original.clusterId !== cluster.clusterId) {
+                if (!original || original.clusterId !== cluster.clusterId || original.indexNo !== index) {
                     reassignments.push({
                         customerId: customer.customerId,
                         newClusterId: cluster.clusterId,
@@ -242,7 +243,11 @@ const MapClusterCopy = () => {
             });
         });
 
+        console.log("reassignments:",reassignments);
+        
+
         if (reassignments.length > 0) {
+            setSaveLoading(true);
             dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
                 .unwrap()
                 .then(() => {
@@ -250,6 +255,9 @@ const MapClusterCopy = () => {
                 })
                 .catch(() => {
                     dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
+                })
+                 .finally(() => {
+                setSaveLoading(false); 
                 });
         }
     };
@@ -331,6 +339,7 @@ const MapClusterCopy = () => {
                     <ClusterList
                         data={data}
                         mapLoading1={mapLoading1}
+                        saveLoading={saveLoading}
                         selectedVehicle={selectedVehicle}
                         searchValue={searchValue}
                         isVisible={isVisible}

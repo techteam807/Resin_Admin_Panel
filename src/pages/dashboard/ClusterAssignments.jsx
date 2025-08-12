@@ -9,6 +9,7 @@ import { createClusterAssignment, deleteAssignment, getClusterAssignment, getClu
 import EditModal from "./EditModal";
 import vehicles from '../../global.js';
 import Loader from "../Loader";
+import { Typography } from "@material-tailwind/react";
 
 const ClusterAssignments = () => {
   const dispatch = useDispatch();
@@ -408,20 +409,20 @@ const ClusterAssignments = () => {
                           </td>
                           <td className="p-2 border text-center">
                             <div className="flex justify-center gap-3">
-                              <button
-                                className="p-1.5 rounded-full hover:bg-blue-100 text-blue-600 transition duration-150"
+                              <Typography
+                                className="cursor-pointer p-1.5"
                                 title="Details"
                                 onClick={() => handleEditClick(a)}
                               >
                                 <EyeIcon className="h-5 w-5" />
-                              </button>
-                              <button
+                              </Typography>
+                              <Typography
                                 onClick={() => handleDelete(a._id)}
-                                className="p-1.5 rounded-full hover:bg-red-100 text-red-600 transition duration-150"
+                                className="p-1.5 cursor-pointer"
                                 title="Delete"
                               >
                                 <TrashIcon className="h-5 w-5" />
-                              </button>
+                              </Typography>
                             </div>
                           </td>
                         </tr>
