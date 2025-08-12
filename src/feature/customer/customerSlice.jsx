@@ -24,9 +24,9 @@ export const getCustomersMap = createAsyncThunk("customer/getCustomersMap", asyn
   }
 });
 
-export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({customer_code,vehicleNo, clusterId}) => {
+export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({customer_code, vehicleNo, clusterNo}) => {
   try {
-    const data = await fetchCustomersClusterMap({customer_code,vehicleNo, clusterId});
+    const data = await fetchCustomersClusterMap({customer_code, vehicleNo, clusterNo});
     return data;
   } catch (error) {
     console.error("Error in getCustomersClusterMap thunk:", error);
