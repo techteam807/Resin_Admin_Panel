@@ -54,9 +54,7 @@ export const fetchCustomers = async (page = 1, search = '', isSubscription, Day 
     }
   };
 
-  export const fetchCustomersClusterMap = async ({customer_code,vehicleNo}) => {
-    console.log("customerCode:", customer_code);
-    console.log("v:",vehicleNo)
+  export const fetchCustomersClusterMap = async ({customer_code,vehicleNo, clusterId}) => {
     try {
       const queryParams = new URLSearchParams();
       if(customer_code !== undefined && customer_code !== null) {
@@ -64,7 +62,10 @@ export const fetchCustomers = async (page = 1, search = '', isSubscription, Day 
       }    
       if(vehicleNo !== undefined && vehicleNo !== null) {
         queryParams.append('vehicleNo', vehicleNo);
-      }                               
+      }      
+      if(clusterId !== undefined && clusterId !== null) {
+        queryParams.append('clusterId', clusterId);
+      }                                
       const response = await axiosConfig.get(`cluster/clusters?${queryParams}`);
       return response.data;
     } catch (error) {

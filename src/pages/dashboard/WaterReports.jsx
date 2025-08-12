@@ -9,10 +9,10 @@ function WaterReports() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { waterReports, loading } = useSelector((state) => state.waterReport);
-  console.log("waterReport", waterReports)
-  const Data = waterReports;
+  console.log("w:",waterReports);
+  
+  const Data = waterReports?.result;
   const currentDate = new Date();
-  console.log("cur:",currentDate);
   
   const currentMonth = currentDate.getMonth() + 1
   const currentYear = currentDate.getFullYear();
@@ -87,7 +87,7 @@ function WaterReports() {
   //   });
   // });
 
-  Data.forEach((customer) => {
+  Data?.forEach((customer) => {
     const userId = customer._id;
 
     // Initialize user info and scores container
@@ -143,10 +143,10 @@ function WaterReports() {
     setModalUser(null);
   };
 
-  const handleModalSave = () => {
-    const formattedMonth = month < 10 ? `0${month}` : month;
-    dispatch(getWaterReports({ month: formattedMonth, year }));
-  };
+  // const handleModalSave = () => {
+  //   const formattedMonth = month < 10 ? `0${month}` : month;
+  //   dispatch(getWaterReports({ month: formattedMonth, year }));
+  // };
 
   return (
     //     <div className="flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
@@ -280,6 +280,9 @@ function WaterReports() {
       <div className="flex justify-between items-center px-5 py-4">
         <h1 className="text-xl font-bold text-gray-800">Water Reports</h1>
         <div className="flex flex-wrap gap-4">
+          <div className="mt-1.5 border-b border-gray-600">
+            <h1>Total Customer : {waterReports?.count}</h1>
+          </div>
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">Start Date : </label>
             <input
@@ -474,7 +477,7 @@ function WaterReports() {
             </tbody>
           </table>
         )}
-        {!loading && Data.length === 0 && (
+        {!loading && Data?.length === 0 && (
           <p className="text-center text-gray-500 py-4">No data available.</p>
         )}
       </div>
@@ -483,7 +486,7 @@ function WaterReports() {
       <DayDetailModal
         show={showModal}
         onClose={closeModal}
-        onSaved={handleModalSave}
+        // onSaved={handleModalSave}
         data={modalData}
         day={modalDay}
         user={modalUser}
