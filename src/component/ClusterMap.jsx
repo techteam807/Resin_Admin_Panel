@@ -7,6 +7,7 @@ import {
   useLoadScript,
 } from '@react-google-maps/api';
 import { Select, Option } from '@material-tailwind/react';
+import Loader from '@/pages/Loader';
 
 const clusterColors = [
   'red',
@@ -37,6 +38,9 @@ const ClusterMap = ({
   vehicles,
   handleMapLoad,
   clusterDrop,
+  selectedClusterId,
+  setSelectedClusterId,
+  setSelectedClusterNumber,
 }) => {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -47,7 +51,7 @@ const ClusterMap = ({
   const clusterColorMap = useMemo(() => {
     const map = {};
     data.forEach((cluster, index) => {
-      map[cluster._id] = clusterColors[index % clusterColors.length];
+      map[cluster.clusterId] = clusterColors[index % clusterColors.length];
     });
     return map;
   }, [data]);
@@ -55,7 +59,7 @@ const ClusterMap = ({
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center h-[80vh] text-gray-500">
-        Loading Map...
+        <Loader />
       </div>
     );
   }
@@ -85,14 +89,18 @@ const ClusterMap = ({
           <div>
             <Select
               label="Select Cluster"
-              value={selectedVehicle}
-             onChange={handleVehicleSelect}
+              value={selectedClusterId}
+              onChange={(value) => {
+                setSelectedClusterId(value);
+
+                // find the selected cluster's number
+                const cluster = clusterDrop.find(c => c._id === value);
+                if (cluster) {
+                  setSelectedClusterNumber(cluster.clusterNo); // 👈 set cluster number
+                }
+              }}
               disabled={!selectedVehicle}
-              className={
-                selectedVehicle
-                  ? 'bg-white'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }
+              className={selectedVehicle ? 'bg-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
             >
               {clusterDrop.map((c) => (
                 <Option key={c._id} value={c._id}>
@@ -113,8 +121,9 @@ const ClusterMap = ({
       >
         {data
           .filter((cluster) => cluster.customers?.length > 0)
+          .filter((cluster) => !selectedClusterId || cluster.clusterId === selectedClusterId) // ✅ filter by selected cluster
           .map((cluster) => {
-            const clusterColor = clusterColorMap[cluster._id];
+            const clusterColor = clusterColorMap[cluster.clusterId];
 
             return cluster.customers.map((cust, idx) => (
               <React.Fragment key={cust.customerId || `${cluster._id}-${idx}`}>
@@ -143,6 +152,7 @@ const ClusterMap = ({
               </React.Fragment>
             ));
           })}
+
 
         {selected && (
           <OverlayView

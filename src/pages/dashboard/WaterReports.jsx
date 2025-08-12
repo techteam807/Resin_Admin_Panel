@@ -8,10 +8,10 @@ import DayDetailModal from "@/component/DayDetailModal";
 function WaterReports() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { waterReports, loading } = useSelector((state) => state.waterReport);
+  const { waterReports, loading, totalCount } = useSelector((state) => state.waterReport);
   console.log("w:",waterReports);
   
-  const Data = waterReports?.result;
+  const Data = waterReports;
   const currentDate = new Date();
   
   const currentMonth = currentDate.getMonth() + 1
@@ -281,7 +281,7 @@ function WaterReports() {
         <h1 className="text-xl font-bold text-gray-800">Water Reports</h1>
         <div className="flex flex-wrap gap-4">
           <div className="mt-1.5 border-b border-gray-600">
-            <h1>Total Customer : {waterReports?.count}</h1>
+            <h1>Total Customer : {totalCount}</h1>
           </div>
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">Start Date : </label>
