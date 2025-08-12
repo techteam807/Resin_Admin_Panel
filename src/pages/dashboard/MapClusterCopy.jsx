@@ -9,7 +9,7 @@ import {
     editCustomersClusterMap,
     getCustomersClusterMap,
     refreshCustomersClusterMap,
-    fetchClusterRoute,
+    // fetchClusterRoute,
     getClusterDropDown,
 } from '@/feature/customer/customerSlice';
 import ClusterList from '@/component/ClusterList.jsx';
@@ -21,7 +21,7 @@ import vehicles from '../../global.js';
 const tabs = [
     { key: 'list', label: 'Cluster List', icon: ClipboardDocumentListIcon },
     { key: 'map', label: 'Cluster Map', icon: MapPinIcon },
-    { key: 'route', label: 'Cluster Route', icon: MapIcon },
+    // { key: 'route', label: 'Cluster Route', icon: MapIcon },
 ];
 
 const MapClusterCopy = () => {
@@ -31,7 +31,9 @@ const MapClusterCopy = () => {
     const handleMapLoad = (map) => {
         mapRef.current = map;
     };
-    const { customersClusterMap, mapLoading1, mapLoading, clusteroute, clusterDrop } = useSelector(
+    const { customersClusterMap, mapLoading1, mapLoading, 
+        // clusteroute,
+         clusterDrop } = useSelector(
         (state) => state.customer
     );
 
@@ -59,16 +61,16 @@ const MapClusterCopy = () => {
         dispatch(getClusterDropDown(selectedVehicle));
     }, [dispatch, selectedVehicle]);
 
-    useEffect(() => {
-        if (!selectedVehicle) return;
+    // useEffect(() => {
+    //     if (!selectedVehicle) return;
 
-        const payload =
-            activeTab === 'route' && selectedCluster !== ''
-                ? { clusterId: selectedCluster, vehicleNo: selectedVehicle }
-                : { vehicleNo: selectedVehicle };
+    //     const payload =
+    //         activeTab === 'route' && selectedCluster !== ''
+    //             ? { clusterId: selectedCluster, vehicleNo: selectedVehicle }
+    //             : { vehicleNo: selectedVehicle };
 
-        dispatch(fetchClusterRoute(payload));
-    }, [dispatch, activeTab, selectedCluster, selectedVehicle]);
+    //     dispatch(fetchClusterRoute(payload));
+    // }, [dispatch, activeTab, selectedCluster, selectedVehicle]);
 
     useEffect(() => {
         if (mapLoading1) {
@@ -104,32 +106,32 @@ const MapClusterCopy = () => {
     }, [mapLoading1, customersClusterMap]);
 
     // Format route data
-    useEffect(() => {
-        if (mapLoading) {
-            setRoute([]);
-            return;
-        }
-        if (clusteroute?.length) {
-            const formatted = clusteroute.map((cluster) => ({
-                clusterId: cluster.clusterId,
-                clusterNo: cluster.clusterNo,
-                name: `Cluster ${cluster.clusterNo + 1}`,
-                cartridge_qty: cluster.cartridge_qty,
-                totalDistance: cluster.totalDistance,
-                customers: cluster.visitSequence.map((v) => ({
-                    displayName: v.customerName,
-                    vistSequnceNo: v.visitNumber,
-                    lat: Number(v.lat),
-                    lng: Number(v.lng),
-                    clusterId: v.clusterId,
-                    distanceFromPrev: v.distanceFromPrev,
-                })),
-            }));
-            setRoute(formatted);
-        } else {
-            setRoute([]);
-        }
-    }, [mapLoading, clusteroute]);
+    // useEffect(() => {
+    //     if (mapLoading) {
+    //         setRoute([]);
+    //         return;
+    //     }
+    //     if (clusteroute?.length) {
+    //         const formatted = clusteroute.map((cluster) => ({
+    //             clusterId: cluster.clusterId,
+    //             clusterNo: cluster.clusterNo,
+    //             name: `Cluster ${cluster.clusterNo + 1}`,
+    //             cartridge_qty: cluster.cartridge_qty,
+    //             totalDistance: cluster.totalDistance,
+    //             customers: cluster.visitSequence.map((v) => ({
+    //                 displayName: v.customerName,
+    //                 vistSequnceNo: v.visitNumber,
+    //                 lat: Number(v.lat),
+    //                 lng: Number(v.lng),
+    //                 clusterId: v.clusterId,
+    //                 distanceFromPrev: v.distanceFromPrev,
+    //             })),
+    //         }));
+    //         setRoute(formatted);
+    //     } else {
+    //         setRoute([]);
+    //     }
+    // }, [mapLoading, clusteroute]);
 
     useEffect(() => {
         if (!mapRef.current || !data.length) return;
@@ -153,53 +155,53 @@ const MapClusterCopy = () => {
     }, [activeTab, route, selectedCluster]);
 
     // Handle directions for routes
-    useEffect(() => {
-        if (activeTab !== 'route' || selectedCluster === '') {
-            setDirectionsResponse(null);
-            return;
-        }
+    // useEffect(() => {
+    //     if (activeTab !== 'route' || selectedCluster === '') {
+    //         setDirectionsResponse(null);
+    //         return;
+    //     }
 
-        const cluster = clusteroute.find((c) => String(c.clusterId) === selectedCluster);
+    //     const cluster = clusteroute.find((c) => String(c.clusterId) === selectedCluster);
 
-        if (!cluster || !cluster.visitSequence) {
-            setDirectionsResponse(null);
-            return;
-        }
+    //     if (!cluster || !cluster.visitSequence) {
+    //         setDirectionsResponse(null);
+    //         return;
+    //     }
 
-        const customerPoints = cluster.visitSequence.filter(
-            (p) => p.customerName?.trim().toLowerCase() !== 'warehouse'
-        );
+    //     const customerPoints = cluster.visitSequence.filter(
+    //         (p) => p.customerName?.trim().toLowerCase() !== 'warehouse'
+    //     );
 
-        if (customerPoints.length < 2) {
-            setDirectionsResponse(null);
-            return;
-        }
+    //     if (customerPoints.length < 2) {
+    //         setDirectionsResponse(null);
+    //         return;
+    //     }
 
-        const origin = customerPoints[0];
-        const destination = customerPoints[customerPoints.length - 1];
-        const waypoints = customerPoints.slice(1, -1).map((p) => ({
-            location: { lat: p.lat, lng: p.lng },
-            stopover: true,
-        }));
+    //     const origin = customerPoints[0];
+    //     const destination = customerPoints[customerPoints.length - 1];
+    //     const waypoints = customerPoints.slice(1, -1).map((p) => ({
+    //         location: { lat: p.lat, lng: p.lng },
+    //         stopover: true,
+    //     }));
 
-        const service = new window.google.maps.DirectionsService();
-        service.route(
-            {
-                origin: { lat: origin.lat, lng: origin.lng },
-                destination: { lat: destination.lat, lng: destination.lng },
-                waypoints,
-                travelMode: 'DRIVING',
-            },
-            (result, status) => {
-                if (status === 'OK') {
-                    setDirectionsResponse(result);
-                } else {
-                    console.warn('Directions error:', status);
-                    setDirectionsResponse(null);
-                }
-            }
-        );
-    }, [selectedCluster, clusteroute, activeTab]);
+    //     const service = new window.google.maps.DirectionsService();
+    //     service.route(
+    //         {
+    //             origin: { lat: origin.lat, lng: origin.lng },
+    //             destination: { lat: destination.lat, lng: destination.lng },
+    //             waypoints,
+    //             travelMode: 'DRIVING',
+    //         },
+    //         (result, status) => {
+    //             if (status === 'OK') {
+    //                 setDirectionsResponse(result);
+    //             } else {
+    //                 console.warn('Directions error:', status);
+    //                 setDirectionsResponse(null);
+    //             }
+    //         }
+    //     );
+    // }, [selectedCluster, clusteroute, activeTab]);
 
     // Handle drag-and-drop
     const onDragEnd = (result) => {
@@ -220,8 +222,9 @@ const MapClusterCopy = () => {
     const handleSave = () => {
         const reassignments = [];
         const originalMap = new Map();
+        console.log("originalMap",originalMap)
 
-        customersClusterMap?.clsuters?.forEach((cluster) => {
+        customersClusterMap?.clusters?.forEach((cluster) => {
             cluster.customers.forEach((customer, index) => {
                 originalMap.set(customer.customerId, {
                     clusterId: cluster._id,
@@ -243,8 +246,8 @@ const MapClusterCopy = () => {
             });
         });
 
-        console.log("reassignments:",reassignments);
-        
+        console.log("reassignments:", reassignments);
+
 
         if (reassignments.length > 0) {
             setSaveLoading(true);
@@ -256,8 +259,8 @@ const MapClusterCopy = () => {
                 .catch(() => {
                     dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
                 })
-                 .finally(() => {
-                setSaveLoading(false); 
+                .finally(() => {
+                    setSaveLoading(false);
                 });
         }
     };
@@ -367,7 +370,7 @@ const MapClusterCopy = () => {
                         clusterDrop={clusterDrop}
                     />
                 )}
-                {activeTab === 'route' && (
+                {/* {activeTab === 'route' && (
                     <ClusterRoute
                         route={route}
                         selectedCluster={selectedCluster}
@@ -383,7 +386,7 @@ const MapClusterCopy = () => {
                         handleMapLoad={handleMapLoad}
                         clusterDrop={clusterDrop}
                     />
-                )}
+                )} */}
             </div>
         </div>
     );
