@@ -241,7 +241,7 @@ const ClusterList = ({
               </div>
             </div> */}
                 <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className={`${isVisible ? 'col-span-2 overflow-auto max-h-screen scrollbar-thin' : 'col-span-3'}`}>
+                  <div className={`${isVisible ? 'col-span-2 overflow-auto max-h-[65vh] scrollbar-thin' : 'col-span-3'}`}>
                     <div className={`grid gap-4 ${isVisible
                       ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-2'
                       : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
@@ -340,7 +340,7 @@ const ClusterList = ({
                                   <div
                                      ref={provided.innerRef}
                                      {...provided.droppableProps}
-                                     className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                                     className="flex-1 overflow-y-auto max-h-[50vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
                                    >
                                     {cluster.customers.map((customer, idx) => (
                                       <Draggable key={customer.code} draggableId={customer.code} index={idx}>

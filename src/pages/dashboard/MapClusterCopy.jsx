@@ -48,16 +48,18 @@ const MapClusterCopy = () => {
     const [searchValue, setSearchValue] = useState('');
     const [selectedVehicle, setSelectedVehicle] = useState(1);
     const [selectedClusterId, setSelectedClusterId] = useState("");
-    const [selectedClusterNumber, setSelectedClusterNumber] = useState("");
+    const [selectedClusterNumber, setSelectedClusterNumber] = useState("null");
+    console.log("sel:",selectedClusterNumber);
+    
     const [isVisible, setIsVisible] = useState(true);
     const [saveLoading, setSaveLoading] = useState(false);
 
 
     // Fetch clusters based on vehicle
     useEffect(() => {
-        const payload = { vehicleNo: Number(selectedVehicle) };
+        const payload = { vehicleNo: Number(selectedVehicle), clusterNo: Number(selectedClusterNumber) };
         dispatch(getCustomersClusterMap(payload));
-    }, [dispatch, selectedVehicle]);
+    }, [dispatch, selectedVehicle,selectedClusterNumber]);
 
     useEffect(() => {
         dispatch(getClusterDropDown(Number(selectedVehicle)));
@@ -362,7 +364,7 @@ const MapClusterCopy = () => {
                 )}
                 {activeTab === 'map' && (
                     <ClusterMap
-                        data={selectedClusterId ? data.filter(c => c.clusterId === selectedClusterId) : data}
+                        data={data}
                         selected={selected}
                         setSelected={setSelected}
                         selectedVehicle={selectedVehicle}
@@ -372,6 +374,8 @@ const MapClusterCopy = () => {
                         clusterDrop={clusterDrop}
                         selectedClusterId={selectedClusterId}
                         setSelectedClusterId={setSelectedClusterId}
+                        selectedClusterNumber={selectedClusterNumber}
+                        setSelectedClusterNumber={setSelectedClusterNumber}
                     />
                 )}
                 {/* {activeTab === 'route' && (
