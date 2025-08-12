@@ -148,7 +148,7 @@ export const fetchClusterRoutes = async (clusterId, vehicleNo) => {
     }
   };
 
-   export const fetchClusterDropdown = async (vehicleNo) => {
+   export const fetchClusterDropdown = async ({vehicleNo, clusterNo}) => {
     console.log(vehicleNo);
     
     try {
@@ -158,6 +158,10 @@ export const fetchClusterRoutes = async (clusterId, vehicleNo) => {
       if(vehicleNo !== undefined && vehicleNo !== null) {
         queryParams.append('vehicleNo', vehicleNo);
       }    
+
+      if(clusterNo !== undefined && clusterNo !== null) {
+        queryParams.append('clusterNo', clusterNo);
+      }   
       const response = await axiosConfig.get(`clusterAssignment/clusters?${queryParams}`);
       return response.data;
     } catch (error) {

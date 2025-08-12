@@ -31,11 +31,11 @@ const MapClusterCopy = () => {
     const handleMapLoad = (map) => {
         mapRef.current = map;
     };
-    const { customersClusterMap, mapLoading1, mapLoading, 
+    const { customersClusterMap, mapLoading1, mapLoading,
         // clusteroute,
-         clusterDrop } = useSelector(
-        (state) => state.customer
-    );
+        clusterDrop } = useSelector(
+            (state) => state.customer
+        );
 
     const [activeTab, setActiveTab] = useState('list');
     const [data, setData] = useState([]);
@@ -47,19 +47,31 @@ const MapClusterCopy = () => {
     const [directionsResponse, setDirectionsResponse] = useState(null);
     const [searchValue, setSearchValue] = useState('');
     const [selectedVehicle, setSelectedVehicle] = useState(1);
+    const [selectedClusterId, setSelectedClusterId] = useState("");
+    const [selectedClusterNumber, setSelectedClusterNumber] = useState("");
     const [isVisible, setIsVisible] = useState(true);
     const [saveLoading, setSaveLoading] = useState(false);
 
 
     // Fetch clusters based on vehicle
     useEffect(() => {
-        const payload = { vehicleNo: selectedVehicle };
+        const payload = { vehicleNo: Number(selectedVehicle) };
         dispatch(getCustomersClusterMap(payload));
     }, [dispatch, selectedVehicle]);
 
     useEffect(() => {
-        dispatch(getClusterDropDown(selectedVehicle));
+        dispatch(getClusterDropDown(Number(selectedVehicle)));
     }, [dispatch, selectedVehicle]);
+
+    // Ensure vehicle 1 data is loaded when map tab is active
+    useEffect(() => {
+        if (activeTab === 'map') {
+            setSelectedVehicle(1);
+            // Force fetch vehicle 1 data immediately
+            dispatch(getCustomersClusterMap({ vehicleNo: 1 }));
+            dispatch(getClusterDropDown(1));
+        }
+    }, [activeTab, dispatch]);
 
     // useEffect(() => {
     //     if (!selectedVehicle) return;
@@ -74,7 +86,7 @@ const MapClusterCopy = () => {
 
     useEffect(() => {
         if (mapLoading1) {
-            setData([]);
+            setData([])
             return;
         }
 
@@ -148,11 +160,11 @@ const MapClusterCopy = () => {
     }, [data]);
 
     // Auto-select first cluster in route mode
-    useEffect(() => {
-        if (activeTab === 'route' && selectedCluster === '' && route.length > 0) {
-            setSelectedCluster(route[0]?.clusterId);
-        }
-    }, [activeTab, route, selectedCluster]);
+    // useEffect(() => {
+    //     if (activeTab === 'route' && selectedCluster === '' && route.length > 0) {
+    //         setSelectedCluster(route[0]?.clusterId);
+    //     }
+    // }, [activeTab, route, selectedCluster]);
 
     // Handle directions for routes
     // useEffect(() => {
@@ -222,7 +234,6 @@ const MapClusterCopy = () => {
     const handleSave = () => {
         const reassignments = [];
         const originalMap = new Map();
-        console.log("originalMap",originalMap)
 
         customersClusterMap?.clusters?.forEach((cluster) => {
             cluster.customers.forEach((customer, index) => {
@@ -246,18 +257,16 @@ const MapClusterCopy = () => {
             });
         });
 
-        console.log("reassignments:", reassignments);
-
 
         if (reassignments.length > 0) {
             setSaveLoading(true);
             dispatch(editCustomersClusterMap({ reassignments: { reassignments } }))
                 .unwrap()
                 .then(() => {
-                    dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
+                    dispatch(getCustomersClusterMap({ vehicleNo: Number(selectedVehicle) }));
                 })
                 .catch(() => {
-                    dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
+                    dispatch(getCustomersClusterMap({ vehicleNo: Number(selectedVehicle) }));
                 })
                 .finally(() => {
                     setSaveLoading(false);
@@ -267,73 +276,68 @@ const MapClusterCopy = () => {
 
     // Handle vehicle selection
     const handleVehicleSelect = (value) => {
-        if (value) {
-            setSelectedVehicle(value);
-
-            const vehicleNo = value;
-            dispatch(getCustomersClusterMap({ vehicleNo }));
-        }
+        setSelectedVehicle(value);
     };
 
     // Handle search
     const handleSearch = () => {
         if (searchValue) {
-            const customer_code = searchValue;
-            dispatch(getCustomersClusterMap({ customer_code }));
+            dispatch(getCustomersClusterMap({ customer_code: searchValue }));
         }
     };
 
     // Clear search
     const searchClear = () => {
         setSearchValue('');
-        dispatch(getCustomersClusterMap({ vehicleNo: selectedVehicle }));
+        dispatch(getCustomersClusterMap({ vehicleNo: Number(selectedVehicle) }));
     };
 
     // Handle tab change
-    useEffect(() => {
-        if (activeTab === 'map') {
-            setShowCluster(true);
-            setShowRoute(false);
-            setSelectedCluster(null);
-            setDirectionsResponse(null);
-            setSelected(null);
-        } else if (activeTab === 'route') {
-            setShowRoute(true);
-            setShowCluster(false);
-        } else {
-            setShowRoute(false);
-            setShowCluster(true);
-            setSelected(null);
-            setSelectedCluster(null);
-            setDirectionsResponse(null);
-        }
-    }, [activeTab]);
+    // useEffect(() => {
+    //     if (activeTab === 'map') {
+    //         setShowCluster(true);
+    //         setShowRoute(false);
+    //         setSelectedCluster(null);
+    //         setDirectionsResponse(null);
+    //         setSelected(null);
+    //     } else if (activeTab === 'route') {
+    //         setShowRoute(true);
+    //         setShowCluster(false);
+    //     } else {
+    //         setShowRoute(false);
+    //         setShowCluster(true);
+    //         setSelected(null);
+    //         setSelectedCluster(null);
+    //         setDirectionsResponse(null);
+    //     }
+    // }, [activeTab]);
 
     return (
-        <div className=" mx-auto px-6 py-8">
-            {/* Tab Buttons */}
-            <div className="flex justify-start gap-5 bg-white p-3 rounded-xl shadow-md mb-6">
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.key;
-                    return (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 transform border border-gray-600 
-                            ${isActive
-                                    ? 'bg-gray-800 text-white shadow-sm ring-2 ring-gray-400'
-                                    : 'bg-white-50 text-white-800 hover:bg-gray-200 hover:text-gray-700 hover:scale-[1.02]'}
-        `}
-                        >
-                            <Icon className="w-5 h-5" />
-                            <span>{tab.label}</span>
-                        </button>
-                    );
-                })}
-                <div className='justify-end flex gap-5'>
-                    <h1 className='items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all duration-200 transform border-b border-gray-600 '>Total In Cluster : {customersClusterMap?.totalInClusters}</h1>
-                    <h1 className='items-center gap-2 px-5 py-2.5 text-sm font-semibold transition-all duration-200 transform border-b border-gray-600 '>Total In Vehicle {selectedVehicle} : {customersClusterMap?.totalInRequestedVehicle}</h1>
+        <div className="mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            {/* Tabs + Totals Header */}
+            <div className="bg-white p-3 rounded-xl shadow-md mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-wrap gap-3">
+                    {tabs.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.key;
+                        return (
+                            <button
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key)}
+                                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 transform border border-gray-600 ${isActive
+                                        ? 'bg-gray-800 text-white shadow-sm ring-2 ring-gray-400'
+                                        : 'bg-white text-gray-800 hover:bg-gray-200 hover:text-gray-700 hover:scale-[1.02]'
+                                    }`}
+                            >
+                                <Icon className="w-5 h-5" />
+                                <span>{tab.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-5 md:gap-6">
+                    <h1 className="px-4 py-2 text-sm font-semibold border-b border-gray-300">Total In Cluster : {customersClusterMap?.totalInClusters}</h1>
+                    <h1 className="px-4 py-2 text-sm font-semibold border-b border-gray-300">Total In Vehicle {selectedVehicle} : {customersClusterMap?.totalInRequestedVehicle}</h1>
                 </div>
             </div>
 
@@ -358,16 +362,16 @@ const MapClusterCopy = () => {
                 )}
                 {activeTab === 'map' && (
                     <ClusterMap
-                        data={data}
+                        data={selectedClusterId ? data.filter(c => c.clusterId === selectedClusterId) : data}
                         selected={selected}
                         setSelected={setSelected}
-                        showCluster={showCluster}
-                        vehicles={vehicles}
-                        mapRef={mapRef}
                         selectedVehicle={selectedVehicle}
                         handleVehicleSelect={handleVehicleSelect}
-                        handleMapLoad={handleMapLoad}
+                        vehicles={vehicles}
+                        handleMapLoad={(map) => { mapRef.current = map; }}
                         clusterDrop={clusterDrop}
+                        selectedClusterId={selectedClusterId}
+                        setSelectedClusterId={setSelectedClusterId}
                     />
                 )}
                 {/* {activeTab === 'route' && (
