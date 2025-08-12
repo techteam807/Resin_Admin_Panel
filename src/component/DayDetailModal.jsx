@@ -73,7 +73,7 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
           &times;
         </button>
         <h2 className="text-xl font-semibold mb-2">
-          Day {day} – {user?.display_name}
+          Day {day} – {user?.first_name} {user?.last_name}
         </h2>
 
         {data?.length > 0 && (

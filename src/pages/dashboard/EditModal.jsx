@@ -93,7 +93,8 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                       </div>
                       <div>
                         <p className="font-semibold text-sm">
-                          {customer?.customerId?.display_name}
+                          {customer?.customerId?.first_name}{" "}
+                          {customer?.customerId?.last_name}
                         </p>
                         <p className="text-xs text-gray-500">
                           {customer?.customerId?.contact_number}
@@ -121,7 +122,8 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                       </div>
                       <div>
                         <p className="font-semibold text-sm">
-                          {customer?.customerId?.display_name}
+                          {customer?.customerId?.first_name}{" "}
+                          {customer?.customerId?.last_name}
                         </p>
                         <p className="text-xs text-gray-500">
                           {customer?.customerId?.contact_number}
