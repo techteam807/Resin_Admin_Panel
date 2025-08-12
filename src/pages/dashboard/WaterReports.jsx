@@ -346,7 +346,7 @@ function WaterReports() {
           <table className="w-full border-collapse bg-white">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2">No .
+                <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2">No.
                 </th>
 
                 <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[180px]">
