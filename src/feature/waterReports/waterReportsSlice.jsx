@@ -70,6 +70,7 @@ const waterReportsSlice = createSlice({
   name: 'waterReport',
   initialState: {
     waterReports: [],
+    totalCount:0,
     loading: false,
     error: null,
     message: null,
@@ -83,10 +84,17 @@ const waterReportsSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(getWaterReports.fulfilled, (state, action) => {
-        state.loading = false;
-        state.waterReports = action.payload.data;
-      })
+      // .addCase(getWaterReports.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.waterReports = action.payload.data;
+      // })
+            .addCase(getWaterReports.fulfilled, (state, action) => {
+  state.loading = false;
+  state.waterReports = Array.isArray(action.payload.data?.result)
+    ? action.payload.data.result
+    : [];
+  state.totalCount = action.payload.data?.count || 0;
+})
       .addCase(getWaterReports.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to fetch water reports.';
