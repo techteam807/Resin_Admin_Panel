@@ -182,9 +182,27 @@ export const fetchClusterRoutes = async (clusterId, vehicleNo) => {
   }
 };
 
- export const fetchClusterAssignment = async (startDate, endDate, clusterId, userId, vehicleNo) => {
+ export const fetchClusterAssignment = async ({startDate, endDate, clusterId, userId, vehicleNo}) => {
     try {
-      const response = await axiosConfig.get('clusterAssignment/all',{ params: { startDate, endDate,  clusterId, userId, vehicleNo } });
+      const queryParams = new URLSearchParams();
+      if(startDate !== undefined && startDate !== null) {
+        queryParams.append('startDate', startDate);
+      }   
+            if(endDate !== undefined && endDate !== null) {
+        queryParams.append('endDate', endDate);
+      }   
+            if(clusterId !== undefined && clusterId !== null) {
+        queryParams.append('clusterId', clusterId);
+      }   
+            if(userId !== undefined && userId !== null) {
+        queryParams.append('userId', userId);
+      }   
+            if(vehicleNo) {
+        queryParams.append('vehicleNo', vehicleNo);
+      }   
+
+
+      const response = await axiosConfig.get(`clusterAssignment/all?${queryParams}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching Technician Dropdown:', error);
