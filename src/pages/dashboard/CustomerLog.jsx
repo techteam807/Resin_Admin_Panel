@@ -8,17 +8,17 @@ import Loader from '../Loader';
 
 const getDefaultDateRange = () => {
     const today = new Date();
-    const currentMonth = today.getMonth(); 
+    const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
-  
-    const start = new Date(currentYear, currentMonth, 1); 
+
+    const start = new Date(currentYear, currentMonth, 1);
     const end = new Date(currentYear, currentMonth + 1, 0);
-  
+
     return {
-      startDate: start.toLocaleDateString('en-CA'), 
-      endDate: end.toLocaleDateString('en-CA'),
+        startDate: start.toLocaleDateString('en-CA'),
+        endDate: end.toLocaleDateString('en-CA'),
     };
-  };
+};
 
 const CustomerLog = () => {
 
@@ -39,18 +39,18 @@ const CustomerLog = () => {
         const { startDate, endDate } = getDefaultDateRange();
         setStartDate(startDate);
         setEndDate(endDate);
-        dispatch(getAllProducts({startDate, endDate, status: "inuse"}))
+        dispatch(getAllProducts({ startDate, endDate, status: "inuse" }))
     }, []);
 
     useEffect(() => {
         function handleClickOutside(event) {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-            setShowDropdown(false);
-        }
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [dropdownRef]);
 
@@ -63,22 +63,22 @@ const CustomerLog = () => {
         setSearchTerm(product.contact_number);
         setShowDropdown(false);
     };
-            
+
     const handleSearch = () => {
         dispatch(getAllProducts({
-        customerId: selectedCustomer?._id,
-        startDate,
-        endDate,
-        status: "inuse"
+            customerId: selectedCustomer?._id,
+            startDate,
+            endDate,
+            status: "inuse"
         }));
     };
-    
+
     const handleCopy = (key, value) => {
         navigator.clipboard.writeText(value);
         setCopiedId(key);
         setTimeout(() => setCopiedId(null), 2000);
-      };
-    
+    };
+
     const handleClear = () => {
         const { startDate: defaultStart, endDate: defaultEnd } = getDefaultDateRange();
         setSearchTerm('');
@@ -89,192 +89,194 @@ const CustomerLog = () => {
         dispatch(getAllProducts({ startDate: defaultStart, endDate: defaultEnd, status: "inuse" }));
     };
 
-  return (
-    <div>
-      <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
-      <Card className="h-full w-full">
-        <CardHeader floated={false} shadow={false} className="rounded-none  overflow-visible">
-            <div className="flex md:flex-row flex-col md:items-center justify-between md:gap-8 gap-4 mb-5">
-                <div>
-                    <Typography variant="h5" color="blue-gray">
-                        Customer Log
-                    </Typography>
-                    <Typography color="gray" variant="small" className="mt-1 font-normal">
-                        See information about all customer log
-                    </Typography>
-                </div>
-                <div className="flex md:flex-row flex-col flex-wrap lg:flex-nowrap items-end gap-3">
-                    {/* Search input with dropdown */}
-                    <div className="relative w-full" ref={dropdownRef}>
-                    <Input
-                        label="Search Customer"
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        setShowDropdown(true);
-                        }}
-                        onFocus={() => setShowDropdown(true)}
-                        crossOrigin=""
-                    />
-                    {showDropdown && (
-                        <ul className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-100 rounded-md shadow-md max-h-60 overflow-auto">
-                        {filteredCustomers?.length > 0 ? (
-                            filteredCustomers?.map((customer) => (
-                            <li
-                                key={customer?._id}
-                                className="px-3 py-2 cursor-pointer hover:bg-blue-50"
-                                onClick={() => handleSelect(customer)}
-                            >
-                                {customer?.contact_number}
-                            </li>
-                            ))
-                        ) : (
-                            <li className="px-3 py-2 text-gray-400">No results found</li>
-                        )}
-                        </ul>
-                    )}
-                    </div>
-    
-                    {/* Date inputs */}
-                    <div className="w-full">
-                    <Input
-                        type="date"
-                        label="Start Date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                    />
-                    </div>
-    
-                    <div className="w-full">
-                    <Input
-                        type="date"
-                        label="End Date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                    />
-                    </div>
-                    <div className='flex items-center gap-3'>
-                    <Button variant="gradient" className="px-4 py-3 flex items-center gap-2" onClick={handleSearch}>
-                        <FunnelIcon className="h-4 w-4 text-white" />
-                        <span className="text-white">Apply</span>
-                    </Button>
-                    <Button variant="outlined" onClick={handleClear}>
-                    Clear
-                    </Button>
-                    </div>
-                </div>
-            </div>
-        </CardHeader>
-        <CardBody className="border-t border-blue-gray-100 md:p-6 p-4">
-            {productLoading ? (
-                <div className="flex justify-center items-center min-h-[200px]">
-                <Loader />
-                </div>
-            ) : (
-                <div className="md:py-4">
-                <div className="flex flex-col gap-6 md:px-5">
-                    {productsData.map((log, index) => {
-                    const iconClass = 'bg-green-500';
-                    const Icon = BriefcaseIcon;
-
-                    return (
-                        <div key={log._id} className="flex gap-4 relative">
-                    {/* Left icon and line */}
-                    <div className="flex flex-col items-center">
-                        <div className={`flex items-center justify-center w-12 h-12 rounded-full ${iconClass} text-white shadow-md z-10`}>
-                        <Icon className="w-6 h-6" />
-                        </div>
-                        {index < productsData.length - 1 && (
-                        <div className="flex-1 w-px bg-gray-300 mt-2 rounded-full" />
-                        )}
-                    </div>
-
-                    {/* Main card */}
-                    <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow p-4 hover:shadow-md transition-shadow duration-300">
-                       <p className="text-xs text-gray-400 mb-2">
-                        {new Date(log.timestamp).toLocaleDateString('en-GB')}{" "}
-                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                        </p>
-
-
-                        {log.customerId && (
-                            <div className="mb-3 text-xs text-gray-800 space-y-1 border-b pb-3 rounded-md bg-green-50 border-green-300 px-3 py-2 shadow-sm">
-                                <div className="flex items-center gap-1 text-base pb-1 font-semibold text-green-500">
-                                <UserIcon className="h-4 w-4" />
-                                Customer Info
-                                </div>
-                                <p className='text-sm'><span className="font-medium">Customer:</span> {log.customerId.display_name || 'N/A'}</p>
-                                <div className="flex items-center gap-2">
-                                <span className="font-medium text-sm">Customer Code:</span>
-                                <span className="text-xs font-medium text-gray-700 flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-green-300 shadow-sm">
-                                    {log.customerId.contact_number || 'N/A'}
-                                </span>
-                                {log.customerId.contact_number && (
-                                    <Tooltip content={copiedId === log._id ? 'Copied' : 'Copy'}>
-                                    <IconButton
-                                        variant="text"
-                                        size="sm"
-                                        onClick={() => handleCopy(log._id, log.customerId.contact_number)}
-                                    >
-                                        {copiedId === log._id ? (
-                                        <CheckIcon className="h-4 w-4 text-green-600" />
-                                        ) : (
-                                        <ClipboardIcon className="h-4 w-4 text-gray-600" />
-                                        )}
-                                    </IconButton>
-                                    </Tooltip>
-                                )}
-                                </div>
-                                <p className='text-sm'><span className="font-medium">Mobile:</span> {log.customerId.mobile || 'N/A'}</p>
-                                <p className='text-sm'><span className="font-medium">Email:</span> {log.customerId.email || 'N/A'}</p>
+    return (
+        <div>
+            <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
+                <Card className="h-full w-full">
+                    <CardHeader floated={false} shadow={false} className="rounded-none  overflow-visible">
+                        <div className="flex md:flex-row flex-col md:items-center justify-between md:gap-8 gap-4 mb-5">
+                            <div>
+                                <Typography variant="h5" color="blue-gray">
+                                    Customer Log
+                                </Typography>
+                                <Typography color="gray" variant="small" className="mt-1 font-normal">
+                                    See information about all customer log
+                                </Typography>
                             </div>
-                            )}
-                        <p className="text-sm text-gray-800">
-                        <span className="font-semibold">
-                            {log.user_name || log.userId?.user_name}
-                        </span>{' '}
-                        updated status to
-                        <span className={`ml-1 px-2 py-0.5 rounded-md text-white text-xs ${iconClass}`}>
-                            inuse
-                        </span>
-                        </p>
-
-                        {log.products?.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {log.products.map((p) => {
-                            const uniqueKey = `${log._id}-${p._id}`;
-                            return (
-                                <div key={p._id} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg shadow-sm">
-                                <span className="text-xs ps-2 font-medium text-gray-700">
-                                    {p.productCode}
-                                </span>
-                                <Tooltip content={copiedId === uniqueKey ? 'Copied' : 'Copy'}>
-                                    <IconButton variant="text" size="sm" onClick={() => handleCopy(uniqueKey, p.productCode)}>
-                                    {copiedId === uniqueKey ? (
-                                        <CheckIcon className="h-4 w-4 text-green-600" />
-                                    ) : (
-                                        <ClipboardIcon className="h-4 w-4 text-gray-600" />
+                            <div className="flex md:flex-row flex-col flex-wrap lg:flex-nowrap items-end gap-3">
+                                {/* Search input with dropdown */}
+                                <div className="relative w-full" ref={dropdownRef}>
+                                    <Input
+                                        label="Search Customer"
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => {
+                                            setSearchTerm(e.target.value);
+                                            setShowDropdown(true);
+                                        }}
+                                        onFocus={() => setShowDropdown(true)}
+                                        crossOrigin=""
+                                    />
+                                    {showDropdown && (
+                                        <ul className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-100 rounded-md shadow-md max-h-60 overflow-auto">
+                                            {filteredCustomers?.length > 0 ? (
+                                                filteredCustomers?.map((customer) => (
+                                                    <li
+                                                        key={customer?._id}
+                                                        className="px-3 py-2 cursor-pointer hover:bg-blue-50"
+                                                        onClick={() => handleSelect(customer)}
+                                                    >
+                                                        {customer?.contact_number}
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <li className="px-3 py-2 text-gray-400">No results found</li>
+                                            )}
+                                        </ul>
                                     )}
-                                    </IconButton>
-                                </Tooltip>
                                 </div>
-                            );
-                            })}
+
+                                {/* Date inputs */}
+                                <div className="w-full">
+                                    <Input
+                                        type="date"
+                                        label="Start Date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="w-full">
+                                    <Input
+                                        type="date"
+                                        label="End Date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className='flex items-center gap-3'>
+                                    <Button variant="gradient" className="px-4 py-3 flex items-center gap-2" onClick={handleSearch}>
+                                        <FunnelIcon className="h-4 w-4 text-white" />
+                                        <span className="text-white">Apply</span>
+                                    </Button>
+                                    <Button variant="outlined" onClick={handleClear}>
+                                        Clear
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
+                    </CardHeader>
+                    <CardBody className="border-t border-blue-gray-100 md:p-6 p-4">
+                        {productLoading ? (
+                            <div className="flex justify-center items-center min-h-[200px]">
+                                <Loader />
+                            </div>
+                        ) : (
+                            <div className="md:py-4">
+                                <div className="flex flex-col gap-6 md:px-5">
+                                    {productsData.map((log, index) => {
+                                        const iconClass = 'bg-green-500';
+                                        const Icon = BriefcaseIcon;
+
+                                        return (
+                                            <div key={log._id} className="flex gap-4 relative">
+                                                {/* Left icon and line */}
+                                                <div className="flex flex-col items-center">
+                                                    <div className={`flex items-center justify-center w-12 h-12 rounded-full ${iconClass} text-white shadow-md z-10`}>
+                                                        <Icon className="w-6 h-6" />
+                                                    </div>
+                                                    {index < productsData.length - 1 && (
+                                                        <div className="flex-1 w-px bg-gray-300 mt-2 rounded-full" />
+                                                    )}
+                                                </div>
+
+                                                {/* Main card */}
+                                                <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow p-4 hover:shadow-md transition-shadow duration-300">
+                                                    <p className="text-xs text-gray-400 mb-2">
+                                                        {new Date(log.timestamp).toLocaleDateString('en-GB')}{" "}
+                                                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                    </p>
+
+
+                                                    {log.customerId && (
+                                                        <div className="mb-3 text-xs text-gray-800 space-y-1 border-b pb-3 rounded-md bg-green-50 border-green-300 px-3 py-2 shadow-sm">
+                                                            <div className="flex items-center gap-1 text-base pb-1 font-semibold text-green-500">
+                                                                <UserIcon className="h-4 w-4" />
+                                                                Customer Info
+                                                            </div>
+                                                            <p className='text-sm'><span className="font-medium">Customer:</span>
+                                                                {log.customerId.first_name || 'N/A'}{" "}
+                                                                {log.customerId.last_name || 'N/A'}</p>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-medium text-sm">Customer Code:</span>
+                                                                <span className="text-xs font-medium text-gray-700 flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-green-300 shadow-sm">
+                                                                    {log.customerId.contact_number || 'N/A'}
+                                                                </span>
+                                                                {log.customerId.contact_number && (
+                                                                    <Tooltip content={copiedId === log._id ? 'Copied' : 'Copy'}>
+                                                                        <IconButton
+                                                                            variant="text"
+                                                                            size="sm"
+                                                                            onClick={() => handleCopy(log._id, log.customerId.contact_number)}
+                                                                        >
+                                                                            {copiedId === log._id ? (
+                                                                                <CheckIcon className="h-4 w-4 text-green-600" />
+                                                                            ) : (
+                                                                                <ClipboardIcon className="h-4 w-4 text-gray-600" />
+                                                                            )}
+                                                                        </IconButton>
+                                                                    </Tooltip>
+                                                                )}
+                                                            </div>
+                                                            <p className='text-sm'><span className="font-medium">Mobile:</span> {log.customerId.mobile || 'N/A'}</p>
+                                                            <p className='text-sm'><span className="font-medium">Email:</span> {log.customerId.email || 'N/A'}</p>
+                                                        </div>
+                                                    )}
+                                                    <p className="text-sm text-gray-800">
+                                                        <span className="font-semibold">
+                                                            {log.user_name || log.userId?.user_name}
+                                                        </span>{' '}
+                                                        updated status to
+                                                        <span className={`ml-1 px-2 py-0.5 rounded-md text-white text-xs ${iconClass}`}>
+                                                            inuse
+                                                        </span>
+                                                    </p>
+
+                                                    {log.products?.length > 0 && (
+                                                        <div className="mt-3 flex flex-wrap gap-2">
+                                                            {log.products.map((p) => {
+                                                                const uniqueKey = `${log._id}-${p._id}`;
+                                                                return (
+                                                                    <div key={p._id} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-lg shadow-sm">
+                                                                        <span className="text-xs ps-2 font-medium text-gray-700">
+                                                                            {p.productCode}
+                                                                        </span>
+                                                                        <Tooltip content={copiedId === uniqueKey ? 'Copied' : 'Copy'}>
+                                                                            <IconButton variant="text" size="sm" onClick={() => handleCopy(uniqueKey, p.productCode)}>
+                                                                                {copiedId === uniqueKey ? (
+                                                                                    <CheckIcon className="h-4 w-4 text-green-600" />
+                                                                                ) : (
+                                                                                    <ClipboardIcon className="h-4 w-4 text-gray-600" />
+                                                                                )}
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         )}
-                    </div>
-                    </div>
-                    );
-                    })}
-                </div>
-                </div>
-            )}
-            </CardBody>
-        </Card>
-      </div>
-    </div>
-  )
+                    </CardBody>
+                </Card>
+            </div>
+        </div>
+    )
 }
 
 export default CustomerLog

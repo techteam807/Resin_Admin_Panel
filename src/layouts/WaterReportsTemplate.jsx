@@ -23,8 +23,11 @@ const WaterReportsTemplate = () => {
   const dispatch = useDispatch();
 
   const { customer, month, year } = location.state || {};
+  console.log("c:",customer);
+  
 
-  const userName = customer?.user?.display_name;
+  // const userName = customer?.user?.first_name;
+const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_name || ''}`.trim();
   
   const safeName = userName.replace(/\s+/g, "_");
 
@@ -61,7 +64,7 @@ const WaterReportsTemplate = () => {
          <div className={base} style={{ backgroundImage: `url(${page1})` }}>
             <div className="absolute top-[15px] left-[15px] right-[80px]">
               <h1 className="text-[40px] font-bold text-white leading-[1.1]">
-                Hey <span>{userName}</span>
+                Hey, <span>{userName}</span>
               </h1>
               <h2 className="text-[40px] font-bold text-[#f2daa5] leading-[1.1] mt-2">Your 30 Day</h2>
               <h2 className="text-[40px] font-bold text-[#f2daa5] leading-[1.1] mt-2">Report is here</h2>
@@ -78,7 +81,7 @@ const WaterReportsTemplate = () => {
               <div>2025-01-01</div>
             </div> */}
             {Array.isArray(waterQualityData) && (
-  <div className='absolute right-[140px] text-[#f3daa5] space-y-4 text-[25px] top-[340px]'>
+  <div className='absolute right-[140px] text-[#f3daa5] space-y-4 text-[25px] top-[338px]'>
     {waterQualityData.map((entry) => (
       <div key={entry.id}>{entry.date}</div>
     ))}
