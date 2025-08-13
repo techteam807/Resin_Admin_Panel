@@ -12,17 +12,18 @@ import Loader from "../Loader";
 
 const EditModal = ({ isOpen, onClose, assignment }) => {
   const dispatch = useDispatch();
-
+  
   useEffect(() => {
     if (assignment) {
       dispatch(detailAssignment(assignment));
     }
   }, [dispatch, assignment]);
-
+  
   const { assignmentDetails, loading } = useSelector(
     (state) => state.customer
   );
-
+  console.log("assignmentDetails",assignmentDetails)
+  
   if (!isOpen) return null;
 
   return (

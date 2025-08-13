@@ -22,6 +22,7 @@ const ClusterList = ({
   handleSave,
   onDragEnd,
 }) => {
+  console.log("data",data)
 
   return (
     <div>
