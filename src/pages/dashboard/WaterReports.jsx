@@ -4,13 +4,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import Loader from "../Loader";
 import { useNavigate } from "react-router-dom";
 import DayDetailModal from "@/component/DayDetailModal";
+import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Input, Button } from "@material-tailwind/react";
+import { ArrowPathIcon } from "@heroicons/react/24/solid";
 
 function WaterReports() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { waterReports, loading, totalCount } = useSelector((state) => state.waterReport);
-  console.log("w:",waterReports);
-  
+  console.log("w:", waterReports);
+
   const Data = waterReports;
   const currentDate = new Date();
 
@@ -25,6 +28,8 @@ function WaterReports() {
   const [modalData, setModalData] = useState([]);
   const [modalDay, setModalDay] = useState(null);
   const [modalUser, setModalUser] = useState(null);
+  const [searchValue, setSearchValue] = useState("");
+
 
   useEffect(() => {
     const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -40,6 +45,23 @@ function WaterReports() {
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
   ];
+
+  useEffect(() => {
+    handleSearch();
+  }, [month, year, startDate, endDate]);
+
+
+  const handleSearch = () => {
+    const formattedMonth = month < 10 ? `0${month}` : month;
+    dispatch(getWaterReports({ month: formattedMonth, year, startDate, endDate, search: searchValue.trim() }));
+  };
+
+  const searchClear = () => {
+    setSearchValue("");
+    setTimeout(() => {
+      handleSearch();
+    }, 0);
+  };
 
   useEffect(() => {
     const formattedMonth = month < 10 ? `0${month}` : month;
@@ -63,34 +85,9 @@ function WaterReports() {
   }
 
   const groupedData = {};
-
-  // Data.forEach((entry) => {
-  //   const userId = entry.customerId._id;
-  //   const day = new Date(entry.date).getDate();
-
-  //   if (!groupedData[userId]) {
-  //     groupedData[userId] = {
-  //       user: entry.customerId,
-  //       scores: {}  // day: [{ score, status }]
-  //     };
-  //   }
-
-  //   if (!groupedData[userId].scores[day]) {
-  //     groupedData[userId].scores[day] = [];
-  //   }
-
-  //   groupedData[userId].scores[day].push({
-  //     score: entry.waterScore,
-  //     status: entry.status,
-  //     createdAt: entry.date,
-  //     id:entry._id,
-  //   });
-  // });
-
   Data?.forEach((customer) => {
     const userId = customer._id;
 
-    // Initialize user info and scores container
     if (!groupedData[userId]) {
       groupedData[userId] = {
         user: {
@@ -99,13 +96,11 @@ function WaterReports() {
           first_name: customer.first_name,
           last_name: customer.last_name,
           contact_number: customer.contact_number,
-          // Add more fields here if needed
         },
-        scores: {} // scores[day] = [ { score, status, createdAt, id } ]
+        scores: {}
       };
     }
 
-    // Loop through each report for this customer
     customer.reports.forEach((report) => {
       const day = new Date(report.date).getDate();
 
@@ -145,174 +140,102 @@ function WaterReports() {
     setModalUser(null);
   };
 
-  // const handleModalSave = () => {
-  //   const formattedMonth = month < 10 ? `0${month}` : month;
-  //   dispatch(getWaterReports({ month: formattedMonth, year }));
-  // };
+  const handleClear = () => {
+    setSearchValue("");
+    setMonth(currentMonth);
+    setYear(currentYear);
+    setStartDate(`${currentYear}-${String(currentMonth).padStart(2, '0')}-01`);
+    const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+    setEndDate(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`);
+
+    // Call API with default params
+    const formattedMonth = currentMonth < 10 ? `0${currentMonth}` : currentMonth;
+    dispatch(getWaterReports({
+      month: formattedMonth,
+      year: currentYear,
+      startDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
+      endDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`,
+      search: ""
+    }));
+  };
+
 
   return (
-    //     <div className="flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
-
-    // <div className="flex justify-between items-center pb-5">
-    //   <div>
-    // <h1 className="text-left text-xl font-bold text-gray-800 pl-5">
-    //   Water Reports
-    // </h1>
-    // </div>
-
-    // <div className="flex flex-wrap gap-4 mb-3 px-4 pt-3">
-    //   {/* Start Date */}
-
-
-    //   {/* Month Selector */}
-    //   <div className="flex items-center gap-2">
-    //     <label className="text-sm font-medium text-gray-700 mb-1">Month</label>
-    //     <select
-    //       value={monthNames[month - 1]}
-    //       onChange={handleMonthChange}
-    //       className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-    //     >
-    //       {monthNames.map((m, index) => (
-    //         <option key={m} value={m}>
-    //           {m}
-    //         </option>
-    //       ))}
-    //     </select>
-    //   </div>
-
-    //   {/* Year Selector */}
-    //   <div className="flex items-center gap-2">
-    //     <label className="text-sm font-medium text-gray-700 mb-1">Year</label>
-    //     <select
-    //       value={year}
-    //       onChange={handleYearChange}
-    //       className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-    //     >
-    //       {years.map((y) => (
-    //         <option key={y} value={y.toString()}>
-    //           {y}
-    //         </option>
-    //       ))}
-    //     </select>
-    //   </div>
-    //   </div>
-
-    // </div>
-
-    //       <div className="relative overflow-x-auto shadow-md rounded-lg">
-    //         {loading ? <div className=''><Loader /></div> :
-    //           <div className="overflow-x-auto">
-    //             <table className="w-full border-collapse bg-white">
-    //               <thead className="">
-    //                 <tr>
-    //                   <th className="sticky left-0 z-10 bg-gray-200 text-center p-2 font-medium text-gray-700 min-w-[180px] border-b border-gray-500">
-    //                     User
-    //                   </th>
-    //                   {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => (
-    //                     <th
-    //                       key={day}
-    //                       className="border-r border-gray-500 p-4 text-center font-medium text-gray-700 min-w-[90px]"
-    //                     >
-    //                       {day}
-    //                     </th>
-    //                   ))}
-    //                   <th className="sticky right-0 z-10 bg-gray-200 text-center p-2 font-medium text-gray-700 min-w-[150px] border-b border-gray-500">
-    //                     Actions
-    //                   </th>
-    //                 </tr>
-    //               </thead>
-    //               <tbody>
-    //                 {Object.values(groupedData).map((userData) => (
-    //                   // console.log("userData",userData),
-    //                   <tr key={userData.user._id}>
-    //                     <td className="sticky left-0 bg-gray-200 text-center font-medium text-gray-700 border-b border-gray-500">
-    //                       {userData.user.display_name}
-    //                     </td>
-    //                     {Array.from({ length: daysInMonth }, (_, day) => {
-    //                       const currentDayOfMonth = day + 1;
-    //                      const entries = userData.scores[currentDayOfMonth];// array or undefined
-
-    //                       let bgClass = "";
-    //                       if (entries?.some(e => e.status)) {
-    //                         bgClass = "bg-green-500 text-white";
-    //                       } else if (entries?.length) {
-    //                         bgClass = "bg-yellow-500 text-black";
-    //                       }
-
-    //                       return (
-    //                         <td
-    //                           key={currentDayOfMonth}
-    //                           className={`border border-gray-500 text-center p-2 min-w-[90px] ${bgClass}`}
-    //                           onClick={() => handleCellClick(entries, currentDayOfMonth, userData.user)}
-    //                         >
-    //                           {entries ? entries.map(e => e.score).join(", ") : "-"}
-    //                         </td>
-    //                       );
-    //                     })}
-    //                     <td className="sticky right-0 z-10 bg-gray-200 text-center p-2 border-b border-gray-500">
-    //                       <button className="bg-black rounded-lg text-white px-2 py-2 text-sm" onClick={() => handleNavigation(userData)}>
-    //                         View Report
-    //                       </button>
-    //                     </td>
-
-    //                   </tr>
-    //                 ))}
-    //               </tbody>
-    //             </table>
-    //             {Data.length == 0 && (
-    //               <p className="text-gray-500 text-center">No data available. </p>
-    //             )}
-    //           </div>
-    //         }
-    //       </div>
-    //          <DayDetailModal
-    //   show={showModal}
-    //   onClose={closeModal}
-    //   onSaved={handleModalSave}
-    //   data={modalData}
-    //   day={modalDay}
-    //   user={modalUser}
-    //   month={month}
-    //   year={year}
-    // />
-
-    //     </div>
     <div className="flex flex-col bg-white border border-gray-300 rounded-xl mt-9 shadow-sm">
-      {/* Header and filters */}
-      <div className="flex justify-between items-center px-5 py-4">
-        <h1 className="text-xl font-bold text-gray-800">Water Reports</h1>
-        <div className="flex flex-wrap gap-4">
-          <div className="mt-1.5 border-b border-gray-600">
-            <h1>Total Customer : {totalCount}</h1>
+      <div className="bg-white shadow-sm rounded-xl p-5 space-y-5">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <h1 className="text-2xl font-bold text-gray-800">Water Reports</h1>
+
+          {/* Search */}
+          <div className="flex flex-row items-stretch gap-2 w-auto">
+            <div className="w-72 relative flex gap-2">
+              <Input
+                label="Search"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                icon={
+                  searchValue ? (
+                    <XMarkIcon
+                      onClick={handleClear}
+                      className="h-5 w-5 cursor-pointer"
+                    />
+                  ) : null
+                }
+              />
+            </div>
+
+            <Button
+              onClick={handleSearch}
+              variant="gradient"
+              className="px-2.5"
+              size="sm"
+            >
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Start Date : </label>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Total Count */}
+          <div className="flex items-center bg-gray-50 border rounded-lg px-3  h-[42px] mt-6">
+            <span className="font-semibold text-gray-700">
+              Total Customer: {totalCount}
+            </span>
+          </div>
+
+          {/* Start Date */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Start Date</label>
             <input
               type="date"
               disabled
-              className="px-2 py-1 border border-gray-300 rounded"
               value={startDate || ""}
               onChange={(e) => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* End Date */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">End Date : </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">End Date</label>
             <input
               type="date"
               disabled
-              className="px-2 py-1 border border-gray-300 rounded"
               value={endDate || ""}
               onChange={(e) => setEndDate(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-700">Month : </label>
+
+          {/* Month */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Month</label>
             <select
               value={monthNames[month - 1]}
               onChange={handleMonthChange}
-              className="px-2 py-1 border border-gray-300 rounded"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               {monthNames.map((m) => (
                 <option key={m} value={m}>
@@ -321,12 +244,14 @@ function WaterReports() {
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-700">Year : </label>
+
+          {/* Year */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Year</label>
             <select
               value={year}
               onChange={handleYearChange}
-              className="px-2 py-1 border border-gray-300 rounded"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -337,6 +262,7 @@ function WaterReports() {
           </div>
         </div>
       </div>
+
 
       {/* Table */}
       <div className="relative overflow-auto max-h-[75vh]">
@@ -379,28 +305,6 @@ function WaterReports() {
                       </span>
                     </div>
                   </td>
-
-                  {/* {Array.from({ length: daysInMonth }, (_, day) => {
-                    const currentDay = day + 1;
-                    const entries = userData.scores[currentDay];
-
-                    let bgClass = "";
-                    if (entries?.some((e) => e.status)) {
-                      bgClass = "bg-green-500 text-white";
-                    } else if (entries?.length) {
-                      bgClass = "bg-yellow-400 text-black";
-                    }
-
-                    return (
-                      <td
-                        key={currentDay}
-                        className={`border border-gray-300 text-center min-w-[90px] p-2 cursor-pointer ${bgClass}`}
-                        onClick={() => handleCellClick(entries, currentDay, userData.user)}
-                      >
-                        {entries ? entries.map((e) => e.score).join(", ") : "-"}
-                      </td>
-                    );
-                  })} */}
                   {Array.from({ length: daysInMonth }, (_, day) => {
                     const currentDay = day + 1;
                     const entries = userData.scores[currentDay];
@@ -416,8 +320,6 @@ function WaterReports() {
                         const scoreValues = entries.map((e) => e.score);
                         const hasStatus = entries.some((e) => e.status);
                         const scoresText = scoreValues.join(", ");
-
-                        // Assign background color based on score, regardless of status
                         const hasHigh = scoreValues.some((score) => score > 100);
                         const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
                         const hasLow = scoreValues.some((score) => score < 60);
@@ -429,8 +331,6 @@ function WaterReports() {
                         } else if (hasLow) {
                           bgClass = "bg-green-500 text-white";
                         }
-
-                        // Add checkmark if status is true
                         cellContent = (
                           <div className="flex items-center justify-center gap-2">
                             <span>{scoresText}</span>
@@ -478,8 +378,6 @@ function WaterReports() {
                       </td>
                     );
                   })}
-
-
                   <td className="sticky right-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[150px]">
                     <button
                       className="bg-black text-white px-3 py-1 rounded text-sm"

@@ -164,19 +164,19 @@ const ClusterMap = ({
               })}
             </Select>
           </div>
-           <div className="">
-    <button
-      onClick={() => {
-        setSelectedVehicle(null);
-        setSelectedClusterNumber(null);
-        setSelectedClusterId(null);
-        setSelected(null);
-      }}
-      className="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-lg"
-    >
-      Reset
-    </button>
-  </div>
+          <div className="">
+            <button
+              onClick={() => {
+                setSelectedVehicle(null);
+                setSelectedClusterNumber(null);
+                setSelectedClusterId(null);
+                setSelected(null);
+              }}
+              className="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-lg"
+            >
+              Reset
+            </button>
+          </div>
         </div>
       </div>
       <div className="relative w-full h-[75vh]">
@@ -266,7 +266,34 @@ const ClusterMap = ({
           )}
         </GoogleMap>
       </div>
+      <div className='mt-5'>
+        <Typography variant="h6" color="blue-gray" className="mb-4"> Customers Without Coordinates ({customersWithoutCoords.length}) </Typography>
+        <div className="overflow-x-auto overflow-y-auto max-h-[55vh] scrollbar-thin rounded-lg shadow-md border border-gray-200">
+          <table className="min-w-full table-auto text-sm">
+            <thead className="bg-gray-100 text-gray-700 uppercase tracking-wider text-xs">
+              <tr>
+                <th className="px-4 py-3 text-left">#</th>
+                <th className="px-4 py-3 text-left">Customer Name</th>
+                <th className="px-4 py-3 text-left">Customer Code</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {customersWithoutCoords.map((cust, idx) => (
+                <tr
+                  key={cust.customerId || idx}
+                  className="hover:bg-gray-50 transition-colors duration-150"
+                >
+                  <td className="px-4 py-2 font-medium text-gray-600">{idx + 1}</td>
+                  <td className="px-4 py-2 text-gray-800">{cust.displayName?.trim()}</td>
+                  <td className="px-4 py-2 text-gray-800">{cust.code}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </>
+
   );
 };
 
