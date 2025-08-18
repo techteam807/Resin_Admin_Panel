@@ -4,9 +4,9 @@ import { toast } from 'react-toastify';
 
 export const getWaterReports = createAsyncThunk(
   'waterReports/getWaterReports',
-  async ({ month, year, startDate, endDate }, { rejectWithValue }) => {
+  async ({ month, year, startDate, endDate, search }, { rejectWithValue }) => {
     try {
-      const data = await fetchWaterReports(month, year, startDate, endDate);
+      const data = await fetchWaterReports(month, year, startDate, endDate, search);
       return data;
     } catch (error) {
       console.error('Error in getWaterReports thunk:', error);

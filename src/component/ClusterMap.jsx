@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   GoogleMap,
   Marker,
@@ -8,6 +8,7 @@ import {
 } from '@react-google-maps/api';
 import { Select, Option, Typography } from '@material-tailwind/react';
 import Loader from '@/pages/Loader';
+import { getCustomersClusterMap } from '@/feature/customer/customerSlice';
 
 const clusterColors = [
   'red',
@@ -42,23 +43,72 @@ const ClusterMap = ({
   setSelectedClusterId,
   selectedClusterNumber,
   setSelectedClusterNumber,
+  setSelectedVehicle,
 }) => {
+  const mapRef = useRef(null);
+
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
     libraries: LIBRARIES,
   });
 
-  console.log("data:",data);
-  
+  console.log("data:", data);
+
+  useEffect(() => {
+    if (!mapRef.current || !data.length) return;
+
+    const bounds = new window.google.maps.LatLngBounds();
+    data.forEach((cl) =>
+      cl.customers.forEach((cu) => {
+        if (!isNaN(cu.lat) && !isNaN(cu.lng)) {
+          bounds.extend({ lat: cu.lat, lng: cu.lng });
+        }
+      })
+    );
+    if (!bounds.isEmpty()) mapRef.current.fitBounds(bounds);
+  }, [data]);
+
+  const customersWithoutCoords = [];
+  const filteredData = data
+    .map((cluster) => {
+      const validCustomers = cluster.customers?.filter(
+        (cust) =>
+          cust.lat !== "" &&
+          cust.lng !== "" &&
+          cust.lat != null &&
+          cust.lng != null
+      ) || [];
+
+      const invalidCustomers = cluster.customers?.filter(
+        (cust) =>
+          cust.lat === "" ||
+          cust.lng === "" ||
+          cust.lat == null ||
+          cust.lng == null
+      ) || [];
+
+      customersWithoutCoords.push(...invalidCustomers);
+
+      return {
+        ...cluster,
+        customers: validCustomers
+      };
+    })
+    .filter((cluster) => cluster.customers.length > 0);
+
+  console.log("Filtered clusters for map:", filteredData);
+  console.log("Customers without coords:", customersWithoutCoords);
+
+
 
   // Assign color to each cluster
   const clusterColorMap = useMemo(() => {
     const map = {};
-    data.forEach((cluster, index) => {
-      map[cluster.clusterId] = clusterColors[index % clusterColors.length];
+    clusterDrop.forEach((cluster, index) => {
+      map[cluster.clusterNo] = clusterColors[index % clusterColors.length];
     });
     return map;
-  }, [data]);
+  }, [clusterDrop]);
 
   if (!isLoaded) {
     return (
@@ -70,171 +120,227 @@ const ClusterMap = ({
 
   return (
     <>
-    <div className="rounded-lg p-3 sm:p-4 flex flex-col gap-4 sm:gap-3 lg:flex-row lg:items-center lg:justify-between mb-2">
-            <Typography variant="h5" color="blue-gray" className="text-center lg:text-left">
-              Cluster Map
-            </Typography>
-            <div className="flex flex-col gap-3 sm:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
-              <div className="w-full sm:w-48 lg:w-56">
-                <Select label="Select Vehicle" onChange={handleVehicleSelect} value={selectedVehicle}>
-                  {vehicles.map((vehicle) => (
-                    <Option key={vehicle.id} value={vehicle.id}>
-                      {vehicle.name}
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-              <div className="w-full sm:w-48 lg:w-56">
-                <Select label="Select Cluster" 
-                 value={selectedClusterNumber}
-                  onChange={(value) => {
+      <div className="rounded-lg p-3 sm:p-4 flex flex-col gap-4 sm:gap-3 lg:flex-row lg:items-center lg:justify-between mb-2">
+        <Typography variant="h5" color="blue-gray" className="text-center lg:text-left">
+          Cluster Map
+        </Typography>
+        <div className="flex flex-col gap-3 sm:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
+          <div className="w-full sm:w-48 lg:w-56">
+            <Select label="Select Vehicle" onChange={handleVehicleSelect} value={selectedVehicle}>
+              {vehicles.map((vehicle) => (
+                <Option key={vehicle.id} value={vehicle.id}>
+                  {vehicle.name}
+                </Option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-full sm:w-48 lg:w-56">
+            <Select
+              label="Select Cluster"
+              value={selectedClusterNumber}
+              onChange={(value) => {
                 setSelectedClusterNumber(value);
-
-                // find the selected cluster's number
-                const cluster = clusterDrop.find(c => c._id === value);
+                const cluster = clusterDrop.find(c => c.clusterNo === value);
                 if (cluster) {
-                  setSelectedClusterNumber(cluster.clusterNo); // 👈 set cluster number
+                  setSelectedClusterId(cluster._id); // store ID if needed
                 }
               }}
               disabled={!selectedVehicle}
               className={selectedVehicle ? 'bg-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
-              >
-                  {clusterDrop.map((c) => (
-                    <Option key={c._id} value={c.clusterNo}>
-                      Cluster {c.clusterNo} - ({c.clusterName})
-                    </Option>
-                  ))}
-                </Select>
-              </div>
-            </div>
-          </div>
-    <div className="relative w-full h-[75vh]">
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={defaultCenter}
-        zoom={10}
-        onLoad={handleMapLoad}
-        onClick={() => setSelected(null)}
-      >
-        {data
-          .filter((cluster) => cluster.customers?.length > 0)
-          // .filter((cluster) => !selectedClusterId || cluster.clusterId === selectedClusterId) 
-          .map((cluster) => {
-            const clusterColor = clusterColorMap[cluster.clusterId];
-
-            return cluster.customers.map((cust, idx) => (
-              <React.Fragment key={cust.customerId || `${cluster._id}-${idx}`}>
-                <Circle
-                  center={{ lat: cust.lat, lng: cust.lng }}
-                  radius={500}
-                  options={{
-                    strokeColor: clusterColor,
-                    fillColor: clusterColor,
-                    strokeOpacity: 0.8,
-                    fillOpacity: 0.25,
-                    strokeWeight: 1,
-                    clickable: false,
-                    zIndex: 0,
-                  }}
-                />
-                <Marker
-                  position={{ lat: cust.lat, lng: cust.lng }}
-                  onClick={() => setSelected({ ...cust, clusterColor })}
-                  icon={{
-                    url: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-                    scaledSize: new window.google.maps.Size(30, 30),
-                    anchor: new window.google.maps.Point(15, 30),
-                  }}
-                />
-              </React.Fragment>
-            ));
-          })}
-
-
-        {selected && (
-          <OverlayView
-            position={{ lat: selected.lat, lng: selected.lng }}
-            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-          >
-            <div
-              className="p-3 rounded-lg text-white shadow-lg"
-              style={{
-                background: selected.clusterColor,
-                minWidth: 160,
-                maxWidth: 260,
-                cursor: 'pointer',
-                userSelect: 'none',
-                whiteSpace: 'normal',
-                wordBreak: 'break-word',
-              }}
-              onClick={() => setSelected(null)}
             >
-              <strong>{selected.displayName}</strong>
-              <br />
-              {selected.code}
+              {clusterDrop.map((c, index) => {
+                const color = clusterColors[index % clusterColors.length];
+                return (
+                  <Option key={c._id} value={c.clusterNo}>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-4 h-4 rounded-full border border-gray-300"
+                        style={{ backgroundColor: color }}
+                      ></span>
+                      Cluster {c.clusterNo} - ({c.clusterName})
+                    </div>
+                  </Option>
+                );
+              })}
+            </Select>
+          </div>
+          <div className="">
+            <button
+              onClick={() => {
+                setSelectedVehicle(null);
+                setSelectedClusterNumber(null);
+                setSelectedClusterId(null);
+                setSelected(null);
+              }}
+              className="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-lg"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="relative w-full h-[75vh]">
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={defaultCenter}
+          zoom={14}
+          onLoad={handleMapLoad}
+          onClick={() => setSelected(null)}
+        >
+          {data
+            .filter((cluster) => cluster.customers?.length > 0)
+            // .filter((cluster) => !selectedClusterId || cluster.clusterId === selectedClusterId) 
+            .map((cluster) => {
+              const clusterColor = clusterColorMap[cluster.clusterNo];
+
+              return cluster.customers
+                .filter(
+                  (cust) =>
+                    cust.lat !== "" &&
+                    cust.lng !== "" &&
+                    cust.lat != null &&
+                    cust.lng != null
+                )
+                .map((cust, idx) => (
+                  <React.Fragment key={cust.customerId || `${cluster._id}-${idx}`}>
+                    <Circle
+                      center={{ lat: cust.lat, lng: cust.lng }}
+                      radius={500}
+                      options={{
+                        strokeColor: clusterColor,
+                        fillColor: clusterColor,
+                        strokeOpacity: 0.8,
+                        fillOpacity: 0.25,
+                        strokeWeight: 1,
+                        clickable: false,
+                        zIndex: 0,
+                      }}
+                    />
+                    <Marker
+                      position={{ lat: cust.lat, lng: cust.lng }}
+                      onClick={() => setSelected({ ...cust, clusterColor })}
+                      icon={{
+                        url: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                        scaledSize: new window.google.maps.Size(30, 30),
+                        anchor: new window.google.maps.Point(15, 30),
+                      }}
+                    />
+                  </React.Fragment>
+                ));
+            })}
+
+
+          {selected && (
+            <OverlayView
+              position={{ lat: selected.lat, lng: selected.lng }}
+              mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+            >
               <div
+                className="p-3 rounded-lg text-white shadow-lg"
                 style={{
-                  margin: '8px auto 0',
-                  width: 0,
-                  height: 0,
-                  borderLeft: '8px solid transparent',
-                  borderRight: '8px solid transparent',
-                  borderTop: `8px solid ${selected.clusterColor}`,
+                  background: selected.clusterColor,
+                  minWidth: 160,
+                  maxWidth: 260,
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
                 }}
-              />
-            </div>
-          </OverlayView>
-        )}
-      </GoogleMap>
-    </div>
+                onClick={() => setSelected(null)}
+              >
+                <strong>{selected.displayName}</strong>
+                <br />
+                {selected.code}
+                <div
+                  style={{
+                    margin: '8px auto 0',
+                    width: 0,
+                    height: 0,
+                    borderLeft: '8px solid transparent',
+                    borderRight: '8px solid transparent',
+                    borderTop: `8px solid ${selected.clusterColor}`,
+                  }}
+                />
+              </div>
+            </OverlayView>
+          )}
+        </GoogleMap>
+      </div>
+      <div className='mt-5'>
+        <Typography variant="h6" color="blue-gray" className="mb-4"> Customers Without Coordinates ({customersWithoutCoords.length}) </Typography>
+        <div className="overflow-x-auto overflow-y-auto max-h-[55vh] scrollbar-thin rounded-lg shadow-md border border-gray-200">
+          <table className="min-w-full table-auto text-sm">
+            <thead className="bg-gray-100 text-gray-700 uppercase tracking-wider text-xs">
+              <tr>
+                <th className="px-4 py-3 text-left">#</th>
+                <th className="px-4 py-3 text-left">Customer Name</th>
+                <th className="px-4 py-3 text-left">Customer Code</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {customersWithoutCoords.map((cust, idx) => (
+                <tr
+                  key={cust.customerId || idx}
+                  className="hover:bg-gray-50 transition-colors duration-150"
+                >
+                  <td className="px-4 py-2 font-medium text-gray-600">{idx + 1}</td>
+                  <td className="px-4 py-2 text-gray-800">{cust.displayName?.trim()}</td>
+                  <td className="px-4 py-2 text-gray-800">{cust.code}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </>
+
   );
 };
 
 export default ClusterMap;
 
-    // <div className="mb-4">
-    //     <h5 className="text-lg font-semibold text-gray-800">Cluster Map</h5>
-    //     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-    //       {/* Vehicle Dropdown */}
-    //       <div>
-    //         <Select
-    //           label="Select Vehicle"
-    //           value={selectedVehicle}
-    //           onChange={handleVehicleSelect}
-    //           className="bg-white"
-    //         >
-    //           {vehicles.map((vehicle) => (
-    //             <Option key={vehicle.id} value={vehicle.id}>
-    //               {vehicle.name}
-    //             </Option>
-    //           ))}
-    //         </Select>
-    //       </div>
+// <div className="mb-4">
+//     <h5 className="text-lg font-semibold text-gray-800">Cluster Map</h5>
+//     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+//       {/* Vehicle Dropdown */}
+//       <div>
+//         <Select
+//           label="Select Vehicle"
+//           value={selectedVehicle}
+//           onChange={handleVehicleSelect}
+//           className="bg-white"
+//         >
+//           {vehicles.map((vehicle) => (
+//             <Option key={vehicle.id} value={vehicle.id}>
+//               {vehicle.name}
+//             </Option>
+//           ))}
+//         </Select>
+//       </div>
 
-    //       {/* Cluster Dropdown */}
-    //       <div>
-    //         <Select
-    //           label="Select Cluster"
-    //           value={selectedClusterId}
-    //           onChange={(value) => {
-    //             setSelectedClusterId(value);
+//       {/* Cluster Dropdown */}
+//       <div>
+//         <Select
+//           label="Select Cluster"
+//           value={selectedClusterId}
+//           onChange={(value) => {
+//             setSelectedClusterId(value);
 
-    //             // find the selected cluster's number
-    //             const cluster = clusterDrop.find(c => c._id === value);
-    //             if (cluster) {
-    //               setSelectedClusterNumber(cluster.clusterNo); // 👈 set cluster number
-    //             }
-    //           }}
-    //           disabled={!selectedVehicle}
-    //           className={selectedVehicle ? 'bg-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
-    //         >
-    //           {clusterDrop.map((c) => (
-    //             <Option key={c._id} value={c._id}>
-    //               Cluster {c.clusterNo} - ({c.clusterName})
-    //             </Option>
-    //           ))}
-    //         </Select>
-    //       </div>
-    //     </div>
-    //   </div>
+//             // find the selected cluster's number
+//             const cluster = clusterDrop.find(c => c._id === value);
+//             if (cluster) {
+//               setSelectedClusterNumber(cluster.clusterNo); // 👈 set cluster number
+//             }
+//           }}
+//           disabled={!selectedVehicle}
+//           className={selectedVehicle ? 'bg-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
+//         >
+//           {clusterDrop.map((c) => (
+//             <Option key={c._id} value={c._id}>
+//               Cluster {c.clusterNo} - ({c.clusterName})
+//             </Option>
+//           ))}
+//         </Select>
+//       </div>
+//     </div>
+//   </div>

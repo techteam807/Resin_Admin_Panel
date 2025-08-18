@@ -26,7 +26,7 @@ const tabs = [
 
 const MapClusterCopy = () => {
     const dispatch = useDispatch();
-    const mapRef = useRef(null);
+    // const mapRef = useRef(null);
 
     const handleMapLoad = (map) => {
         mapRef.current = map;
@@ -49,7 +49,7 @@ const MapClusterCopy = () => {
     const [selectedVehicle, setSelectedVehicle] = useState(1);
     const [selectedClusterId, setSelectedClusterId] = useState("");
     const [selectedClusterNumber, setSelectedClusterNumber] = useState("null");
-    console.log("sel:",selectedClusterNumber);
+    console.log("customersClusterMap:",customersClusterMap);
     
     const [isVisible, setIsVisible] = useState(true);
     const [saveLoading, setSaveLoading] = useState(false);
@@ -147,19 +147,19 @@ const MapClusterCopy = () => {
     //     }
     // }, [mapLoading, clusteroute]);
 
-    useEffect(() => {
-        if (!mapRef.current || !data.length) return;
+    // useEffect(() => {
+    //     if (!mapRef.current || !data.length) return;
 
-        const bounds = new window.google.maps.LatLngBounds();
-        data.forEach((cl) =>
-            cl.customers.forEach((cu) => {
-                if (!isNaN(cu.lat) && !isNaN(cu.lng)) {
-                    bounds.extend({ lat: cu.lat, lng: cu.lng });
-                }
-            })
-        );
-        if (!bounds.isEmpty()) mapRef.current.fitBounds(bounds);
-    }, [data]);
+    //     const bounds = new window.google.maps.LatLngBounds();
+    //     data.forEach((cl) =>
+    //         cl.customers.forEach((cu) => {
+    //             if (!isNaN(cu.lat) && !isNaN(cu.lng)) {
+    //                 bounds.extend({ lat: cu.lat, lng: cu.lng });
+    //             }
+    //         })
+    //     );
+    //     if (!bounds.isEmpty()) mapRef.current.fitBounds(bounds);
+    // }, [data]);
 
     // Auto-select first cluster in route mode
     // useEffect(() => {
@@ -370,11 +370,12 @@ const MapClusterCopy = () => {
                         selectedVehicle={selectedVehicle}
                         handleVehicleSelect={handleVehicleSelect}
                         vehicles={vehicles}
-                        handleMapLoad={(map) => { mapRef.current = map; }}
+                        // handleMapLoad={(map) => { mapRef.current = map; }}
                         clusterDrop={clusterDrop}
                         selectedClusterId={selectedClusterId}
                         setSelectedClusterId={setSelectedClusterId}
                         selectedClusterNumber={selectedClusterNumber}
+                        setSelectedVehicle={setSelectedVehicle}
                         setSelectedClusterNumber={setSelectedClusterNumber}
                     />
                 )}
@@ -398,6 +399,7 @@ const MapClusterCopy = () => {
             </div>
         </div>
     );
+
 };
 
 export default MapClusterCopy;
