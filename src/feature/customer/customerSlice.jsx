@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap, fetchClusterRoutes, fetchClusterDropdown, fetchClusterAssignment, createAssignment, delAssignment, assignemntDetail } from "./customerService";
+import { fetchCustomers, fetchCustomersDropdown, refrestCustom, fetchCustomersMap, sendDelivery, fetchMissedDeliveryLogs, fetchCustomersClusterMap, updateCustomersClusterMap, refetchCustomersClusterMap, fetchClusterRoutes, fetchClusterDropdown, fetchClusterAssignment, createAssignment, delAssignment, assignemntDetail, updateCustomerFreeze } from "./customerService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -190,6 +190,16 @@ export const detailAssignment = createAsyncThunk(
   }
 );
 
+export const editCustomerFreeze = createAsyncThunk("customer/editCustomerFreeze", async ({ payload }) => {
+  try {
+    const data = await updateCustomerFreeze(payload);
+    return data;
+  } catch (error) {
+    console.error("Error in editCustomerFreeze thunk:", error);
+    throw error.response?.data?.message || error.message;
+  }
+});
+
 
 const customerSlice = createSlice({
   name: "customer",
@@ -200,6 +210,7 @@ const customerSlice = createSlice({
     missedDeliveryData: [],
     customersClusterMap: [],
     updatedcustomersClusterMap: [],
+    updatedCustomerFreeze: [],
     clusteroute: [],
     clusterDrop: [],
     assignment: [],
@@ -214,6 +225,7 @@ const customerSlice = createSlice({
     deleteLoading: false,
     deliveryLoading: false,
     clusterLoading: false,
+    customerLoading: false,
     delete: null,
     create: null,
     error: null,
@@ -291,15 +303,12 @@ const customerSlice = createSlice({
       .addCase(editCustomersClusterMap.fulfilled, (state, action) => {
         state.mapLoading = false;
         state.updatedcustomersClusterMap = action.payload.data;
-        console.log("hell", action.payload)
         state.message = action.payload.message;
         toast.success(state.message);
       })
       .addCase(editCustomersClusterMap.rejected, (state, action) => {
         state.mapLoading = false;
         state.error = action.error.message;
-        console.log("hell", action.error)
-
         toast.error(state.error);
       })
       .addCase(refreshcustomers.pending, (state) => {
@@ -434,6 +443,20 @@ const customerSlice = createSlice({
       .addCase(detailAssignment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+      .addCase(editCustomerFreeze.pending, (state) => {
+        state.customerLoading = true;
+      })
+      .addCase(editCustomerFreeze.fulfilled, (state, action) => {
+        state.customerLoading = false;
+        state.updatedCustomerFreeze = action.payload.data;
+        state.message = action.payload.message;
+        toast.success(state.message);
+      })
+      .addCase(editCustomerFreeze.rejected, (state, action) => {
+        state.customerLoading = false;
+        state.error = action.error.message;
+        toast.error(state.error);
       })
   },
 });

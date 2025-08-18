@@ -1,8 +1,10 @@
-import React from 'react';
-import { Button, Input, Option, Select, Typography } from '@material-tailwind/react';
+import React, { useState } from "react";
+import { Button, Input, Option, Select, Typography, Dialog, DialogHeader, DialogBody, DialogFooter } from '@material-tailwind/react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { XMarkIcon, MagnifyingGlassIcon, } from '@heroicons/react/24/solid';
+import { XMarkIcon, MagnifyingGlassIcon, EyeIcon } from '@heroicons/react/24/solid';
 import Loader from '@/pages/Loader';
+import { useDispatch, useSelector } from 'react-redux';
+import { editCustomerFreeze } from "@/feature/customer/customerSlice";
 
 const clusterColors = ['red', 'blue', 'green', 'purple', 'orange', 'cyan', 'magenta', 'SteelBlue'];
 
@@ -22,7 +24,38 @@ const ClusterList = ({
   handleSave,
   onDragEnd,
 }) => {
-  console.log("data",data)
+  const dispatch = useDispatch();
+  const [open, setOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [isFrozen, setIsFrozen] = useState(false);
+  const { customerLoading } = useSelector((state) => state.customer);
+
+
+  const handleOpen = (customer, clusterId) => {
+    setSelectedCustomer({ ...customer, clusterId });
+    setOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (!selectedCustomer) return;
+
+   const payload = {
+  clusterId: selectedCustomer.clusterId, 
+  customerId: selectedCustomer.customerId, 
+  isFrozen: isFrozen,
+};
+console.log("payload",payload)
+
+    dispatch(editCustomerFreeze({ payload }))
+      .unwrap()
+      .then((res) => {
+        console.log("Freeze updated:", res);
+        setOpen(false);
+      })
+      .catch((err) => {
+        console.error("Error freezing customer:", err);
+      });
+  };
 
   return (
     <div>
@@ -246,7 +279,9 @@ const ClusterList = ({
                     <div className={`grid gap-4 ${isVisible
                       ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-2'
                       : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-                      {data.slice(0, 7).map((cluster, index) => (
+                      {data.slice(0, 7).map((cluster, index) => {
+                        const clusterId = cluster.clusterId
+                        return (
                         <div
                           key={index}
                           className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
@@ -270,7 +305,7 @@ const ClusterList = ({
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`bg-white flex items-center rounded-lg shadow-lg text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? 'bg-blue-50 shadow-md' : ''
+                                          className={`bg-white flex items-center rounded-lg shadow-lg text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
                                             }`}
                                           style={{
                                             ...provided.draggableProps.style,
@@ -289,11 +324,18 @@ const ClusterList = ({
                                             >
                                               {customer.code}
                                             </div>
-                                            <div>{customer.displayName}</div>
+                                            <div className="">{customer.displayName}</div>
                                           </div>
+
                                           <div className="ml-auto flex flex-col justify-end items-end text-right">
                                             <div>Qty: {customer.qty}</div>
                                             <div>Size: {customer.size}</div>
+                                          </div>
+                                          <div>
+                                            <EyeIcon
+                                              className="h-5 w-5 text-gray-700 hover:text-gray-900 cursor-pointer mx-2"
+                                              onClick={() => handleOpen(customer, clusterId)} 
+                                            />
                                           </div>
                                         </div>
                                       )}
@@ -318,31 +360,31 @@ const ClusterList = ({
                             </div>
                           </div>
                         </div>
-                      ))}
+                      )})}
                     </div>
                   </div>
 
                   {isVisible && (
-                   <div className={`col-span-1 ${isVisible ? 'block' : 'hidden'} md:block`}>
+                    <div className={`col-span-1 ${isVisible ? 'block' : 'hidden'} md:block`}>
                       <div className="flex flex-col gap-4">
                         {data.slice(7).map((cluster, index) => {
                           const actualIndex = index + 7;
                           const clusterColor = clusterColors[actualIndex % clusterColors.length];
                           return (
                             <div
-                               key={actualIndex}
-                               className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
-                             >
-                               <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
+                              key={actualIndex}
+                              className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
+                            >
+                              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
                                 {cluster.name} ({cluster.clusterName})
                               </div>
                               <Droppable droppableId={`${actualIndex}`}>
                                 {(provided) => (
                                   <div
-                                     ref={provided.innerRef}
-                                     {...provided.droppableProps}
-                                     className="flex-1 overflow-y-auto max-h-[50vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
-                                   >
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    className="flex-1 overflow-y-auto max-h-[50vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                                  >
                                     {cluster.customers.map((customer, idx) => (
                                       <Draggable key={customer.code} draggableId={customer.code} index={idx}>
                                         {(provided, snapshot) => (
@@ -416,6 +458,78 @@ const ClusterList = ({
               </DragDropContext>
             )}
           </div>
+          {open && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              {/* Dark overlay */}
+              <div
+                className="absolute inset-0 bg-black bg-opacity-50"
+                onClick={() => setOpen(false)}
+              />
+
+              {/* Modal box */}
+              <div className="relative bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 z-10">
+                {/* Close button (X) */}
+                <button
+                  onClick={() => setOpen(false)}
+                  className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+
+                <h2 className="text-lg font-semibold mb-4">Customer Details</h2>
+
+                {selectedCustomer && (
+                  <div className="space-y-2">
+                    <p className="font-semibold">Do you want to freeze this customer?</p>
+                    <p><span className="font-medium">Code:</span> {selectedCustomer.code}</p>
+                    <p><span className="font-medium">Name:</span> {selectedCustomer.displayName}</p>
+                    <p><span className="font-medium">Qty:</span> {selectedCustomer.qty}</p>
+                    <p><span className="font-medium">Size:</span> {selectedCustomer.size}</p>
+
+                    {/* Toggle Switch */}
+                    <div className="flex items-center gap-3 mt-4">
+                      <span className="font-medium">Freeze:</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isFrozen}
+                          onChange={() => setIsFrozen(!isFrozen)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none 
+                rounded-full peer peer-checked:after:translate-x-full 
+                peer-checked:after:border-white after:content-[''] after:absolute 
+                after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 
+                after:border after:rounded-full after:h-5 after:w-5 
+                after:transition-all peer-checked:bg-green-500"></div>
+                      </label>
+                      <span className="text-sm font-semibold">
+                        {/* {isFrozen ? "True" : "False"} */}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-6 flex justify-end gap-3">
+                  <Button
+                    variant="outlined"
+                    color="red"
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="gradient"
+                    color="green"
+                    onClick={handleConfirm}
+                  >
+                    {customerLoading ? "Saving..." : "Confirm"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </>
       )}
     </div>

@@ -36,6 +36,7 @@ const MapClusterCopy = () => {
         clusterDrop } = useSelector(
             (state) => state.customer
         );
+        console.log("customersClusterMap",customersClusterMap)
 
     const [activeTab, setActiveTab] = useState('list');
     const [data, setData] = useState([]);
@@ -109,6 +110,7 @@ const MapClusterCopy = () => {
                     displayName: c.name,
                     vistSequnceNo: c.sequenceNo,
                     indexNo: c.indexNo,
+                     isFreezed: c.isFreezed ?? false,  
                     lat: Number(c.geoCoordinates?.coordinates[1]) || '',
                     lng: Number(c.geoCoordinates?.coordinates[0]) || '',
                 })),
