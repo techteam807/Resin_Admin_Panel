@@ -4,7 +4,6 @@ import {
   MdCalendarToday,
   MdRadioButtonChecked,
 } from "react-icons/md";
-import { FaBox } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { detailAssignment } from "@/feature/customer/customerSlice";
@@ -12,18 +11,18 @@ import Loader from "../Loader";
 
 const EditModal = ({ isOpen, onClose, assignment }) => {
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
     if (assignment) {
       dispatch(detailAssignment(assignment));
     }
   }, [dispatch, assignment]);
-  
+
   const { assignmentDetails, loading } = useSelector(
     (state) => state.customer
   );
-  console.log("assignmentDetails",assignmentDetails)
-  
+  console.log("assignmentDetails", assignmentDetails);
+
   if (!isOpen) return null;
 
   return (
@@ -83,26 +82,40 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                 </h3>
                 {assignmentDetails?.clusterId?.customers
                   ?.filter((c) => !c.CustomerReplaceMentStatus)
-                  // .sort((a, b) => a.indexNo - b.indexNo)
-                  .map((customer, index) => (
-                    <div
-                      key={`pending-${index}`}
-                      className="flex gap-2 p-3 mb-2 bg-white rounded-lg shadow-sm border-l-4 border-orange-600"
-                    >
-                      <div className="font-bold text-lg text-orange-600">
-                        {customer?.indexNo + 1}
+                  .map((customer, index) => {
+                    const isFreezed = customer?.isFreezed;
+                    return (
+                      <div
+                        key={`pending-${index}`}
+                        className={`flex gap-2 p-3 mb-2 rounded-lg shadow-sm border-l-4 relative ${
+                          isFreezed
+                            ? "bg-gray-100 border-gray-400 text-gray-400 cursor-not-allowed opacity-60"
+                            : "bg-white border-orange-600"
+                        }`}
+                      >
+                        <div
+                          className={`font-bold text-lg ${
+                            isFreezed ? "text-gray-400" : "text-orange-600"
+                          }`}
+                        >
+                          {customer?.indexNo + 1}
+                        </div>
+                        <div>
+                          <p
+                            className={`font-semibold text-sm ${
+                              isFreezed ? "text-gray-400" : ""
+                            }`}
+                          >
+                            {customer?.customerId?.first_name}{" "}
+                            {customer?.customerId?.last_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {customer?.customerId?.contact_number}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm">
-                          {customer?.customerId?.first_name}{" "}
-                          {customer?.customerId?.last_name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {customer?.customerId?.contact_number}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
 
               {/* Completed */}
@@ -112,54 +125,60 @@ const EditModal = ({ isOpen, onClose, assignment }) => {
                 </h3>
                 {assignmentDetails?.clusterId?.customers
                   ?.filter((c) => c.CustomerReplaceMentStatus)
-                  // .sort((a, b) => a.indexNo - b.indexNo)
-                  .map((customer, index) => (
-                    <div
-                      key={`completed-${index}`}
-                      className="flex gap-2 p-3 mb-2 bg-white rounded-lg shadow-sm border-l-4 border-green-500"
-                    >
-                      <div className="font-bold text-lg text-green-600">
-                        {customer?.indexNo + 1}
+                  .map((customer, index) => {
+                    const isFreezed = customer?.isFreezed;
+                    return (
+                      <div
+                        key={`completed-${index}`}
+                        className={`flex gap-2 p-3 mb-2 rounded-lg shadow-sm border-l-4 relative ${
+                          isFreezed
+                            ? "bg-gray-100 border-gray-400 text-gray-400 cursor-not-allowed opacity-60"
+                            : "bg-white border-green-500"
+                        }`}
+                      >
+                        <div
+                          className={`font-bold text-lg ${
+                            isFreezed ? "text-gray-400" : "text-green-600"
+                          }`}
+                        >
+                          {customer?.indexNo + 1}
+                        </div>
+                        <div>
+                          <p
+                            className={`font-semibold text-sm ${
+                              isFreezed ? "text-gray-400" : ""
+                            }`}
+                          >
+                            {customer?.customerId?.first_name}{" "}
+                            {customer?.customerId?.last_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {customer?.customerId?.contact_number}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm">
-                          {customer?.customerId?.first_name}{" "}
-                          {customer?.customerId?.last_name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {customer?.customerId?.contact_number}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
 
             {/* Footer */}
-            {/* <div className="flex justify-between items-center border-t pt-3 mt-4 text-sm">
-              <div className="flex items-center gap-1">
-                <FaBox className="text-sm" />
-                {assignmentDetails?.clusterId?.customers?.length}
-              </div>
-              <div className="text-orange-600 font-semibold">
-                CARTRIDGE QTY:{" "}
-                {assignmentDetails?.clusterId?.cartridge_qty}
-              </div>
-            </div> */}
             <div className="p-3 border-t border-gray-200 text-center text-sm text-gray-700 flex justify-between">
-                                <div className="text-left">
-                                  {assignmentDetails?.clusterId?.customers.length} Customers <br />
-                                  {assignmentDetails?.clusterId?.cartridge_qty} Cartridge Quantity
-                                </div>
-                                <div>
-                                  {assignmentDetails?.cartridgeSizeCounts &&
-    Object.entries(assignmentDetails.cartridgeSizeCounts).map(([size, count]) => (
-      <div key={size}>
-        {size}: {count}
-      </div>
-    ))}
-                                </div>
-                              </div>
+              <div className="text-left">
+                {assignmentDetails?.clusterId?.customers.length} Customers <br />
+                {assignmentDetails?.clusterId?.cartridge_qty} Cartridge Quantity
+              </div>
+              <div>
+                {assignmentDetails?.cartridgeSizeCounts &&
+                  Object.entries(assignmentDetails.cartridgeSizeCounts).map(
+                    ([size, count]) => (
+                      <div key={size}>
+                        {size}: {count}
+                      </div>
+                    )
+                  )}
+              </div>
+            </div>
           </>
         )}
       </div>

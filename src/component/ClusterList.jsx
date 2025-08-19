@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Input, Option, Select, Typography, Dialog, DialogHeader, DialogBody, DialogFooter } from '@material-tailwind/react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { XMarkIcon, MagnifyingGlassIcon, EyeIcon } from '@heroicons/react/24/solid';
+import { XMarkIcon, MagnifyingGlassIcon, EyeIcon, EllipsisHorizontalIcon, EllipsisVerticalIcon } from '@heroicons/react/24/solid';
 import Loader from '@/pages/Loader';
 import { useDispatch, useSelector } from 'react-redux';
-import { editCustomerFreeze } from "@/feature/customer/customerSlice";
+import { editCustomerFreeze, getCustomersClusterMap } from "@/feature/customer/customerSlice";
 
 const clusterColors = ['red', 'blue', 'green', 'purple', 'orange', 'cyan', 'magenta', 'SteelBlue'];
 
@@ -23,39 +23,54 @@ const ClusterList = ({
   searchClear,
   handleSave,
   onDragEnd,
+  onFreezeUpdate,
 }) => {
+  console.log("data", data)
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [isFrozen, setIsFrozen] = useState(false);
+  console.log("selectedCustomer", selectedCustomer)
   const { customerLoading } = useSelector((state) => state.customer);
 
 
   const handleOpen = (customer, clusterId) => {
-    setSelectedCustomer({ ...customer, clusterId });
+    console.log("customer", customer)
+    setSelectedCustomer({ ...customer, clusterId, isFreezed: customer.isFreezed });
     setOpen(true);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedCustomer) return;
 
-   const payload = {
-  clusterId: selectedCustomer.clusterId, 
-  customerId: selectedCustomer.customerId, 
-  isFrozen: isFrozen,
-};
-console.log("payload",payload)
+    const payload = {
+      clusterId: selectedCustomer.clusterId,
+      customerId: selectedCustomer.customerId,
+      isFreezed: selectedCustomer.isFreezed,
+    };
 
-    dispatch(editCustomerFreeze({ payload }))
-      .unwrap()
-      .then((res) => {
-        console.log("Freeze updated:", res);
-        setOpen(false);
-      })
-      .catch((err) => {
-        console.error("Error freezing customer:", err);
-      });
+    try {
+      const res = await dispatch(editCustomerFreeze(payload)).unwrap();
+      console.log("Freeze updated:", res);
+      setOpen(false);
+
+    } catch (err) {
+      console.error("Error freezing customer:", err);
+    }
   };
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      const hasUnsavedChanges = data.some((cluster, i) =>
+        cluster.customers.some((cust, j) => cust.indexNo !== j)
+      );
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [data]);
 
   return (
     <div>
@@ -282,85 +297,93 @@ console.log("payload",payload)
                       {data.slice(0, 7).map((cluster, index) => {
                         const clusterId = cluster.clusterId
                         return (
-                        <div
-                          key={index}
-                          className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
-                        >
-                          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
-                            {cluster.name} ({cluster.clusterName})
-                          </div>
-                          <Droppable droppableId={`${index}`}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
-                              >
-                                {cluster.customers.map((customer, idx) => {
-                                  const clusterColor = clusterColors[index % clusterColors.length];
-                                  return (
-                                    <Draggable key={customer.code} draggableId={customer.code} index={idx}>
-                                      {(provided, snapshot) => (
-                                        <div
-                                          ref={provided.innerRef}
-                                          {...provided.draggableProps}
-                                          {...provided.dragHandleProps}
-                                          className={`bg-white flex items-center rounded-lg shadow-lg text-sm hover:cursor-pointer w-full text-start p-4 border-l-2 ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""
-                                            }`}
-                                          style={{
-                                            ...provided.draggableProps.style,
-                                            borderLeftColor: clusterColor,
-                                            color: clusterColor,
-                                          }}
-                                        >
-                                          <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
-                                          <div className="flex-1">
+                          <div
+                            key={index}
+                            className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
+                          >
+                            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
+                              {cluster.name} ({cluster.clusterName})
+                            </div>
+                            <Droppable droppableId={`${index}`}>
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.droppableProps}
+                                  className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                                >
+                                  {cluster.customers.map((customer, idx) => {
+                                    const clusterColor = clusterColors[index % clusterColors.length];
+                                    return (
+                                      <Draggable key={customer.code} draggableId={customer.code} index={idx}>
+                                        {(provided, snapshot) => {
+                                          const isFreezed = customer.isFreezed; 
+                                          return (
                                             <div
-                                              onClick={() => {
-                                                navigator.clipboard.writeText(customer.code);
+                                              ref={provided.innerRef}
+                                              {...provided.draggableProps}
+                                              {...provided.dragHandleProps}
+                                              className={`flex items-center rounded-lg shadow-lg text-sm w-full text-start p-4 border-l-2 transition
+                                                  ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""}
+                                                  ${isFreezed
+                                                  ? "bg-gray-200 text-gray-500 opacity-70 cursor-not-allowed" 
+                                                  : "bg-white hover:cursor-pointer"}`
+                                              }
+                                              style={{
+                                                ...provided.draggableProps.style,
+                                                borderLeftColor: clusterColor,
+                                                color: isFreezed ? "gray" : clusterColor, // frozen text muted
                                               }}
-                                              title="Click to copy"
-                                              className="cursor-pointer hover:underline transition"
                                             >
-                                              {customer.code}
-                                            </div>
-                                            <div className="">{customer.displayName}</div>
-                                          </div>
+                                              <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
+                                              <div className="flex-1">
+                                                <div
+                                                  onClick={() => {
+                                                    if (!isFreezed) navigator.clipboard.writeText(customer.code);
+                                                  }}
+                                                  title={isFreezed ? "Frozen - cannot copy" : "Click to copy"}
+                                                  className={`transition ${isFreezed ? "line-through cursor-not-allowed" : "cursor-pointer hover:underline"}`}
+                                                >
+                                                  {customer.code}
+                                                </div>
+                                                <div className="">{customer.displayName}</div>
+                                              </div>
 
-                                          <div className="ml-auto flex flex-col justify-end items-end text-right">
-                                            <div>Qty: {customer.qty}</div>
-                                            <div>Size: {customer.size}</div>
-                                          </div>
-                                          <div>
-                                            <EyeIcon
-                                              className="h-5 w-5 text-gray-700 hover:text-gray-900 cursor-pointer mx-2"
-                                              onClick={() => handleOpen(customer, clusterId)} 
-                                            />
-                                          </div>
-                                        </div>
-                                      )}
-                                    </Draggable>
-                                  );
-                                })}
-                                {provided.placeholder}
-                              </div>
-                            )}
-                          </Droppable>
-                          <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
-                            <div className="text-left">
-                              {cluster.customers.length} Customers <br />
-                              {cluster.cartridge_qty} Cartridge Quantity
-                            </div>
-                            <div>
-                              {Object.entries(cluster.size).map(([size, count]) => (
-                                <div key={size}>
-                                  {size}: {count}
+                                              <div className="ml-auto flex flex-col justify-end items-end text-right">
+                                                <div>Qty: {customer.qty}</div>
+                                                <div>Size: {customer.size}</div>
+                                              </div>
+                                              <div>
+                                                <EllipsisVerticalIcon
+                                                  className="h-5 w-5 text-gray-900 cursor-pointer mx-2"
+                                                  onClick={() => handleOpen(customer, clusterId)}
+                                                />
+                                              </div>
+                                            </div>
+                                          );
+                                        }}
+                                      </Draggable>
+                                    );
+                                  })}
+                                  {provided.placeholder}
                                 </div>
-                              ))}
+                              )}
+                            </Droppable>
+                            <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                              <div className="text-left">
+                                {cluster.customers.length} Customers <br />
+                                {cluster.cartridge_qty} Cartridge Quantity
+                              </div>
+                              <div>
+                                {Object.entries(cluster.size).map(([size, count]) => (
+                                  <div key={size}>
+                                    {size}: {count}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )})}
+                        )
+                      })}
                     </div>
                   </div>
 
@@ -492,8 +515,12 @@ console.log("payload",payload)
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={isFrozen}
-                          onChange={() => setIsFrozen(!isFrozen)}
+                          checked={selectedCustomer?.isFreezed || false}
+                          onChange={() =>
+                            setSelectedCustomer((prev) =>
+                              prev ? { ...prev, isFreezed: !prev.isFreezed } : prev
+                            )
+                          }
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none 
@@ -503,9 +530,6 @@ console.log("payload",payload)
                 after:border after:rounded-full after:h-5 after:w-5 
                 after:transition-all peer-checked:bg-green-500"></div>
                       </label>
-                      <span className="text-sm font-semibold">
-                        {/* {isFrozen ? "True" : "False"} */}
-                      </span>
                     </div>
                   </div>
                 )}

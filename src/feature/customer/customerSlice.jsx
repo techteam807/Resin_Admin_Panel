@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
-export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ page = 1, search = '', isSubscription, Day = '' }) => {  
+export const getCustomers = createAsyncThunk("customer/getCustomers", async ({ page = 1, search = '', isSubscription, Day = '' }) => {
   try {
     const data = await fetchCustomers(page, search, isSubscription, Day);
     return data;
@@ -24,9 +24,9 @@ export const getCustomersMap = createAsyncThunk("customer/getCustomersMap", asyn
   }
 });
 
-export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({customer_code, vehicleNo, clusterNo}) => {
+export const getCustomersClusterMap = createAsyncThunk("customer/getCustomersClusterMap", async ({ customer_code, vehicleNo, clusterNo }) => {
   try {
-    const data = await fetchCustomersClusterMap({customer_code, vehicleNo, clusterNo});
+    const data = await fetchCustomersClusterMap({ customer_code, vehicleNo, clusterNo });
     return data;
   } catch (error) {
     console.error("Error in getCustomersClusterMap thunk:", error);
@@ -54,11 +54,11 @@ export const editCustomersClusterMap = createAsyncThunk("customer/editCustomersC
   }
 });
 
-export const fetchClusterRoute = createAsyncThunk("customer/fetchClusterRoute", async ({clusterId,vehicleNo}) => {
-  console.log(clusterId,"no");
-  
+export const fetchClusterRoute = createAsyncThunk("customer/fetchClusterRoute", async ({ clusterId, vehicleNo }) => {
+  console.log(clusterId, "no");
+
   try {
-    const data = await fetchClusterRoutes(clusterId,vehicleNo);
+    const data = await fetchClusterRoutes(clusterId, vehicleNo);
     return data;
   } catch (error) {
     console.error("Error in fetchClusterRoute thunk:", error);
@@ -115,14 +115,14 @@ export const getMissedDeliveryLogs = createAsyncThunk("customer/getMissedDeliver
 });
 
 export const getClusterDropDown = createAsyncThunk("customer/getClusterDropDown", async (vehicleNo, clusterNo) => {
-    try {
-      const data = await fetchClusterDropdown({vehicleNo, clusterNo});
-      return data;
-    } catch (error) {
-      console.error("Error in getTechnicianDropDown thunk:", error);
-      throw error.response?.data?.error || error.message;
-    }
-  });
+  try {
+    const data = await fetchClusterDropdown({ vehicleNo, clusterNo });
+    return data;
+  } catch (error) {
+    console.error("Error in getTechnicianDropDown thunk:", error);
+    throw error.response?.data?.error || error.message;
+  }
+});
 
 export const createClusterAssignment = createAsyncThunk(
   "customer/createClusterAssignment",
@@ -138,34 +138,34 @@ export const createClusterAssignment = createAsyncThunk(
 );
 
 export const getWaterReports = createAsyncThunk(
-    'waterReports/getWaterReports',
-    async ({ month, year, startDate, endDate }, { rejectWithValue }) => {
-        try {
-            const data = await fetchWaterReports(month, year, startDate, endDate);
-            return data;
-        } catch (error) {
-            console.error('Error in getWaterReports thunk:', error);
-            return rejectWithValue(error.response?.data?.error || error.message);
-        }
-    }
-);
-
-export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignment", async ({startDate, endDate, clusterId, userId, vehicleNo}, { rejectWithValue }) => {
+  'waterReports/getWaterReports',
+  async ({ month, year, startDate, endDate }, { rejectWithValue }) => {
     try {
-      const data = await fetchClusterAssignment({startDate, endDate,  clusterId, userId, vehicleNo});
+      const data = await fetchWaterReports(month, year, startDate, endDate);
       return data;
     } catch (error) {
-      console.error("Error in getTechnicianDropDown thunk:", error);
+      console.error('Error in getWaterReports thunk:', error);
       return rejectWithValue(error.response?.data?.error || error.message);
     }
-  });
+  }
+);
 
- export const deleteAssignment = createAsyncThunk(
+export const getClusterAssignment = createAsyncThunk("customer/getClusterAssignment", async ({ startDate, endDate, clusterId, userId, vehicleNo }, { rejectWithValue }) => {
+  try {
+    const data = await fetchClusterAssignment({ startDate, endDate, clusterId, userId, vehicleNo });
+    return data;
+  } catch (error) {
+    console.error("Error in getTechnicianDropDown thunk:", error);
+    return rejectWithValue(error.response?.data?.error || error.message);
+  }
+});
+
+export const deleteAssignment = createAsyncThunk(
   "customer/deleteAssignment",
   async (assignId, { rejectWithValue }) => {
     try {
-      const data = await delAssignment(assignId); 
-      return { assignId, message: data.message }; 
+      const data = await delAssignment(assignId);
+      return { assignId, message: data.message };
     } catch (error) {
       console.error("Error in delete Assignment thunk:", error);
       return rejectWithValue(
@@ -179,7 +179,7 @@ export const detailAssignment = createAsyncThunk(
   "customer/detailAssignment",
   async (assignId, { rejectWithValue }) => {
     try {
-      const data = await assignemntDetail(assignId);       
+      const data = await assignemntDetail(assignId);
       return data;
     } catch (error) {
       console.error("Error in detail Assignment thunk:", error);
@@ -190,7 +190,7 @@ export const detailAssignment = createAsyncThunk(
   }
 );
 
-export const editCustomerFreeze = createAsyncThunk("customer/editCustomerFreeze", async ({ payload }) => {
+export const editCustomerFreeze = createAsyncThunk("customer/editCustomerFreeze", async (payload) => {
   try {
     const data = await updateCustomerFreeze(payload);
     return data;
@@ -214,7 +214,7 @@ const customerSlice = createSlice({
     clusteroute: [],
     clusterDrop: [],
     assignment: [],
-    assignmentDetails:[],
+    assignmentDetails: [],
     missedDelivery: null,
     clusterAssign: null,
     loading: false,
@@ -237,8 +237,8 @@ const customerSlice = createSlice({
   },
   reducers: {
     clearAssignmentDetail(state) {
-    state.assignmentDetails = null;
-  },
+      state.assignmentDetails = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -422,8 +422,8 @@ const customerSlice = createSlice({
         state.deleteLoading = false;
         state.delete = action.payload;
         state.assignment = state.assignment.filter(
-        (ass) => ass._id !== action.payload.assignId
-      );
+          (ass) => ass._id !== action.payload.assignId
+        );
         state.message = action.payload.message;
         toast.success(state.message);
       })
@@ -449,9 +449,21 @@ const customerSlice = createSlice({
       })
       .addCase(editCustomerFreeze.fulfilled, (state, action) => {
         state.customerLoading = false;
-        state.updatedCustomerFreeze = action.payload.data;
-        state.message = action.payload.message;
+        state.message = action.payload.message || "Customer updated";
         toast.success(state.message);
+
+        const { customerId, clusterId, isFreezed } = action.meta.arg;
+
+        // 🔥 Update the specific customer locally
+        state.customersClusterMap.clusters = state.customersClusterMap.clusters.map(cluster => {
+          if (cluster._id !== clusterId) return cluster;
+          return {
+            ...cluster,
+            customers: cluster.customers.map(cust =>
+              cust.customerId === customerId ? { ...cust, isFreezed } : cust
+            ),
+          };
+        });
       })
       .addCase(editCustomerFreeze.rejected, (state, action) => {
         state.customerLoading = false;

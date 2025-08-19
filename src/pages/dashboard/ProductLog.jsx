@@ -5,6 +5,20 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from '../Loader';
 
+
+const formatUTCDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+};
+
 const getDefaultDateRange = () => {
   const today = new Date();
   const currentMonth = today.getMonth(); 
@@ -187,8 +201,7 @@ const ProductLog = () => {
                     <div className="p-4 bg-white border border-blue-gray-100 rounded-lg shadow-xs dark:bg-gray-700 dark:border-gray-600">
                       <div className="items-center justify-between mb-3 sm:flex">
                         <time className="mb-1 text-xs font-semibold text-gray-600 sm:order-last sm:mb-0">
-                          {new Date(log?.timestamp).toLocaleDateString('en-GB')}{" "}
-                          {new Date(log?.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                           {formatUTCDate(log?.timestamp)}
                         </time>
                         <div className="text-sm font-normal text-gray-500 dark:text-gray-300 flex gap-1">
                           <span className="font-medium">{log.user_name || log.userId?.user_name}</span>
