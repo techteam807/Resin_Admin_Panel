@@ -16,7 +16,7 @@ import {
 import EditModal from "./EditModal";
 import vehicles from "../../global.js";
 import Loader from "../Loader";
-import { Typography } from "@material-tailwind/react";
+import { Button, Typography } from "@material-tailwind/react";
 
 const ClusterAssignments = () => {
   const dispatch = useDispatch();
@@ -259,7 +259,7 @@ const ClusterAssignments = () => {
         <div className="flex mb-4 gap-4">
           <button
             onClick={() => setActiveTab("view")}
-            className={`px-4 py-2 rounded border ${activeTab === "view"
+            className={`px-5 py-2.5 rounded border hover:shadow-xl text-xs font-semibold uppercase ${activeTab === "view"
               ? "bg-black text-white"
               : "bg-white text-black border-gray-400"
               }`}
@@ -268,7 +268,7 @@ const ClusterAssignments = () => {
           </button>
           <button
             onClick={() => setActiveTab("assign")}
-            className={`px-4 py-2 rounded border ${activeTab === "assign"
+            className={`px-5 py-2.5 rounded border hover:shadow-xl text-xs font-semibold uppercase ${activeTab === "assign"
               ? "bg-black text-white"
               : "bg-white text-black border-gray-400"
               }`}
@@ -418,7 +418,7 @@ const ClusterAssignments = () => {
               <div className="mt-4 flex gap-3">
                 <button
                   type="submit"
-                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900"
+                  className="bg-gray-900 text-white px-5 py-2.5 rounded uppercase text-xs font-semibold hover:shadow-xl"
                   disabled={
                     formData.userId.length === 0 ||
                     !formData.clusterId ||
@@ -428,13 +428,13 @@ const ClusterAssignments = () => {
                 >
                   {clusterLoading ? "Creating..." : "Create Assignment"}
                 </button>
-                <button
-                  type="button"
+                <Button
+                  variant="gradient"
                   onClick={handleResetAssignForm}
-                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900"
+                  className="text-white px-5 py-2.5 rounded"
                 >
                   Reset
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -516,13 +516,14 @@ const ClusterAssignments = () => {
                 />
               </div>
 
-              <div className="mt-6">
-                <button
-                  onClick={handleResetFilters}
-                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900"
+              <div className="mt-7">
+                <Button
+                variant="gradient"
+                onClick={handleResetFilters}
+                className="bg-gray-900 text-white px-5 py-2.5 rounded"
                 >
                   Reset Filters
-                </button>
+                </Button>
               </div>
             </div>
 
