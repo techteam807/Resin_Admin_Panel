@@ -120,7 +120,7 @@ const ClusterAssignments = () => {
 
     try {
       if (!formData.clusterId || !formData.date || !formData.userId.length) {
-        alert("Please select a cluster, date, and at least one technician.");
+        // alert("Please select a cluster, date, and at least one technician.");
         return;
       }
 
@@ -138,7 +138,7 @@ const ClusterAssignments = () => {
         }));
 
       if (assignmentsToCreate.length === 0) {
-        alert("All selected technicians already have assignments for this date.");
+        // alert("All selected technicians already have assignments for this date.");
         return;
       }
 
@@ -154,7 +154,7 @@ const ClusterAssignments = () => {
 
     } catch (error) {
       console.error("Submission error:", error);
-      alert(error?.message || "Error creating assignments.");
+      // alert(error?.message || "Error creating assignments.");
     }
   };
 
