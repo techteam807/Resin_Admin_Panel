@@ -16,7 +16,7 @@ import {
 import EditModal from "./EditModal";
 import vehicles from "../../global.js";
 import Loader from "../Loader";
-import { Typography } from "@material-tailwind/react";
+import { Button, Typography } from "@material-tailwind/react";
 
 const ClusterAssignments = () => {
   const dispatch = useDispatch();
@@ -24,6 +24,7 @@ const ClusterAssignments = () => {
   const { clusterDrop, assignment, clusterLoading, loading } = useSelector(
     (state) => state.customer
   );
+  console.log("assignment", assignment)
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
@@ -115,47 +116,47 @@ const ClusterAssignments = () => {
   }, [selectedTechnicians]);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    if (!formData.clusterId || !formData.date || !formData.userId.length) {
-      alert("Please select a cluster, date, and at least one technician.");
-      return;
+    try {
+      if (!formData.clusterId || !formData.date || !formData.userId.length) {
+        // alert("Please select a cluster, date, and at least one technician.");
+        return;
+      }
+
+      const existingUserIds = assignment
+        .filter(a => a.date === formData.date)
+        .map(a => a.userId?._id);
+
+      // Filter out users who already have assignment
+      const assignmentsToCreate = formData.userId
+        .filter(id => !existingUserIds.includes(id))
+        .map(userId => ({
+          userId,
+          clusterId: formData.clusterId,
+          date: formData.date,
+        }));
+
+      if (assignmentsToCreate.length === 0) {
+        // alert("All selected technicians already have assignments for this date.");
+        return;
+      }
+
+      // Submit assignments
+      for (const item of assignmentsToCreate) {
+        await dispatch(createClusterAssignment(item)).unwrap();
+      }
+
+      alert("Assignments created successfully.");
+      setFormData({ userId: [], clusterId: "", date: "" });
+      setSelectedTechnicians([]);
+      dispatch(getClusterAssignment({ startDate, endDate, vehicleNo: selectedVehicle }));
+
+    } catch (error) {
+      console.error("Submission error:", error);
+      // alert(error?.message || "Error creating assignments.");
     }
-
-    const existingUserIds = assignment
-      .filter(a => a.date === formData.date) 
-      .map(a => a.userId?._id);
-
-    // Filter out users who already have assignment
-    const assignmentsToCreate = formData.userId
-      .filter(id => !existingUserIds.includes(id))
-      .map(userId => ({
-        userId,
-        clusterId: formData.clusterId,
-        date: formData.date,
-      }));
-
-    if (assignmentsToCreate.length === 0) {
-      alert("All selected technicians already have assignments for this date.");
-      return;
-    }
-
-    // Submit assignments
-    for (const item of assignmentsToCreate) {
-      await dispatch(createClusterAssignment(item)).unwrap();
-    }
-
-    alert("Assignments created successfully.");
-    setFormData({ userId: [], clusterId: "", date: "" });
-    setSelectedTechnicians([]);
-    dispatch(getClusterAssignment({ startDate, endDate, vehicleNo: selectedVehicle }));
-
-  } catch (error) {
-    console.error("Submission error:", error);
-    alert(error?.message || "Error creating assignments.");
-  }
-};
+  };
 
   //   const handleSubmit = async (e) => {
   //   e.preventDefault();
@@ -258,18 +259,18 @@ const ClusterAssignments = () => {
         <div className="flex mb-4 gap-4">
           <button
             onClick={() => setActiveTab("view")}
-            className={`px-4 py-2 rounded border ${activeTab === "view"
-                ? "bg-black text-white"
-                : "bg-white text-black border-gray-400"
+            className={`px-5 py-2.5 rounded border hover:shadow-xl text-xs font-semibold uppercase ${activeTab === "view"
+              ? "bg-black text-white"
+              : "bg-white text-black border-gray-400"
               }`}
           >
             View Assignments
           </button>
           <button
             onClick={() => setActiveTab("assign")}
-            className={`px-4 py-2 rounded border ${activeTab === "assign"
-                ? "bg-black text-white"
-                : "bg-white text-black border-gray-400"
+            className={`px-5 py-2.5 rounded border hover:shadow-xl text-xs font-semibold uppercase ${activeTab === "assign"
+              ? "bg-black text-white"
+              : "bg-white text-black border-gray-400"
               }`}
           >
             Assign Cluster
@@ -378,8 +379,8 @@ const ClusterAssignments = () => {
                   </label>
                   <select
                     className={`w-full border rounded-lg px-3 py-2 text-black ${selectedVehicle
-                        ? "bg-white border-gray-300"
-                        : "bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed"
+                      ? "bg-white border-gray-300"
+                      : "bg-gray-200 border-gray-300 text-gray-500 cursor-not-allowed"
                       }`}
                     value={formData.clusterId}
                     onChange={(e) =>
@@ -417,7 +418,7 @@ const ClusterAssignments = () => {
               <div className="mt-4 flex gap-3">
                 <button
                   type="submit"
-                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900"
+                  className="bg-gray-900 text-white px-5 py-2.5 rounded uppercase text-xs font-semibold hover:shadow-xl"
                   disabled={
                     formData.userId.length === 0 ||
                     !formData.clusterId ||
@@ -427,13 +428,13 @@ const ClusterAssignments = () => {
                 >
                   {clusterLoading ? "Creating..." : "Create Assignment"}
                 </button>
-                <button
-                  type="button"
+                <Button
+                  variant="gradient"
                   onClick={handleResetAssignForm}
-                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900"
+                  className="text-white px-5 py-2.5 rounded"
                 >
                   Reset
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -515,13 +516,14 @@ const ClusterAssignments = () => {
                 />
               </div>
 
-              <div className="mt-6">
-                <button
-                  onClick={handleResetFilters}
-                  className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-900"
+              <div className="mt-7">
+                <Button
+                variant="gradient"
+                onClick={handleResetFilters}
+                className="bg-gray-900 text-white px-5 py-2.5 rounded"
                 >
                   Reset Filters
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -558,9 +560,14 @@ const ClusterAssignments = () => {
                             Cluster {a.clusterId?.clusterNo ?? "N/A"} <br /> ({a.clusterId?.clusterName})
                           </td>
                           <td className="p-2 border text-center">
-                            {a.date
-                              ? `${new Date(a.date).toLocaleDateString("en-GB")} (${new Date(a.date).toLocaleDateString("en-US", { weekday: "long" })})`
-                              : "N/A"}
+                            {a.date ? (() => {
+                              const d = new Date(a.date); 
+                              const day = String(d.getUTCDate()).padStart(2, "0");
+                              const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+                              const year = d.getUTCFullYear();
+                              const weekday = d.toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
+                              return `${day}/${month}/${year} (${weekday})`;
+                            })() : "N/A"}
                           </td>
                           <td className="p-2 border text-center">
                             <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-800">

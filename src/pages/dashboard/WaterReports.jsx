@@ -33,7 +33,7 @@ function WaterReports() {
 
   useEffect(() => {
     const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
-    const newLastDay = new Date(year, month, 0).getDate();
+    const newLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
     const newEndDate = `${year}-${String(month).padStart(2, '0')}-${String(newLastDay).padStart(2, '0')}`;
 
     setStartDate(newFirstDay);
@@ -68,9 +68,9 @@ function WaterReports() {
     dispatch(getWaterReports({ month: formattedMonth, year, startDate, endDate }));
   }, [dispatch, month, year, startDate, endDate]);
 
-  const getDaysInMonth = (month, year) => {
-    return new Date(year, month, 0).getDate();
-  };
+ const getDaysInMonth = (month, year) => {
+   return new Date(Date.UTC(year, month, 0)).getUTCDate();
+ };
 
 
   const daysInMonth = getDaysInMonth(month, year)
@@ -102,7 +102,7 @@ function WaterReports() {
     }
 
     customer.reports.forEach((report) => {
-      const day = new Date(report.date).getDate();
+      const day = new Date(report.date).getUTCDate();
 
       if (!groupedData[userId].scores[day]) {
         groupedData[userId].scores[day] = [];

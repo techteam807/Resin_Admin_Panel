@@ -6,10 +6,24 @@ import Loader from '../Loader';
 import { ArrowPathIcon, CheckIcon, ClipboardIcon, SquaresPlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 import { HiStar } from 'react-icons/hi2';
 
+const formatUTCDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+};
+
 const WareHouse = () => {
 
     const dispatch = useDispatch();
     const { warehouses, loading, deleteLoading, createLoading } = useSelector((state) => state.warehouse);
+    console.log("warehouses",warehouses)
     const [deletingWarehouseId, setDeletingWarehouseId] = useState(null);
     const [copiedStates, setCopiedStates] = useState({});
     const [open, setOpen] = useState(false);
@@ -157,7 +171,7 @@ const WareHouse = () => {
                         color="blue-gray"
                         className="font-normal"
                         >
-                       {formatDate(warehouse?.createdAt)}
+                       {formatUTCDate(warehouse?.createdAt)}
                       </Typography>
                     </td>
                     <td className={classes}>

@@ -876,7 +876,7 @@ const RoutesMap = () => {
           setDirectionsResponse(result);
         } else {
           console.warn("Directions error:", status);
-          alert("Failed to get route: " + status);
+          // alert("Failed to get route: " + status);
           setDirectionsResponse(null);
         }
       }

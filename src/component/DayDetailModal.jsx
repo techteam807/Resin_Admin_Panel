@@ -39,7 +39,6 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
       })
       .catch((err) => {
         console.error("Error creating water report:", err);
-        alert("Failed to add water report. Please check the input.");
       });
   };
 
@@ -56,7 +55,6 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
       })
       .catch((err) => {
         console.error('Error deleting water report:', err);
-        alert('Failed to delete water report.');
       });
   };
 

@@ -26,10 +26,24 @@ import ProductDetails from "./ProductDetails";
 import "./Home.css"
 import AddXL from "./AddXL";
 
+const formatUTCDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+};
+
 const ProductDesign = () => {
 
   const dispatch = useDispatch();
   const { products, loading, delLoading } = useSelector((state) => state.product);
+  console.log("products",products)
   const [searchValue, setSearchValue] = useState("");
   const [active, setActive] = useState(true);
   const [open, setOpen] = useState(false);
@@ -162,6 +176,7 @@ const ProductDesign = () => {
     },
   ];
 
+
   return (
     <div className="">
       <div className="bg-clip-border rounded-xl bg-white text-gray-700 border border-blue-gray-100 mt-9 shadow-sm">
@@ -218,7 +233,7 @@ const ProductDesign = () => {
                 <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md">
                   <div className="border-b border-blue-gray-100 p-4 text-center text-blue-600 font-semibold">NEW ({newProducts.length})</div>
                   <div className="space-y-3 p-3 h-[74vh] overflow-y-auto scrollbar-custom-blue">
-                    
+
                     {/* {newProducts.length > 0 ? (
                         newProducts.map((product, index) => (
                           <Button
@@ -353,8 +368,7 @@ const ProductDesign = () => {
                                     </Tooltip>
                                   </p>
                                   <p className="pt-1 text-gray-600">
-                                    {new Date(product?.updatedAt).toLocaleDateString('en-GB')}{" "}
-                                    {new Date(product?.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                    {formatUTCDate(product?.updatedAt)}
                                   </p>
                                 </div>
                               </div>
@@ -399,7 +413,7 @@ const ProductDesign = () => {
                           ))}
 
                           {/* Customer Details (Once per Group) */}
-                          
+
                         </Button>
                       ))
                     ) : (
@@ -457,8 +471,7 @@ const ProductDesign = () => {
                                     </Tooltip>
                                   </p>
                                   <p className="pt-1 text-gray-600">
-                                    {new Date(product?.updatedAt).toLocaleDateString('en-GB')}{" "}
-                                    {new Date(product?.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                    {formatUTCDate(product?.updatedAt)}
                                   </p>
                                 </div>
                               </div>
@@ -575,14 +588,13 @@ const ProductDesign = () => {
                                 </Tooltip>
                               </p>
                               <p className="pt-1 text-gray-600">
-                                {new Date(product?.updatedAt).toLocaleDateString('en-GB')}{" "}
-                                {new Date(product?.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                              </p>
-                              {active === false && product?.productNotes &&
-                                <p className="pt-2">
-                                  Note : <span className="text-gray-600">{product?.productNotes}</span>
+                                  {formatUTCDate(product?.updatedAt)}
                                 </p>
-                              }
+                                {active === false && product?.productNotes &&
+                                  <p className="pt-2">
+                                    Note : <span className="text-gray-600">{product?.productNotes}</span>
+                                  </p>
+                                }
                             </div>
                           </div>
                           {active === true ? (

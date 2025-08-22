@@ -36,6 +36,7 @@ const MapClusterCopy = () => {
         clusterDrop } = useSelector(
             (state) => state.customer
         );
+        console.log("customersClusterMap",customersClusterMap)
 
     const [activeTab, setActiveTab] = useState('list');
     const [data, setData] = useState([]);
@@ -48,9 +49,7 @@ const MapClusterCopy = () => {
     const [searchValue, setSearchValue] = useState('');
     const [selectedVehicle, setSelectedVehicle] = useState(1);
     const [selectedClusterId, setSelectedClusterId] = useState("");
-    const [selectedClusterNumber, setSelectedClusterNumber] = useState("null");
-    console.log("customersClusterMap:",customersClusterMap);
-    
+    const [selectedClusterNumber, setSelectedClusterNumber] = useState("null");    
     const [isVisible, setIsVisible] = useState(true);
     const [saveLoading, setSaveLoading] = useState(false);
 
@@ -109,6 +108,7 @@ const MapClusterCopy = () => {
                     displayName: c.name,
                     vistSequnceNo: c.sequenceNo,
                     indexNo: c.indexNo,
+                    isFreezed: c.isFreezed ?? false,  
                     lat: Number(c.geoCoordinates?.coordinates[1]) || '',
                     lng: Number(c.geoCoordinates?.coordinates[0]) || '',
                 })),
@@ -314,6 +314,21 @@ const MapClusterCopy = () => {
     //     }
     // }, [activeTab]);
 
+    const onFreezeUpdate = (clusterId, customerId, isFrozen) => {
+    setData((prevData) =>
+      prevData.map((cluster) =>
+        cluster.clusterId === clusterId
+          ? {
+              ...cluster,
+              customers: cluster.customers.map((cust) =>
+                cust.customerId === customerId ? { ...cust, isFrozen } : cust
+              ),
+            }
+          : cluster
+      )
+    );
+  };
+
     return (
         <div className="mx-auto px-4 sm:px-6 py-6 sm:py-8">
             {/* Tabs + Totals Header */}
@@ -360,6 +375,7 @@ const MapClusterCopy = () => {
                         searchClear={searchClear}
                         handleSave={handleSave}
                         onDragEnd={onDragEnd}
+                        onFreezeUpdate={onFreezeUpdate}
                     />
                 )}
                 {activeTab === 'map' && (
