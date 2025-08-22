@@ -266,6 +266,7 @@ const ClusterMap = ({
           )}
         </GoogleMap>
       </div>
+      {customersWithoutCoords.length > 0 && (
       <div className='mt-5'>
         <Typography variant="h6" color="blue-gray" className="mb-4"> Customers Without Coordinates ({customersWithoutCoords.length}) </Typography>
         <div className="overflow-x-auto overflow-y-auto max-h-[55vh] scrollbar-thin rounded-lg shadow-md border border-gray-200">
@@ -292,6 +293,7 @@ const ClusterMap = ({
           </table>
         </div>
       </div>
+      )}
     </>
 
   );
