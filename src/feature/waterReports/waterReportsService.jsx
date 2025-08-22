@@ -1,9 +1,9 @@
 import axiosConfig from "@/app/axiosConfig";
 
-export const fetchWaterReports = async (month, year, startDate, endDate) => {
+export const fetchWaterReports = async (month, year, startDate, endDate, search) => {
     try {
         console.log("month:",month , '||' ,"year:",year);
-        const response = await axiosConfig.get('waterReport/getReports', { params: { month, year, startDate, endDate } });
+        const response = await axiosConfig.get('waterReport/getReports', { params: { month, year, startDate, endDate, search } });
         return response.data;
     } catch (error) {
         console.error('Error fetching water reports:', error);

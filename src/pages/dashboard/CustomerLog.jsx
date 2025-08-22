@@ -6,6 +6,19 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from '../Loader';
 
+const formatUTCDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "Invalid Date";
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+};
+
 const getDefaultDateRange = () => {
     const today = new Date();
     const currentMonth = today.getMonth();
@@ -193,8 +206,7 @@ const CustomerLog = () => {
                                                 {/* Main card */}
                                                 <div className="flex-1 bg-white border border-gray-200 rounded-xl shadow p-4 hover:shadow-md transition-shadow duration-300">
                                                     <p className="text-xs text-gray-400 mb-2">
-                                                        {new Date(log.timestamp).toLocaleDateString('en-GB')}{" "}
-                                                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                        {formatUTCDate(log?.timestamp)}
                                                     </p>
 
 

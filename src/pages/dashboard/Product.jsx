@@ -27,6 +27,7 @@ export function Product() {
 
 const dispatch = useDispatch();
 const { products, loading, pagination, delLoading } = useSelector((state) => state.product);
+console.log("products",products)
 const [searchValue, setSearchValue] = useState("");
 const [active, setActive] = useState(true);
 const [open, setOpen] = useState(false);

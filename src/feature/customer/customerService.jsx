@@ -231,3 +231,13 @@ export const fetchClusterRoutes = async (clusterId, vehicleNo) => {
       throw error;
     }
   }
+
+  export const updateCustomerFreeze = async (payload) => {
+  try {
+    const response = await axiosConfig.put(`cluster/clusters/freeze-customer`, payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating customer freeze:", error);
+    throw error;
+  }
+};
