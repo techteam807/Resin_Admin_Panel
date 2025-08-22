@@ -108,6 +108,7 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                     <Option value="CSA 9 FG">CSA 9 FG</Option>
                     <Option value="CSA 29 FG">CSA 29 FG</Option>
                     <Option value="Purple Pure">Purple Pure</Option>
+                    <Option value="Black Cation">Black Cation</Option>
                 </Select>
 
                 <Select variant='standard' label="Vessel Size"

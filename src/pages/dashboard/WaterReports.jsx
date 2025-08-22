@@ -68,9 +68,9 @@ function WaterReports() {
     dispatch(getWaterReports({ month: formattedMonth, year, startDate, endDate }));
   }, [dispatch, month, year, startDate, endDate]);
 
- const getDaysInMonth = (month, year) => {
+   const getDaysInMonth = (month, year) => {
    return new Date(Date.UTC(year, month, 0)).getUTCDate();
- };
+ };
 
 
   const daysInMonth = getDaysInMonth(month, year)
@@ -102,7 +102,8 @@ function WaterReports() {
     }
 
     customer.reports.forEach((report) => {
-      const day = new Date(report.date).getUTCDate();
+    const day = new Date(report.date).getUTCDate();
+
 
       if (!groupedData[userId].scores[day]) {
         groupedData[userId].scores[day] = [];
