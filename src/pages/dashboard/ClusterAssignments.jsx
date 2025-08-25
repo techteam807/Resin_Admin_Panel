@@ -63,7 +63,7 @@ const ClusterAssignments = () => {
   }, []);
 
   const [formData, setFormData] = useState({
-    userId: [],
+    userIds: [],
     clusterId: "",
     date: "",
   });
@@ -109,13 +109,13 @@ const ClusterAssignments = () => {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      userId: selectedTechnicians.length > 0
+      userIds: selectedTechnicians.length > 0
         ? selectedTechnicians.map((t) => t._id) // array of IDs
         : [],
     }));
   }, [selectedTechnicians]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmitold = async (e) => {
     e.preventDefault();
 
     try {
@@ -148,7 +148,7 @@ const ClusterAssignments = () => {
       }
 
       alert("Assignments created successfully.");
-      setFormData({ userId: [], clusterId: "", date: "" });
+      setFormData({ userIds: [], clusterId: "", date: "" });
       setSelectedTechnicians([]);
       dispatch(getClusterAssignment({ startDate, endDate, vehicleNo: selectedVehicle }));
 
@@ -157,6 +157,50 @@ const ClusterAssignments = () => {
       // alert(error?.message || "Error creating assignments.");
     }
   };
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    if (!formData.clusterId || !formData.date || !formData.userIds.length) {
+      // alert("Please select a cluster, date, and at least one technician.");
+      return;
+    }
+
+    const existingUserIds = assignment
+      .filter(a => a.date === formData.date)
+      .map(a => a.userId?._id);
+
+    // Filter out users who already have assignments
+    const newUserIds = formData.userIds.filter(
+      id => !existingUserIds.includes(id)
+    );
+
+    if (newUserIds.length === 0) {
+      // alert("All selected technicians already have assignments for this date.");
+      return;
+    }
+
+    // ✅ Single payload for backend
+    const assignData = {
+      userIds: newUserIds,
+      clusterId: formData.clusterId,
+      date: formData.date,
+    };
+
+    await dispatch(createClusterAssignment(assignData)).unwrap();
+
+    // alert("Assignments created successfully.");
+    setFormData({ userIds: [], clusterId: "", date: "" });
+    setSelectedTechnicians([]);
+    dispatch(getClusterAssignment({ startDate, endDate, vehicleNo: selectedVehicle }));
+
+  } catch (error) {
+    console.error("Submission error:", error);
+    // alert(error?.message || "Error creating assignments.");
+  }
+};
+
 
   //   const handleSubmit = async (e) => {
   //   e.preventDefault();
@@ -238,7 +282,7 @@ const ClusterAssignments = () => {
   };
 
   const handleResetAssignForm = () => {
-    setFormData({ userId: [], clusterId: "", date: "" });
+    setFormData({ userIds: [], clusterId: "", date: "" });
     setSelectedTechnicians([]);
     setSelectedVehicle("");
     dispatch(getClusterDropDown(""));
@@ -420,7 +464,7 @@ const ClusterAssignments = () => {
                   type="submit"
                   className="bg-gray-900 text-white px-5 py-2.5 rounded uppercase text-xs font-semibold hover:shadow-xl"
                   disabled={
-                    formData.userId.length === 0 ||
+                    formData.userIds.length === 0 ||
                     !formData.clusterId ||
                     !formData.date ||
                     clusterLoading

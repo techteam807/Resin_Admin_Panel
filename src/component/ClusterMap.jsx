@@ -167,7 +167,7 @@ const ClusterMap = ({
           <div className="">
             <button
               onClick={() => {
-                setSelectedVehicle(null);
+                // setSelectedVehicle(null);
                 setSelectedClusterNumber(null);
                 setSelectedClusterId(null);
                 setSelected(null);
@@ -189,6 +189,11 @@ const ClusterMap = ({
         >
           {data
             .filter((cluster) => cluster.customers?.length > 0)
+.filter((cluster) =>
+  selectedClusterNumber === null || selectedClusterNumber === ""
+    ? true
+    : cluster.clusterNo === Number(selectedClusterNumber)
+)
             // .filter((cluster) => !selectedClusterId || cluster.clusterId === selectedClusterId) 
             .map((cluster) => {
               const clusterColor = clusterColorMap[cluster.clusterNo];
@@ -210,7 +215,7 @@ const ClusterMap = ({
                         strokeColor: clusterColor,
                         fillColor: clusterColor,
                         strokeOpacity: 0.8,
-                        fillOpacity: 0.25,
+                        // fillOpacity: 0.5,
                         strokeWeight: 1,
                         clickable: false,
                         zIndex: 0,
