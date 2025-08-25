@@ -413,6 +413,7 @@ const ClusterRoute = (
                                                 scaledSize: new window.google.maps.Size(20, 30),
                                                 anchor: new window.google.maps.Point(10, 30),
                                             }}
+                                            opacity={ isWarehouse ? 0.4 : 0.6}
                                         />
                                     )
                                 });
