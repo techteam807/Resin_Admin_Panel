@@ -49,16 +49,28 @@ const MapClusterCopy = () => {
     const [searchValue, setSearchValue] = useState('');
     const [selectedVehicle, setSelectedVehicle] = useState(1);
     const [selectedClusterId, setSelectedClusterId] = useState("");
-    const [selectedClusterNumber, setSelectedClusterNumber] = useState("null");    
+    const [selectedClusterNumber, setSelectedClusterNumber] = useState(null);    
     const [isVisible, setIsVisible] = useState(true);
     const [saveLoading, setSaveLoading] = useState(false);
 
 
     // Fetch clusters based on vehicle
+    // useEffect(() => {
+    //     const payload = { vehicleNo: Number(selectedVehicle), clusterNo: Number(selectedClusterNumber) };
+    //     dispatch(getCustomersClusterMap(payload));
+    // }, [dispatch, selectedVehicle,selectedClusterNumber]);
     useEffect(() => {
-        const payload = { vehicleNo: Number(selectedVehicle), clusterNo: Number(selectedClusterNumber) };
-        dispatch(getCustomersClusterMap(payload));
-    }, [dispatch, selectedVehicle,selectedClusterNumber]);
+  const payload = {};
+  if (selectedVehicle) {
+    payload.vehicleNo = Number(selectedVehicle);
+  }
+  if (selectedClusterNumber !== null) {
+    payload.clusterNo = Number(selectedClusterNumber);
+  }
+
+  dispatch(getCustomersClusterMap(payload));
+}, [dispatch, selectedVehicle, selectedClusterNumber]);
+
 
     useEffect(() => {
         dispatch(getClusterDropDown(Number(selectedVehicle)));
@@ -182,9 +194,10 @@ const MapClusterCopy = () => {
             return;
         }
 
-        const customerPoints = cluster.visitSequence.filter(
-            (p) => p.customerName?.trim().toLowerCase() !== 'warehouse'
-        );
+        const customerPoints = cluster.visitSequence
+        // .filter(
+        //     (p) => p.customerName?.trim().toLowerCase() !== 'warehouse'
+        // );
 
         if (customerPoints.length < 2) {
             setDirectionsResponse(null);
@@ -198,6 +211,7 @@ const MapClusterCopy = () => {
             stopover: true,
         }));
 
+        if (window.google && window.google.maps) {
         const service = new window.google.maps.DirectionsService();
         service.route(
             {
@@ -215,6 +229,10 @@ const MapClusterCopy = () => {
                 }
             }
         );
+    }
+    else {
+    console.warn("Google Maps API not loaded yet.");
+  }
     }, [selectedCluster, clusteroute, activeTab]);
 
     // Handle drag-and-drop
