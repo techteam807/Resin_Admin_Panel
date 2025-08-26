@@ -114,7 +114,11 @@ const ClusterList = ({
           </div>
 
           <hr className="mt-2" />
-          <div className="overflow-auto max-h-[60vh] sm:max-h-[65vh] lg:max-h-[70vh] mt-4 scrollbar-thin">
+          <div className="overflow-auto max-h-[60vh] sm:max-h-[65vh] lg:max-h-[70vh] mt-4 "
+            style={{
+              scrollbarWidth: "thin",
+              scrollbarColor: "#4a5568 #f1f1f1",
+            }}>
             {mapLoading1 || data.length === 0 ? (
               <div className="flex h-[60vh] sm:h-[65vh] lg:h-[70vh] items-center justify-center">
                 <Typography variant="h5" color="blue-gray">
@@ -310,13 +314,17 @@ const ClusterList = ({
                                   ref={provided.innerRef}
                                   {...provided.droppableProps}
                                   className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                                  style={{
+                                    scrollbarWidth: "thin",
+                                    scrollbarColor: `${clusterColors[index % clusterColors.length]} #e5e7eb`,
+                                  }}
                                 >
                                   {cluster.customers.map((customer, idx) => {
                                     const clusterColor = clusterColors[index % clusterColors.length];
                                     return (
                                       <Draggable key={customer.code} draggableId={customer.code} index={idx}>
                                         {(provided, snapshot) => {
-                                          const isFreezed = customer.isFreezed; 
+                                          const isFreezed = customer.isFreezed;
                                           return (
                                             <div
                                               ref={provided.innerRef}
@@ -325,13 +333,13 @@ const ClusterList = ({
                                               className={`flex items-center rounded-lg shadow-lg text-sm w-full text-start p-4 border-l-2 transition
                                                   ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""}
                                                   ${isFreezed
-                                                  ? "bg-gray-200 text-gray-500 opacity-70 cursor-not-allowed" 
+                                                  ? "bg-gray-200 text-gray-500 opacity-70 cursor-not-allowed"
                                                   : "bg-white hover:cursor-pointer"}`
                                               }
                                               style={{
                                                 ...provided.draggableProps.style,
                                                 borderLeftColor: clusterColor,
-                                                color: isFreezed ? "gray" : clusterColor, // frozen text muted
+                                                color: isFreezed ? "gray" : clusterColor,
                                               }}
                                             >
                                               <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
@@ -435,7 +443,7 @@ const ClusterList = ({
                                                 >
                                                   {customer.code}
                                                 </div>
-                                                <div className="text-sm text-gray-600">{customer.displayName}</div>
+                                                <div className="">{customer.displayName}</div>
                                               </div>
                                             </div>
                                             <div className="flex justify-between sm:ml-auto sm:flex-col sm:justify-end sm:items-end sm:text-right">
