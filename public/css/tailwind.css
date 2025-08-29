@@ -6,3 +6,11 @@
     --main-color:#f5f7f8;
     --second-color:#343434;
 }
+
+.offscreen {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  width: 210mm; /* A4 width in mm */
+  height: 297mm; /* A4 height in mm */
+}

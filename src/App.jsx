@@ -4,7 +4,7 @@ import { SignIn, SignUp } from "./pages/auth";
 import CustomerDetails from "./pages/dashboard/CustomerDetails";
 import RoutesMap from "./pages/dashboard/RoutesMap";
 import WaterReportsTemplate from "./layouts/WaterReportsTemplate";
-
+import WaterReportsBulkTemplate from "./layouts/WaterReportsBulkTemplate";
 function App() {
   return (
     <Routes>
@@ -16,7 +16,8 @@ function App() {
       <Route path="/dashboard" element={<Navigate to="/dashboard/home" replace />} />
       <Route path="/dashboard/waterPdf" element={<WaterReportsTemplate/>}/>
       <Route path="dashboard/home/details" element={<CustomerDetails />} />
-      <Route path="/map-routes" element={<RoutesMap/>}/>
+      <Route path="/map-routes" element={<RoutesMap/>}/>.
+      <Route path="/dashboard/waterPdf/bulk" element={<WaterReportsBulkTemplate/>}/>
     </Routes>
   );
 }

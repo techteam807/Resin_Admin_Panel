@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import DayDetailModal from "@/component/DayDetailModal";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Input, Button } from "@material-tailwind/react";
-import { ArrowPathIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, EyeIcon } from "@heroicons/react/24/solid";
 
 function WaterReports() {
   const dispatch = useDispatch();
@@ -29,6 +29,8 @@ function WaterReports() {
   const [modalDay, setModalDay] = useState(null);
   const [modalUser, setModalUser] = useState(null);
   const [searchValue, setSearchValue] = useState("");
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
+
 
 
   useEffect(() => {
@@ -68,9 +70,9 @@ function WaterReports() {
     dispatch(getWaterReports({ month: formattedMonth, year, startDate, endDate }));
   }, [dispatch, month, year, startDate, endDate]);
 
-   const getDaysInMonth = (month, year) => {
-   return new Date(Date.UTC(year, month, 0)).getUTCDate();
- };
+  const getDaysInMonth = (month, year) => {
+    return new Date(Date.UTC(year, month, 0)).getUTCDate();
+  };
 
 
   const daysInMonth = getDaysInMonth(month, year)
@@ -102,7 +104,7 @@ function WaterReports() {
     }
 
     customer.reports.forEach((report) => {
-    const day = new Date(report.date).getUTCDate();
+      const day = new Date(report.date).getUTCDate();
 
 
       if (!groupedData[userId].scores[day]) {
@@ -160,109 +162,168 @@ function WaterReports() {
     }));
   };
 
+  const toggleCustomer = (id) => {
+    setSelectedCustomers((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkGenerate = () => {
+    if (selectedCustomers.length === 0) return;
+    navigate(`/dashboard/waterPdf/bulk`, {
+      state: {
+        customers: selectedCustomers.map((id) => groupedData[id]),
+        month,
+        year,
+      },
+    });
+  };
+
+
 
   return (
     <div className="flex flex-col bg-white border border-gray-300 rounded-xl mt-9 shadow-sm">
-      <div className="bg-white shadow-sm rounded-xl p-5 space-y-5">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">Water Reports</h1>
+<div className="bg-white shadow-sm rounded-xl p-5 space-y-6">
+  {/* Header */}
+<header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+  {/* Title + Count together */}
+  <div className="flex items-center gap-2">
+    <h1 className="text-2xl font-bold text-gray-900">Water Reports</h1>
+    <span className="text-lg font-medium text-gray-600 pt-1">
+      Total Customers: {totalCount}
+    </span>
+  </div>
 
-          {/* Search */}
-          <div className="flex flex-row items-stretch gap-2 w-auto">
-            <div className="w-72 relative flex gap-2">
-              <Input
-                label="Search"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                icon={
-                  searchValue ? (
-                    <XMarkIcon
-                      onClick={handleClear}
-                      className="h-5 w-5 cursor-pointer"
-                    />
-                  ) : null
-                }
-              />
-            </div>
-
-            <Button
-              onClick={handleSearch}
-              variant="gradient"
-              className="px-2.5"
-              size="sm"
-            >
-              <MagnifyingGlassIcon className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Total Count */}
-          <div className="flex items-center bg-gray-50 border rounded-lg px-3  h-[42px] mt-6">
-            <span className="font-semibold text-gray-700">
-              Total Customer: {totalCount}
-            </span>
-          </div>
-
-          {/* Start Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Start Date</label>
-            <input
-              type="date"
-              disabled
-              value={startDate || ""}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+  {/* Search */}
+  <div className="flex w-full md:w-auto flex-row items-stretch gap-2">
+    <div className="relative flex-1 md:flex-none md:w-72">
+      <Input
+        id="search"
+        label="Search"
+        aria-label="Search customers"
+        value={searchValue}
+        onChange={(e) => setSearchValue(e.target.value)}
+        icon={
+          searchValue ? (
+            <XMarkIcon
+              onClick={handleClear}
+              className="h-5 w-5 cursor-pointer text-gray-500 hover:text-gray-700"
+              aria-label="Clear search"
             />
-          </div>
+          ) : null
+        }
+      />
+    </div>
+    <Button
+      onClick={handleSearch}
+      variant="gradient"
+      size="sm"
+      aria-label="Search"
+      className="px-3"
+    >
+      <MagnifyingGlassIcon className="h-5 w-5" />
+    </Button>
+  </div>
+</header>
 
-          {/* End Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">End Date</label>
-            <input
-              type="date"
-              disabled
-              value={endDate || ""}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
 
-          {/* Month */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Month</label>
-            <select
-              value={monthNames[month - 1]}
-              onChange={handleMonthChange}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {monthNames.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
+  {/* Filters */}
+  <section
+  aria-label="Filters"
+  className="grid grid-cols-1 md:grid-cols-5 gap-4"
+>
+  {/* Start Date */}
+  <div>
+    <label
+      htmlFor="start-date"
+      className="block text-sm font-medium text-gray-700 mb-1"
+    >
+      Start Date
+    </label>
+    <input
+      id="start-date"
+      type="date"
+      disabled
+      value={startDate || ""}
+      onChange={(e) => setStartDate(e.target.value)}
+      className="w-full h-11 px-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
+    />
+  </div>
 
-          {/* Year */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Year</label>
-            <select
-              value={year}
-              onChange={handleYearChange}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
+  {/* End Date */}
+  <div>
+    <label
+      htmlFor="end-date"
+      className="block text-sm font-medium text-gray-700 mb-1"
+    >
+      End Date
+    </label>
+    <input
+      id="end-date"
+      type="date"
+      disabled
+      value={endDate || ""}
+      onChange={(e) => setEndDate(e.target.value)}
+      className="w-full h-11 px-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
+    />
+  </div>
+
+  {/* Month */}
+  <div>
+    <label
+      htmlFor="month"
+      className="block text-sm font-medium text-gray-700 mb-1"
+    >
+      Month
+    </label>
+    <select
+      id="month"
+      value={monthNames[month - 1]}
+      onChange={handleMonthChange}
+      className="w-full h-11 px-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+    >
+      {monthNames.map((m) => (
+        <option key={m} value={m}>
+          {m}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Year */}
+  <div>
+    <label
+      htmlFor="year"
+      className="block text-sm font-medium text-gray-700 mb-1"
+    >
+      Year
+    </label>
+    <select
+      id="year"
+      value={year}
+      onChange={handleYearChange}
+      className="w-full h-11 px-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+    >
+      {years.map((y) => (
+        <option key={y} value={y}>
+          {y}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Bulk Generate */}
+  <div className="flex items-end">
+    <Button
+      onClick={handleBulkGenerate}
+      className="w-full h-11 bg-green-600 hover:bg-green-700 text-white font-medium px-3 rounded-lg transition"
+    >
+      Generate & Send for Selected
+    </Button>
+  </div>
+</section>
+
+</div>
 
 
       {/* Table */}
@@ -273,7 +334,8 @@ function WaterReports() {
           <table className="w-full border-collapse bg-white">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2">No.
+                <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2">
+                  No.
                 </th>
 
                 <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[180px]">
@@ -287,15 +349,31 @@ function WaterReports() {
                     {day}
                   </th>
                 ))}
+
+                {/* ✅ Combined header column */}
                 <th className="sticky top-0 right-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[150px]">
-                  Actions
+                  <div className="flex items-center justify-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedCustomers.length === Object.keys(groupedData).length}
+                      onChange={(e) =>
+                        setSelectedCustomers(
+                          e.target.checked ? Object.keys(groupedData) : []
+                        )
+                      }
+                    />
+                    <span>Actions</span>
+                  </div>
                 </th>
               </tr>
             </thead>
             <tbody>
               {Object.values(groupedData).map((userData, index) => (
                 <tr key={userData.user._id}>
-                  <td className="sticky left-0 z-20 bg-gray-100 border border-gray-300 text-center">{index + 1}</td>
+                  <td className="sticky left-0 z-20 bg-gray-100 border border-gray-300 text-center">
+                    {index + 1}
+                  </td>
+
                   <td className="sticky left-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[180px]">
                     <div className="flex flex-col items-center">
                       <span>
@@ -319,10 +397,11 @@ function WaterReports() {
 
                       if (hasStatus) {
                         const scoreValues = entries.map((e) => e.score);
-                        const hasStatus = entries.some((e) => e.status);
                         const scoresText = scoreValues.join(", ");
                         const hasHigh = scoreValues.some((score) => score > 100);
-                        const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
+                        const hasMid = scoreValues.some(
+                          (score) => score >= 60 && score <= 100
+                        );
                         const hasLow = scoreValues.some((score) => score < 60);
 
                         if (hasHigh) {
@@ -344,17 +423,22 @@ function WaterReports() {
                                   strokeWidth="4"
                                   viewBox="0 0 24 24"
                                 >
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5 13l4 4L19 7"
+                                  />
                                 </svg>
                               </div>
                             )}
                           </div>
                         );
-
                       } else {
                         const scoreValues = entries.map((e) => e.score);
                         const hasHigh = scoreValues.some((score) => score > 100);
-                        const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
+                        const hasMid = scoreValues.some(
+                          (score) => score >= 60 && score <= 100
+                        );
                         const hasLow = scoreValues.some((score) => score < 60);
 
                         if (hasHigh) {
@@ -373,20 +457,41 @@ function WaterReports() {
                       <td
                         key={currentDay}
                         className={`border border-gray-300 text-center min-w-[90px] p-2 cursor-pointer ${bgClass}`}
-                        onClick={() => handleCellClick(entries, currentDay, userData.user)}
+                        onClick={() =>
+                          handleCellClick(entries, currentDay, userData.user)
+                        }
                       >
                         {cellContent}
                       </td>
                     );
                   })}
-                  <td className="sticky right-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[150px]">
-                    <button
-                      className="bg-black text-white px-3 py-1 rounded text-sm"
-                      onClick={() => handleNavigation(userData)}
-                    >
-                      View Report
-                    </button>
-                  </td>
+
+                 {/* ✅ Combined cell with hover-only checkbox + always-visible button */}
+<td className="sticky right-0 z-20 bg-gray-100 border border-gray-300 text-center min-w-[150px]">
+  <div className="flex items-center justify-center gap-3">
+    {/* Checkbox */}
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={selectedCustomers.includes(userData.user._id)}
+        onChange={() => toggleCustomer(userData.user._id)}
+        className="w-4 h-4 accent-blue-600 cursor-pointer"
+      />
+      <span className="sr-only">Select Customer</span>
+    </label>
+
+    {/* View Button */}
+    <button
+      className="flex items-center justify-center w-9 h-9 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition"
+      onClick={() => handleNavigation(userData)}
+      title="View Details"
+    >
+      <EyeIcon className="h-5 w-5" />
+    </button>
+  </div>
+</td>
+
+
                 </tr>
               ))}
             </tbody>

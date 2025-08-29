@@ -65,6 +65,15 @@ export const uploadWaterReportPdf = async (pdfBlob) => {
     throw error;
   }
 };
+
+export const uploadWaterReportBulkPdf = async (formData) => {
+  const response = await axiosConfig.post(
+    `waterReport/uploadWaterReportBulk`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return response.data;
+};
   
 
 

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { createReports, deleteWaterReports, fetchWaterReports, generateReports, uploadWaterReportPdf } from './waterReportsService';
+import { createReports, deleteWaterReports, fetchWaterReports, generateReports, uploadWaterReportPdf, uploadWaterReportBulkPdf } from './waterReportsService';
 import { toast } from 'react-toastify';
 
 export const getWaterReports = createAsyncThunk(
@@ -59,6 +59,17 @@ export const uploadWaterReport = createAsyncThunk(
     try {
       const data = await uploadWaterReportPdf(pdfBlob);
       return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || error.message);
+    }
+  }
+);
+
+export const uploadWaterReportBulk = createAsyncThunk(
+  "waterReports/uploadWaterReportBulk",
+  async (formData, { rejectWithValue }) => {
+    try {
+      return await uploadWaterReportBulkPdf(formData);
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || error.message);
     }
