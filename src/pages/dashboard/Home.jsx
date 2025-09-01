@@ -47,7 +47,11 @@ function Home() {
 
   const handleSearch = () => {
     const payload = { page: 1, search: searchValue, Day: dayValue, };
-    dispatch(getCustomers(payload)); // No isSubscription here
+      if (statusValue === "active" || statusValue === "inactive") {
+    payload.isSubscription = statusValue === "inactive" ? false : true;
+  }
+
+  dispatch(getCustomers(payload));
   };
 
 
@@ -80,10 +84,16 @@ function Home() {
     }
   };
 
-  const searchClear = () => {
-    setSearchValue('')
-    dispatch(getCustomers({ page: 1 }));
+const searchClear = () => {
+  setSearchValue('');
+  const payload = { page: 1, Day: dayValue };
+
+  if (statusValue === "active" || statusValue === "inactive") {
+    payload.isSubscription = statusValue === "inactive" ? false : true;
   }
+
+  dispatch(getCustomers(payload));
+};
 
   const handlePaginationChange = (page) => {
     const payload = { page, Day: dayValue };

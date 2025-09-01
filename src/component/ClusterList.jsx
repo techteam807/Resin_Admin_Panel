@@ -38,6 +38,10 @@ const ClusterList = ({
     setSelectedCustomer({ ...customer, clusterId, isFreezed: customer.isFreezed });
     setOpen(true);
   };
+    // 🔄 Refresh data on mount
+  useEffect(() => {
+    dispatch(getCustomersClusterMap());
+  }, [dispatch]);
 
   const handleConfirm = async () => {
     if (!selectedCustomer) return;
@@ -46,12 +50,14 @@ const ClusterList = ({
       clusterId: selectedCustomer.clusterId,
       customerId: selectedCustomer.customerId,
       isFreezed: selectedCustomer.isFreezed,
+      replaceMentNotes: selectedCustomer.replaceMentNotes,
     };
 
+    
     try {
       const res = await dispatch(editCustomerFreeze(payload)).unwrap();
-      console.log("Freeze updated:", res);
-      setOpen(false);
+      await dispatch(getCustomersClusterMap());
+      setOpen(false);   
 
     } catch (err) {
       console.error("Error freezing customer:", err);
@@ -316,7 +322,7 @@ const ClusterList = ({
                                     return (
                                       <Draggable key={customer.code} draggableId={customer.code} index={idx}>
                                         {(provided, snapshot) => {
-                                          const isFreezed = customer.isFreezed; 
+                                          const isFreezed = customer.isFreezed;
                                           return (
                                             <div
                                               ref={provided.innerRef}
@@ -325,7 +331,7 @@ const ClusterList = ({
                                               className={`flex items-center rounded-lg shadow-lg text-sm w-full text-start p-4 border-l-2 transition
                                                   ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""}
                                                   ${isFreezed
-                                                  ? "bg-gray-200 text-gray-500 opacity-70 cursor-not-allowed" 
+                                                  ? "bg-gray-200 text-gray-500 opacity-70 cursor-not-allowed"
                                                   : "bg-white hover:cursor-pointer"}`
                                               }
                                               style={{
@@ -508,7 +514,6 @@ const ClusterList = ({
                     <p><span className="font-medium">Name:</span> {selectedCustomer.displayName}</p>
                     <p><span className="font-medium">Qty:</span> {selectedCustomer.qty}</p>
                     <p><span className="font-medium">Size:</span> {selectedCustomer.size}</p>
-
                     {/* Toggle Switch */}
                     <div className="flex items-center gap-3 mt-4">
                       <span className="font-medium">Freeze:</span>
@@ -531,6 +536,28 @@ const ClusterList = ({
                 after:transition-all peer-checked:bg-green-500"></div>
                       </label>
                     </div>
+                        <p>
+                          <span className="font-medium">Status:</span>{" "}
+                          {selectedCustomer?.status ? "Active" : "Inactive"}
+                        </p>
+                    <div className="mt-4">
+                      <label className="block text-sm font-semibold text-black">
+                        Replacement Notes:
+                      </label>
+                      <textarea
+                        value={selectedCustomer?.replaceMentNotes || ""}
+                        onChange={(e) =>
+                          setSelectedCustomer((prev) =>
+                            prev ? { ...prev, replaceMentNotes: e.target.value } : prev
+                          )
+                        }
+                        placeholder="Enter replacement notes"
+                        className="mt-1 block w-full rounded-md border-black shadow-sm 
+                   focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        rows={3}
+                      />
+                    </div>
+
                   </div>
                 )}
 

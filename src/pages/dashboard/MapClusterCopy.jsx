@@ -120,6 +120,8 @@ const MapClusterCopy = () => {
                     displayName: c.name,
                     vistSequnceNo: c.sequenceNo,
                     indexNo: c.indexNo,
+                    replaceMentNotes: c.replaceMentNotes,   
+                    status:c.status,
                     isFreezed: c.isFreezed ?? false,  
                     lat: Number(c.geoCoordinates?.coordinates[1]) || '',
                     lng: Number(c.geoCoordinates?.coordinates[0]) || '',
@@ -135,7 +137,7 @@ const MapClusterCopy = () => {
     useEffect(() => {
         if (mapLoading) {
             setRoute([]);
-            return;
+            return; 
         }
         if (clusteroute?.length) {
             const formatted = clusteroute.map((cluster) => ({
@@ -332,14 +334,14 @@ const MapClusterCopy = () => {
     //     }
     // }, [activeTab]);
 
-    const onFreezeUpdate = (clusterId, customerId, isFrozen) => {
+    const onFreezeUpdate = (clusterId, customerId, isFreezed, replaceMentNotes) => {
     setData((prevData) =>
       prevData.map((cluster) =>
         cluster.clusterId === clusterId
           ? {
               ...cluster,
               customers: cluster.customers.map((cust) =>
-                cust.customerId === customerId ? { ...cust, isFrozen } : cust
+                cust.customerId === customerId ? { ...cust, isFreezed, replaceMentNotes} : cust
               ),
             }
           : cluster
