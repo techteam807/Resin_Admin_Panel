@@ -34,11 +34,13 @@ const ClusterList = ({
 
 
   const handleOpen = (customer, clusterId) => {
-    console.log("customer", customer)
-    setSelectedCustomer({ ...customer, clusterId, isFreezed: customer.isFreezed });
+    setSelectedCustomer({
+      ...customer, clusterId, isFreezed: customer.isFreezed, originalIsFreezed: customer.isFreezed,
+      originalReplaceMentNotes: customer.replaceMentNotes,
+    });
     setOpen(true);
   };
-    // 🔄 Refresh data on mount
+  // 🔄 Refresh data on mount
   useEffect(() => {
     dispatch(getCustomersClusterMap());
   }, [dispatch]);
@@ -49,15 +51,24 @@ const ClusterList = ({
     const payload = {
       clusterId: selectedCustomer.clusterId,
       customerId: selectedCustomer.customerId,
-      isFreezed: selectedCustomer.isFreezed,
-      replaceMentNotes: selectedCustomer.replaceMentNotes,
     };
 
-    
+    if (selectedCustomer.isFreezed !== selectedCustomer.originalIsFreezed) {
+      payload.isFreezed = selectedCustomer.isFreezed;
+    }
+
+    if (
+      (selectedCustomer.replaceMentNotes || "") !==
+      (selectedCustomer.originalReplaceMentNotes || "")
+    ) {
+      payload.replaceMentNotes = selectedCustomer.replaceMentNotes;
+    }
+
+
     try {
       const res = await dispatch(editCustomerFreeze(payload)).unwrap();
       await dispatch(getCustomersClusterMap());
-      setOpen(false);   
+      setOpen(false);
 
     } catch (err) {
       console.error("Error freezing customer:", err);
@@ -121,11 +132,9 @@ const ClusterList = ({
 
           <hr className="mt-2" />
           <div className="overflow-auto max-h-[60vh] sm:max-h-[65vh] lg:max-h-[70vh] mt-4 scrollbar-thin">
-            {mapLoading1 || data.length === 0 ? (
+            {mapLoading1 ? (
               <div className="flex h-[60vh] sm:h-[65vh] lg:h-[70vh] items-center justify-center">
-                <Typography variant="h5" color="blue-gray">
-                  {mapLoading1 ? <Loader /> : 'No Clusters Available'}
-                </Typography>
+                <Loader />
               </div>
             ) : (
               <DragDropContext onDragEnd={onDragEnd}>
@@ -351,7 +360,14 @@ const ClusterList = ({
                                                 >
                                                   {customer.code}
                                                 </div>
-                                                <div className="">{customer.displayName}</div>
+                                                <div className="flex items-center gap-2">
+                                                  <span>{customer.displayName}</span>
+                                                  {!customer.status && (
+                                                    <span className="px-2 py-0.5 text-xs rounded-full font-medium bg-red-100 text-red-700">
+                                                      Inactive
+                                                    </span>
+                                                  )}
+                                                </div>
                                               </div>
 
                                               <div className="ml-auto flex flex-col justify-end items-end text-right">
@@ -536,10 +552,10 @@ const ClusterList = ({
                 after:transition-all peer-checked:bg-green-500"></div>
                       </label>
                     </div>
-                        <p>
-                          <span className="font-medium">Status:</span>{" "}
-                          {selectedCustomer?.status ? "Active" : "Inactive"}
-                        </p>
+                    <p>
+                      <span className="font-medium">Status:</span>{" "}
+                      {selectedCustomer?.status ? "Active" : "Inactive"}
+                    </p>
                     <div className="mt-4">
                       <label className="block text-sm font-semibold text-black">
                         Replacement Notes:
