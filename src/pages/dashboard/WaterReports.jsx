@@ -7,6 +7,7 @@ import DayDetailModal from "@/component/DayDetailModal";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Input, Button } from "@material-tailwind/react";
 import { ArrowPathIcon, EyeIcon } from "@heroicons/react/24/solid";
+import WaterReportsBulkTemplate from "@/layouts/WaterReportsBulkTemplate";
 
 function WaterReports() {
   const dispatch = useDispatch();
@@ -30,6 +31,7 @@ function WaterReports() {
   const [modalUser, setModalUser] = useState(null);
   const [searchValue, setSearchValue] = useState("");
   const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [showBulkModal , setShowBulkModal] = useState(false);
 
 
 
@@ -315,11 +317,13 @@ function WaterReports() {
   {/* Bulk Generate */}
   <div className="flex items-end">
     <Button
-      onClick={handleBulkGenerate}
-      className="w-full h-11 bg-green-600 hover:bg-green-700 text-white font-medium px-3 rounded-lg transition"
-    >
-      Generate & Send for Selected
-    </Button>
+  onClick={() => setShowBulkModal(true)}
+  disabled={selectedCustomers.length === 0}
+  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+>
+  Preview Bulk Reports
+</Button>
+
   </div>
 </section>
 
@@ -513,6 +517,27 @@ function WaterReports() {
         month={month}
         year={year}
       />
+
+      {showBulkModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white w-11/12 max-w-6xl rounded-lg shadow-lg relative p-4 overflow-y-auto max-h-[90vh]">
+      <button
+        onClick={() => setShowBulkModal(false)}
+        className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+      >
+        ✖
+      </button>
+
+      <h2 className="text-xl font-bold mb-4">Bulk Reports Preview</h2>
+
+      <WaterReportsBulkTemplate
+        customers={selectedCustomers.map((id) => groupedData[id])}
+        month={month}
+        year={year}
+      />
+    </div>
+  </div>
+)}
     </div>
   )
 }
