@@ -452,16 +452,22 @@ const customerSlice = createSlice({
         state.message = action.payload.message || "Customer updated";
         toast.success(state.message);
 
-        const { customerId, clusterId, isFreezed } = action.meta.arg;
+        const { customerId, clusterId, isFreezed, replaceMentNotes } = action.meta.arg;
 
-        // 🔥 Update the specific customer locally
         state.customersClusterMap.clusters = state.customersClusterMap.clusters.map(cluster => {
           if (cluster._id !== clusterId) return cluster;
+
           return {
             ...cluster,
-            customers: cluster.customers.map(cust =>
-              cust.customerId === customerId ? { ...cust, isFreezed } : cust
-            ),
+            customers: cluster.customers.map(cust => {
+              if (cust.customerId !== customerId) return cust;
+
+              return {
+                ...cust,
+                ...(isFreezed !== undefined ? { isFreezed } : {}),             
+                ...(replaceMentNotes !== undefined ? { replaceMentNotes } : {}),
+              };
+            }),
           };
         });
       })

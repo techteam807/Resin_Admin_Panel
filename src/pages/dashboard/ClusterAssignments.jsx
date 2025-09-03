@@ -73,6 +73,7 @@ const ClusterAssignments = () => {
   const [activeTab, setActiveTab] = useState("view");
   const [filterUserId, setFilterUserId] = useState("");
   const [filterClusterId, setFilterClusterId] = useState("");
+  
 
   useEffect(() => {
     dispatch(getTechnicianDropDown());
