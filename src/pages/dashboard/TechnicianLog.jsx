@@ -17,17 +17,40 @@ import { getTechnicianDropDown } from '@/feature/technician/technicianSlice';
 import Loader from '../Loader';
 
 
+// const formatUTCDate = (dateString) => {
+//   if (!dateString) return "N/A";
+//   const date = new Date(dateString);
+//   if (isNaN(date.getTime())) return "Invalid Date";
+//   const day = String(date.getUTCDate()).padStart(2, '0');
+//   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+//   const year = date.getUTCFullYear();
+//   const hours = String(date.getUTCHours()).padStart(2, '0');
+//   const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+//   const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+//   return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+// };
+
 const formatUTCDate = (dateString) => {
   if (!dateString) return "N/A";
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "Invalid Date";
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const year = date.getUTCFullYear();
-  const hours = String(date.getUTCHours()).padStart(2, '0');
-  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-  const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+
+  // Convert to IST (UTC + 5:30)
+  const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in ms
+  const istDate = new Date(date.getTime() + istOffset);
+
+  const day = String(istDate.getUTCDate()).padStart(2, '0');
+  const month = String(istDate.getUTCMonth() + 1).padStart(2, '0');
+  const year = istDate.getUTCFullYear();
+
+  let hours = istDate.getUTCHours();
+  const minutes = String(istDate.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(istDate.getUTCSeconds()).padStart(2, '0');
+
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12; // convert 0 → 12 and 13 → 1
+
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds} ${ampm}`;
 };
 
 const getDefaultDateRange = () => {
