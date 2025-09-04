@@ -58,7 +58,7 @@ const WaterReportsBulkTemplate = ({ customers, month, year }) => {
         return (
           <div className={base} style={{ backgroundImage: `url(${page1})` }}>
             <div className="absolute top-[15px] left-[15px] right-[80px]">
-              <h1 className="text-[40px] font-bold text-white leading-[1.1]">
+              <h1 className="text-[40px] font-bold text-white leading-[1.1] ">
                 Hey, <span>{userName}</span>
               </h1>
               <h2 className="text-[40px] font-bold text-[#f2daa5] leading-[1.1] mt-2">Your 30 Day</h2>
@@ -342,66 +342,71 @@ const WaterReportsBulkTemplate = ({ customers, month, year }) => {
   return (
     <>
       <div className="p-6 max-w-4xl mx-auto">
-        <h1 className="text-xl font-bold mb-4">Bulk Water Reports ({month}/{year})</h1>
+        <h1 className="text-xl font-bold mb-4 absolute left-[15px] top-[50px]">Bulk Water Reports ({month}/{year})</h1>
 
-        <div className="flex gap-4 mb-4">
+        <div className="flex gap-4 mb-4 absolute left-[15px] top-[80px]">
           <Button onClick={handleBulkUpload} disabled={processing} className="bg-blue-600 text-white px-4 py-2 rounded">
             {processing ? "Processing…" : "Generate & Send All"}
           </Button>
         </div>
 
         {/* Hidden customer pages */}
-        {/* Hidden customer pages */}
-        {customers.map(c => (
-          <div key={c.user._id} className="">
-            {[1, 2, 3, 4, 5, 6, 7].map(p => (
-              <div key={p} id={`pdf-page-${c.user._id}-page-${p}`} className="w-[210mm] h-[297mm]">
-                {renderPageForCustomer(c, p)}
-              </div>
-            ))}
-          </div>
-        ))}
+        {/* Offscreen pages for PDF generation */}
+        <div className="absolute -left-[9999px] top-0">
+          {customers.map(c => (
+            <div key={c.user._id}>
+              {[1, 2, 3, 4, 5, 6, 7].map(p => (
+                <div
+                  key={p}
+                  id={`pdf-page-${c.user._id}-page-${p}`}
+                  className="w-[210mm] h-[297mm]"
+                >
+                  {renderPageForCustomer(c, p)}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
 
       </div>
 
-<div className="space-y-6 mt-6">
-  {customers.map((customer) => (
-    <div
-      key={customer.user._id}
-      className="border rounded-xl shadow-md overflow-hidden"
-    >
-      {/* Header */}
-      <button
-        onClick={() => toggleCustomer(customer.user._id)}
-        className="flex w-full items-center justify-between px-5 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 transition rounded-t-xl"
-      >
-        <span className="font-semibold text-gray-800 text-lg">
-          {customer.user.display_name}
-        </span>
-        <span className="text-sm text-gray-600 font-medium">
-          Report: {month}/{year}
-        </span>
-      </button>
+      <div className="space-y-6 mt-6 ">
+        {customers.map((customer) => (
+          <div
+            key={customer.user._id}
+            className="border rounded-xl shadow-md overflow-hidden">
+            {/* Header */}
+            <button
+              onClick={() => toggleCustomer(customer.user._id)}
+              className="flex w-full items-center justify-between px-5 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 transition rounded-t-xl "
+            >
+              <span className="font-semibold text-gray-800 text-lg">
+                {customer.user.display_name}
+              </span>
+              <span className="text-sm text-gray-600 font-medium">
+                Report: {month}/{year}
+              </span>
+            </button>
 
-      {/* Content */}
-      {openCustomer === customer.user._id && (
-        <div className="p-6 bg-gray-50">
-          <div className="flex flex-col items-center space-y-10">
-            {[1, 2, 3, 4, 5, 6, 7].map((pageNum) => (
-              <div
-                key={pageNum}
-                id={`pdf-page-${customer.user._id}-page-${pageNum}`}
-                className="w-[210mm] h-[297mm] bg-white border shadow-lg rounded-lg overflow-hidden flex items-center justify-center"
-              >
-                {renderPageForCustomer(customer, pageNum)}
+            {/* Content */}
+            {openCustomer === customer.user._id && (
+              <div className="p-6 bg-gray-50">
+                <div className="flex flex-col items-center space-y-10">
+                  {[1, 2, 3, 4, 5, 6, 7].map((pageNum) => (
+                    <div
+                      key={pageNum}
+                      id={`pdf-page-${customer.user._id}-page-${pageNum}`}
+                      className="w-[210mm] h-[297mm] bg-white border shadow-lg rounded-lg overflow-hidden flex items-center justify-center"
+                    >
+                      {renderPageForCustomer(customer, pageNum)}
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+            )}
           </div>
-        </div>
-      )}
-    </div>
-  ))}
-</div>
+        ))}
+      </div>
 
 
     </>
