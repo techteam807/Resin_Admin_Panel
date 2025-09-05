@@ -31,14 +31,14 @@ function WaterReports() {
   const [searchValue, setSearchValue] = useState("");
 
 
-  useEffect(() => {
-    const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
-    const newLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
-    const newEndDate = `${year}-${String(month).padStart(2, '0')}-${String(newLastDay).padStart(2, '0')}`;
+  // useEffect(() => {
+  //   const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
+  //   const newLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  //   const newEndDate = `${year}-${String(month).padStart(2, '0')}-${String(newLastDay).padStart(2, '0')}`;
 
-    setStartDate(newFirstDay);
-    setEndDate(newEndDate);
-  }, [month, year]);
+  //   setStartDate(newFirstDay);
+  //   setEndDate(newEndDate);
+  // }, [month, year]);
 
 
   const monthNames = [
@@ -46,9 +46,36 @@ function WaterReports() {
     "July", "August", "September", "October", "November", "December"
   ];
 
+  // useEffect(() => {
+  //   handleSearch();
+  // }, [month, year, startDate, endDate]);
+
   useEffect(() => {
-    handleSearch();
-  }, [month, year, startDate, endDate]);
+  handleSearch();
+}, []);
+
+const handleSave = () => {
+  let newStart = startDate;
+  let newEnd = endDate;
+
+  // If no manual start/end selected, fallback to whole month
+  if (!startDate || !endDate) {
+    newStart = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    newEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+    setStartDate(newStart);
+    setEndDate(newEnd);
+  }
+
+  const formattedMonth = month < 10 ? `0${month}` : month;
+  dispatch(getWaterReports({
+    month: formattedMonth,
+    year,
+    startDate: newStart,
+    endDate: newEnd,
+    search: searchValue.trim()
+  }));
+};
 
 
   const handleSearch = () => {
@@ -68,12 +95,24 @@ function WaterReports() {
     dispatch(getWaterReports({ month: formattedMonth, year, startDate, endDate }));
   }, [dispatch, month, year, startDate, endDate]);
 
-   const getDaysInMonth = (month, year) => {
-   return new Date(Date.UTC(year, month, 0)).getUTCDate();
- };
+  const getDaysInMonth = (month, year) => {
+    return new Date(Date.UTC(year, month, 0)).getUTCDate();
+  };
 
 
-  const daysInMonth = getDaysInMonth(month, year)
+  // const daysInMonth = getDaysInMonth(month, year)
+  let startDay = 1;
+  let endDay = getDaysInMonth(month, year);
+
+  if (startDate && endDate) {
+    const s = new Date(startDate).getUTCDate();
+    const e = new Date(endDate).getUTCDate();
+    startDay = s;
+    endDay = e;
+  }
+
+
+
 
   const handleMonthChange = (e) => {
     const selectedMonth = monthNames.indexOf(e.target.value) + 1;
@@ -102,7 +141,7 @@ function WaterReports() {
     }
 
     customer.reports.forEach((report) => {
-    const day = new Date(report.date).getUTCDate();
+      const day = new Date(report.date).getUTCDate();
 
 
       if (!groupedData[userId].scores[day]) {
@@ -211,7 +250,6 @@ function WaterReports() {
             <label className="block text-sm font-medium text-gray-600 mb-1">Start Date</label>
             <input
               type="date"
-              disabled
               value={startDate || ""}
               onChange={(e) => setStartDate(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -223,7 +261,6 @@ function WaterReports() {
             <label className="block text-sm font-medium text-gray-600 mb-1">End Date</label>
             <input
               type="date"
-              disabled
               value={endDate || ""}
               onChange={(e) => setEndDate(e.target.value)}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -261,6 +298,16 @@ function WaterReports() {
               ))}
             </select>
           </div>
+           <div className="flex items-end">
+            <Button
+              onClick={handleSave}
+              variant="gradient"
+              size="sm"
+              className="px-4"
+            >
+              Save
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -279,14 +326,24 @@ function WaterReports() {
                 <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[180px]">
                   User
                 </th>
-                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => (
-                  <th
-                    key={day}
-                    className="sticky top-0 z-20 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[90px]"
-                  >
-                    {day}
-                  </th>
-                ))}
+                {Array.from({ length: endDay - startDay + 1 }, (_, i) => {
+                  const currentDay = startDay + i;
+                  const dateObj = new Date(year, month - 1, currentDay); 
+
+                  // Format as dd/mm
+                  const formatted = `${String(dateObj.getDate()).padStart(2, "0")}/${String(
+                    dateObj.getMonth() + 1
+                  ).padStart(2, "0")}`;
+
+                  return (
+                    <th
+                      key={currentDay}
+                      className="sticky top-0 z-20 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[90px]"
+                    >
+                      {formatted}
+                    </th>
+                  );
+                })}
                 <th className="sticky top-0 right-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[150px]">
                   Actions
                 </th>
@@ -306,8 +363,8 @@ function WaterReports() {
                       </span>
                     </div>
                   </td>
-                  {Array.from({ length: daysInMonth }, (_, day) => {
-                    const currentDay = day + 1;
+                  {Array.from({ length: endDay - startDay + 1 }, (_, i) => {
+                    const currentDay = startDay + i;   // ✅
                     const entries = userData.scores[currentDay];
 
                     let bgClass = "";
@@ -319,51 +376,40 @@ function WaterReports() {
 
                       if (hasStatus) {
                         const scoreValues = entries.map((e) => e.score);
-                        const hasStatus = entries.some((e) => e.status);
                         const scoresText = scoreValues.join(", ");
                         const hasHigh = scoreValues.some((score) => score > 100);
                         const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
                         const hasLow = scoreValues.some((score) => score < 60);
 
-                        if (hasHigh) {
-                          bgClass = "bg-red-500 text-white";
-                        } else if (hasMid) {
-                          bgClass = "bg-yellow-400 text-black";
-                        } else if (hasLow) {
-                          bgClass = "bg-green-500 text-white";
-                        }
+                        if (hasHigh) bgClass = "bg-red-500 text-white";
+                        else if (hasMid) bgClass = "bg-yellow-400 text-black";
+                        else if (hasLow) bgClass = "bg-green-500 text-white";
+
                         cellContent = (
                           <div className="flex items-center justify-center gap-2">
                             <span>{scoresText}</span>
-                            {hasStatus && (
-                              <div className="ml-4 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm border border-black">
-                                <svg
-                                  className="w-4 h-4 text-green-600"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                </svg>
-                              </div>
-                            )}
+                            <div className="ml-4 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm border border-black">
+                              <svg
+                                className="w-4 h-4 text-green-600"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
                           </div>
                         );
-
                       } else {
                         const scoreValues = entries.map((e) => e.score);
                         const hasHigh = scoreValues.some((score) => score > 100);
                         const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
                         const hasLow = scoreValues.some((score) => score < 60);
 
-                        if (hasHigh) {
-                          bgClass = "bg-red-500 text-white";
-                        } else if (hasMid) {
-                          bgClass = "bg-yellow-400 text-black";
-                        } else if (hasLow) {
-                          bgClass = "bg-green-500 text-white";
-                        }
+                        if (hasHigh) bgClass = "bg-red-500 text-white";
+                        else if (hasMid) bgClass = "bg-yellow-400 text-black";
+                        else if (hasLow) bgClass = "bg-green-500 text-white";
 
                         cellContent = scores;
                       }
