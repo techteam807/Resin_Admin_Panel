@@ -91,7 +91,7 @@ const ClusterList = ({
 
   return (
     <div>
-      {saveLoading ? (
+      {saveLoading || data.length === 0 ? (
         <div className="flex items-center justify-center h-[80vh]">
           <Loader />
         </div>
@@ -130,11 +130,13 @@ const ClusterList = ({
             </div>
           </div>
 
-          <hr className="mt-2" />
+                    <hr className="mt-2" />
           <div className="overflow-auto max-h-[60vh] sm:max-h-[65vh] lg:max-h-[70vh] mt-4 scrollbar-thin">
-            {mapLoading1 ? (
+            {mapLoading1 || data.length === 0 ? (
               <div className="flex h-[60vh] sm:h-[65vh] lg:h-[70vh] items-center justify-center">
-                <Loader />
+                <Typography variant="h5" color="blue-gray">
+                  {mapLoading1 ? <Loader /> : 'No Clusters Available'}
+                </Typography>
               </div>
             ) : (
               <DragDropContext onDragEnd={onDragEnd}>
