@@ -24,6 +24,8 @@ function WaterReports() {
   const [year, setYear] = useState(currentYear);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [appliedStart, setAppliedStart] = useState('');
+  const [appliedEnd, setAppliedEnd] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);
   const [modalDay, setModalDay] = useState(null);
@@ -31,14 +33,16 @@ function WaterReports() {
   const [searchValue, setSearchValue] = useState("");
 
 
-  // useEffect(() => {
-  //   const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
-  //   const newLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  //   const newEndDate = `${year}-${String(month).padStart(2, '0')}-${String(newLastDay).padStart(2, '0')}`;
+  useEffect(() => {
+    const newFirstDay = `${year}-${String(month).padStart(2, '0')}-01`;
+    const newLastDay = getDaysInMonth(month, year);
+    const newEndDate = `${year}-${String(month).padStart(2, '0')}-${String(newLastDay).padStart(2, '0')}`;
 
-  //   setStartDate(newFirstDay);
-  //   setEndDate(newEndDate);
-  // }, [month, year]);
+    setStartDate(newFirstDay);
+    setEndDate(newEndDate);
+    setAppliedStart(newFirstDay);
+    setAppliedEnd(newEndDate);
+  }, [month, year]);
 
 
   const monthNames = [
@@ -46,41 +50,53 @@ function WaterReports() {
     "July", "August", "September", "October", "November", "December"
   ];
 
+  useEffect(() => {
+    const formattedMonth = month < 10 ? `0${month}` : month;
+    dispatch(getWaterReports({ month: formattedMonth, year, search: searchValue.trim() }));
+  }, [dispatch, month, year]);
+
   // useEffect(() => {
   //   handleSearch();
   // }, [month, year, startDate, endDate]);
 
-  useEffect(() => {
-  handleSearch();
-}, []);
+  // useEffect(() => {
+  //   handleSearch();
+  // }, []);
 
-const handleSave = () => {
-  let newStart = startDate;
-  let newEnd = endDate;
-
-  // If no manual start/end selected, fallback to whole month
-  if (!startDate || !endDate) {
-    newStart = `${year}-${String(month).padStart(2, '0')}-01`;
-    const lastDay = new Date(year, month, 0).getDate();
-    newEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-    setStartDate(newStart);
-    setEndDate(newEnd);
-  }
-
-  const formattedMonth = month < 10 ? `0${month}` : month;
-  dispatch(getWaterReports({
-    month: formattedMonth,
-    year,
-    startDate: newStart,
-    endDate: newEnd,
-    search: searchValue.trim()
-  }));
-};
-
+  const handleSave = () => {
+    if (startDate && endDate) {
+      dispatch(getWaterReports({
+        startDate,
+        endDate,
+        search: searchValue.trim(),
+      }));
+      setAppliedStart(startDate);
+      setAppliedEnd(endDate);
+    } else {
+      const formattedMonth = month < 10 ? `0${month}` : month;
+      dispatch(getWaterReports({
+        month: formattedMonth,
+        year,
+        search: searchValue.trim(),
+      }));
+    }
+  };
 
   const handleSearch = () => {
-    const formattedMonth = month < 10 ? `0${month}` : month;
-    dispatch(getWaterReports({ month: formattedMonth, year, startDate, endDate, search: searchValue.trim() }));
+    if (startDate && endDate) {
+      dispatch(getWaterReports({
+        startDate,
+        endDate,
+        search: searchValue.trim(),
+      }));
+    } else {
+      const formattedMonth = month < 10 ? `0${month}` : month;
+      dispatch(getWaterReports({
+        month: formattedMonth,
+        year,
+        search: searchValue.trim(),
+      }));
+    }
   };
 
   const searchClear = () => {
@@ -92,8 +108,8 @@ const handleSave = () => {
 
   useEffect(() => {
     const formattedMonth = month < 10 ? `0${month}` : month;
-    dispatch(getWaterReports({ month: formattedMonth, year, startDate, endDate }));
-  }, [dispatch, month, year, startDate, endDate]);
+    dispatch(getWaterReports({ month: formattedMonth, year }));
+  }, [dispatch, month, year]);
 
   const getDaysInMonth = (month, year) => {
     return new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -101,17 +117,8 @@ const handleSave = () => {
 
 
   // const daysInMonth = getDaysInMonth(month, year)
-  let startDay = 1;
-  let endDay = getDaysInMonth(month, year);
-
-  if (startDate && endDate) {
-    const s = new Date(startDate).getUTCDate();
-    const e = new Date(endDate).getUTCDate();
-    startDay = s;
-    endDay = e;
-  }
-
-
+  let startDay = appliedStart ? new Date(appliedStart).getUTCDate() : 1;
+  let endDay = appliedEnd ? new Date(appliedEnd).getUTCDate() : getDaysInMonth(month, year);
 
 
   const handleMonthChange = (e) => {
@@ -126,7 +133,6 @@ const handleSave = () => {
   const groupedData = {};
   Data?.forEach((customer) => {
     const userId = customer._id;
-
     if (!groupedData[userId]) {
       groupedData[userId] = {
         user: {
@@ -136,34 +142,26 @@ const handleSave = () => {
           last_name: customer.last_name,
           contact_number: customer.contact_number,
         },
-        scores: {}
+        scores: {},
       };
     }
-
     customer.reports.forEach((report) => {
-      const day = new Date(report.date).getUTCDate();
-
-
-      if (!groupedData[userId].scores[day]) {
-        groupedData[userId].scores[day] = [];
+      const dateKey = new Date(report.date).toISOString().split("T")[0]; // ✅ UTC
+      if (!groupedData[userId].scores[dateKey]) {
+        groupedData[userId].scores[dateKey] = [];
       }
-
-      groupedData[userId].scores[day].push({
+      groupedData[userId].scores[dateKey].push({
         score: report.waterScore,
         status: report.status,
         createdAt: report.date,
-        id: report._id
+        id: report._id,
       });
     });
   });
 
   const handleNavigation = (customerData) => {
     navigate(`/dashboard/waterPdf`, {
-      state: {
-        customer: customerData,
-        month,
-        year,
-      },
+      state: { customer: customerData, month, year },
     });
   };
 
@@ -180,33 +178,57 @@ const handleSave = () => {
     setModalUser(null);
   };
 
+
   const handleClear = () => {
     setSearchValue("");
     setMonth(currentMonth);
     setYear(currentYear);
-    setStartDate(`${currentYear}-${String(currentMonth).padStart(2, '0')}-01`);
-    const lastDay = new Date(currentYear, currentMonth, 0).getDate();
-    setEndDate(`${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`);
+    const defaultStart = `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`;
+    const lastDay = new Date(currentYear, currentMonth, 0).getUTCDate();
+    const defaultEnd = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    setStartDate(defaultStart);
+    setEndDate(defaultEnd);
 
-    // Call API with default params
-    const formattedMonth = currentMonth < 10 ? `0${currentMonth}` : currentMonth;
     dispatch(getWaterReports({
-      month: formattedMonth,
+      month: currentMonth < 10 ? `0${currentMonth}` : currentMonth,
       year: currentYear,
-      startDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
-      endDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`,
       search: ""
     }));
   };
 
+  const getUTCDateRange = (start, end) => {
+    if (!start || !end) return [];
+    const dates = [];
+    let current = new Date(start);
+
+    while (current <= new Date(end)) {
+      dates.push(new Date(Date.UTC(
+        current.getUTCFullYear(),
+        current.getUTCMonth(),
+        current.getUTCDate()
+      )));
+      current.setUTCDate(current.getUTCDate() + 1);
+    }
+    return dates;
+  };
+
+  const dateRange =
+    appliedStart && appliedEnd ? getUTCDateRange(appliedStart, appliedEnd) : [];
 
   return (
     <div className="flex flex-col bg-white border border-gray-300 rounded-xl mt-9 shadow-sm">
       <div className="bg-white shadow-sm rounded-xl p-5 space-y-5">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">Water Reports</h1>
+          <div className="flex gap-5">
+            <h1 className="text-2xl font-bold text-gray-800">Water Reports</h1>
+            <div className="flex items-center bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+              <span className="text-sm font-medium text-blue-700">
+                Total Customers: <span className="font-bold">{totalCount}</span>
+              </span>
+            </div>
 
+          </div>
           {/* Search */}
           <div className="flex flex-row items-stretch gap-2 w-auto">
             <div className="w-72 relative flex gap-2">
@@ -238,77 +260,80 @@ const handleSave = () => {
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Total Count */}
-          <div className="flex items-center bg-gray-50 border rounded-lg px-3  h-[42px] mt-6">
-            <span className="font-semibold text-gray-700">
-              Total Customer: {totalCount}
-            </span>
-          </div>
+    {/* Start Date */}
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-1">
+        Start Date
+      </label>
+      <input
+        type="date"
+        value={startDate || ""}
+        onChange={(e) => setStartDate(e.target.value)}
+        className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+    </div>
 
-          {/* Start Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Start Date</label>
-            <input
-              type="date"
-              value={startDate || ""}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+    {/* End Date */}
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mb-1">
+        End Date
+      </label>
+      <input
+        type="date"
+        value={endDate || ""}
+        onChange={(e) => setEndDate(e.target.value)}
+        className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+    </div>
 
-          {/* End Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">End Date</label>
-            <input
-              type="date"
-              value={endDate || ""}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+    {/* Go Button */}
+    <div className="flex items-end">
+      <Button
+        onClick={handleSave}
+        variant="gradient"
+        size="sm"
+        className="w-full py-3 rounded-lg font-medium shadow-md"
+      >
+        Go
+      </Button>
+    </div>
 
-          {/* Month */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Month</label>
-            <select
-              value={monthNames[month - 1]}
-              onChange={handleMonthChange}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {monthNames.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
+    {/* Month */}
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mt-2">
+        Month
+      </label>
+      <select
+        value={monthNames[month - 1]}
+        onChange={handleMonthChange}
+        className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {monthNames.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
+    </div>
 
-          {/* Year */}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Year</label>
-            <select
-              value={year}
-              onChange={handleYearChange}
-              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
-           <div className="flex items-end">
-            <Button
-              onClick={handleSave}
-              variant="gradient"
-              size="sm"
-              className="px-4"
-            >
-              Save
-            </Button>
-          </div>
-        </div>
+    {/* Year */}
+    <div>
+      <label className="block text-sm font-medium text-gray-600 mt-2">
+        Year
+      </label>
+      <select
+        value={year}
+        onChange={handleYearChange}
+        className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      >
+        {years.map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
       </div>
 
 
@@ -326,19 +351,16 @@ const handleSave = () => {
                 <th className="sticky top-0 left-0 z-30 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[180px]">
                   User
                 </th>
-                {Array.from({ length: endDay - startDay + 1 }, (_, i) => {
-                  const currentDay = startDay + i;
-                  const dateObj = new Date(year, month - 1, currentDay); 
-
-                  // Format as dd/mm
-                  const formatted = `${String(dateObj.getDate()).padStart(2, "0")}/${String(
-                    dateObj.getMonth() + 1
+                {dateRange.map((date) => {
+                  const key = date.toISOString().split("T")[0]; // ✅ UTC key
+                  const formatted = `${String(date.getUTCDate()).padStart(2, "0")}/${String(
+                    date.getUTCMonth() + 1
                   ).padStart(2, "0")}`;
 
                   return (
                     <th
-                      key={currentDay}
-                      className="sticky top-0 z-20 bg-gray-200 border-l border-r border-b border-gray-300 text-center p-2 min-w-[90px]"
+                      key={key}
+                      className="sticky top-0 z-20 bg-gray-200 border text-center p-2 min-w-[90px]"
                     >
                       {formatted}
                     </th>
@@ -363,9 +385,9 @@ const handleSave = () => {
                       </span>
                     </div>
                   </td>
-                  {Array.from({ length: endDay - startDay + 1 }, (_, i) => {
-                    const currentDay = startDay + i;   // ✅
-                    const entries = userData.scores[currentDay];
+                  {dateRange.map((date) => {
+                    const key = date.toISOString().split("T")[0]; // ✅ UTC key
+                    const entries = userData.scores[key];
 
                     let bgClass = "";
                     let cellContent = "-";
@@ -374,52 +396,37 @@ const handleSave = () => {
                       const scores = entries.map((e) => e.score).join(", ");
                       const hasStatus = entries.some((e) => e.status);
 
-                      if (hasStatus) {
-                        const scoreValues = entries.map((e) => e.score);
-                        const scoresText = scoreValues.join(", ");
-                        const hasHigh = scoreValues.some((score) => score > 100);
-                        const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
-                        const hasLow = scoreValues.some((score) => score < 60);
+                      const hasHigh = entries.some((e) => e.score > 100);
+                      const hasMid = entries.some((e) => e.score >= 60 && e.score <= 100);
+                      const hasLow = entries.some((e) => e.score < 60);
 
-                        if (hasHigh) bgClass = "bg-red-500 text-white";
-                        else if (hasMid) bgClass = "bg-yellow-400 text-black";
-                        else if (hasLow) bgClass = "bg-green-500 text-white";
+                      if (hasHigh) bgClass = "bg-red-500 text-white";
+                      else if (hasMid) bgClass = "bg-yellow-400 text-black";
+                      else if (hasLow) bgClass = "bg-green-500 text-white";
 
-                        cellContent = (
-                          <div className="flex items-center justify-center gap-2">
-                            <span>{scoresText}</span>
-                            <div className="ml-4 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm border border-black">
-                              <svg
-                                className="w-4 h-4 text-green-600"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                                viewBox="0 0 24 24"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
+                      cellContent = hasStatus ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <span>{scores}</span>
+                          <div className="ml-2 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm border border-black">
+                            <svg
+                              className="w-3 h-3 text-green-600"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="3"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
                           </div>
-                        );
-                      } else {
-                        const scoreValues = entries.map((e) => e.score);
-                        const hasHigh = scoreValues.some((score) => score > 100);
-                        const hasMid = scoreValues.some((score) => score >= 60 && score <= 100);
-                        const hasLow = scoreValues.some((score) => score < 60);
-
-                        if (hasHigh) bgClass = "bg-red-500 text-white";
-                        else if (hasMid) bgClass = "bg-yellow-400 text-black";
-                        else if (hasLow) bgClass = "bg-green-500 text-white";
-
-                        cellContent = scores;
-                      }
+                        </div>
+                      ) : scores;
                     }
 
                     return (
                       <td
-                        key={currentDay}
+                        key={key}
                         className={`border border-gray-300 text-center min-w-[90px] p-2 cursor-pointer ${bgClass}`}
-                        onClick={() => handleCellClick(entries, currentDay, userData.user)}
+                        onClick={() => handleCellClick(entries, key, userData.user)}
                       >
                         {cellContent}
                       </td>
