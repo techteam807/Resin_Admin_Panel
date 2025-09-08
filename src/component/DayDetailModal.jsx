@@ -1,26 +1,27 @@
 import { createWaterReports, deleteWaterReport } from '@/feature/waterReports/waterReportsSlice';
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
-const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
+const DayDetailModal = ({ show, onClose, data, day, user }) => {
   const dispatch = useDispatch();
-  const { deleting, isLoading, deleteSuccess, deleteError } = useSelector(state => state.waterReport);
+  const { deleting, isLoading } = useSelector(state => state.waterReport);
+
   const [scoreInput, setScoreInput] = useState('');
   const [dateInput, setDateInput] = useState(() => {
-    const selectedDate = new Date(year, month - 1, day);
-    return selectedDate.toISOString().split('T')[0];
+    if (!day) return '';
+    return new Date(day).toISOString().split('T')[0]; // ✅ always UTC format
   });
 
   useEffect(() => {
-    const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    setDateInput(formattedDate);
+    if (day) {
+      setDateInput(new Date(day).toISOString().split('T')[0]); // ✅ update when day changes
+    }
     if (data.length > 0) {
       setScoreInput(data[0].score);
     } else {
       setScoreInput('');
     }
-  }, [data, day, month, year]);
+  }, [data, day]);
 
   const handleSave = () => {
     if (scoreInput.trim() === '') return alert("Score is required");
@@ -28,7 +29,7 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
     const payload = {
       customerId: user._id,
       waterScore: scoreInput.toString(),
-      date: dateInput,
+      date: dateInput, // already in UTC YYYY-MM-DD
     };
 
     dispatch(createWaterReports(payload))
@@ -41,7 +42,6 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
         console.error("Error creating water report:", err);
       });
   };
-
 
   const handleDelete = () => {
     if (data.length === 0) return alert('No entry to delete');
@@ -58,7 +58,6 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
       });
   };
 
-
   if (!show) return null;
 
   return (
@@ -71,7 +70,7 @@ const DayDetailModal = ({ show, onClose, data, day, user, month, year }) => {
           &times;
         </button>
         <h2 className="text-xl font-semibold mb-2">
-          Day {day} – {user?.first_name} {user?.last_name}
+          Day {new Date(day).toISOString().split('T')[0]} – {user?.first_name} {user?.last_name}
         </h2>
 
         {data?.length > 0 && (
