@@ -216,7 +216,7 @@ function WaterReports() {
     appliedStart && appliedEnd ? getUTCDateRange(appliedStart, appliedEnd) : [];
 
   return (
-    <div className="flex flex-col bg-white border border-gray-300 rounded-xl mt-9 shadow-sm">
+    <div className="flex flex-col bg-white border border-gray-300 rounded-xl mt-7 shadow-sm">
       <div className="bg-white shadow-sm rounded-xl p-5 space-y-5">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
