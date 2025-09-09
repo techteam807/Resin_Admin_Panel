@@ -39,16 +39,34 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
     return `${d}/${m}/${y}`;
   };
 
+  // const waterQualityData = Object.values(customer.scores)
+  //     .flat()
+  //     .filter(item => !item.status)
+  //     .map(item => ({
+  //       date: formatDate(item.createdAt),
+  //       hardness: Number(item.score),
+  //       id: item.id,
+  //     }))
+  //     .slice(0, 4);
+  // console.log("water",waterQualityData);
+
   const waterQualityData = Object.values(customer.scores)
-      .flat()
-      .filter(item => !item.status)
-      .map(item => ({
-        date: formatDate(item.createdAt),
-        hardness: Number(item.score),
-        id: item.id,
-      }))
-      .slice(0, 4);
-  console.log("water",waterQualityData);
+  .flat()
+  .filter(item => !item.status)
+  .map(item => ({
+    date: formatDate(item.createdAt), // DD/MM/YY
+    hardness: Number(item.score),
+    id: item.id,
+  }))
+  // Sort by day of month (DD)
+  .sort((a, b) => {
+    const dayA = Number(a.date.split("/")[0]);
+    const dayB = Number(b.date.split("/")[0]);
+    return dayA - dayB;
+  })
+  .slice(0, 4); // or remove slice to show all
+
+console.log("water sorted", waterQualityData);
       
   
   const customerId = customer?.user?._id;
