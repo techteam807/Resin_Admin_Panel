@@ -67,6 +67,12 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
   .slice(0, 4); // or remove slice to show all
 
 console.log("water sorted", waterQualityData);
+
+const avgHardness = waterQualityData.length
+  ? waterQualityData.reduce((sum, item) => sum + item.hardness, 0) / waterQualityData.length
+  : 0;
+
+  console.log("avg hardness", avgHardness);
       
   
   const customerId = customer?.user?._id;
@@ -99,7 +105,7 @@ console.log("water sorted", waterQualityData);
               <div>2025-01-01</div>
             </div> */}
             {Array.isArray(waterQualityData) && (
-  <div className='absolute right-[140px] text-[#f3daa5] space-y-4 text-[25px] top-[338px]'>
+  <div className='absolute top-[338px] right-[140px] text-[#f3daa5] space-y-4 text-[25px] '>
     {waterQualityData.map((entry) => (
       <div key={entry.id}>{entry.date}</div>
     ))}
@@ -142,6 +148,23 @@ console.log("water sorted", waterQualityData);
     </div>
   </>
 )}
+                <div className="absolute inset-0">
+  <div className="relative w-full h-full">
+    {/* Big Number */}
+<div className="absolute top-[150px] text-4xl font-extrabold text-[#a4551b] pl-16">
+  <div className="whitespace-normal break-words">
+    On an Average your water quality maintained at ~ {avgHardness} mg/L of hardness
+  </div>
+</div>
+
+    {/* Label */}
+    <div className="absolute top-[350px] left-[50px] text-[#a4551b] font-bold">
+      <div>{customer?.user?.waterHardness} mg/L</div>
+      <div>(very Hard)</div>
+    </div>
+  </div>
+</div>
+
 
           </div>
         )
