@@ -141,6 +141,7 @@ function WaterReports() {
           first_name: customer.first_name,
           last_name: customer.last_name,
           contact_number: customer.contact_number,
+          waterHardness: customer.cf_current_water_hardness_ppm,
         },
         scores: {},
       };
