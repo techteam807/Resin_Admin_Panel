@@ -317,27 +317,31 @@ const avgHardness = waterQualityData.length
   const { jsPDF } = await import("jspdf");
 
   const pdf = new jsPDF("p", "mm", "a4");
+  const pageDivs = document.querySelectorAll("#pdf-pages > div");
 
-  for (let p = 1; p <= totalPages; p++) {
-    setCurrentPage(p);
+  for (let p = 0; p < totalPages; p++) {
+    const pageDiv = pageDivs[p];
+    if (!pageDiv) continue;
+
+    // Force show only this page
+    pageDiv.classList.remove("opacity-0", "z-0");
+    pageDiv.classList.add("opacity-100", "z-10");
     await waitForPaint();
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const node = document.getElementById("pdf-page");
-    if (!node) continue;
-
-    const canvas = await html2canvas(node, {
-      scale: 3,
-      useCORS: true,
-    });
+    const canvas = await html2canvas(pageDiv, { scale: 3, useCORS: true });
     const img = canvas.toDataURL("image/jpeg", 0.92);
 
     const width = pdf.internal.pageSize.getWidth();
     const height = (canvas.height * width) / canvas.width;
 
-    if (p > 1) pdf.addPage();
+    if (p > 0) pdf.addPage();
     pdf.addImage(img, "JPEG", 0, 0, width, height);
+
+    // Restore hidden state if not the currentPage
+    if (p + 1 !== currentPage) {
+      pageDiv.classList.remove("opacity-100", "z-10");
+      pageDiv.classList.add("opacity-0", "z-0");
+    }
   }
 
   pdf.save(`${safeName}_30_Day_Report.pdf`);
@@ -348,27 +352,29 @@ async function handleUpload() {
   const { jsPDF } = await import("jspdf");
 
   const pdf = new jsPDF("p", "mm", "a4");
+  const pageDivs = document.querySelectorAll("#pdf-pages > div");
 
-  for (let p = 1; p <= totalPages; p++) {
-    setCurrentPage(p);
+  for (let p = 0; p < totalPages; p++) {
+    const pageDiv = pageDivs[p];
+    if (!pageDiv) continue;
+
+    pageDiv.classList.remove("opacity-0", "z-0");
+    pageDiv.classList.add("opacity-100", "z-10");
     await waitForPaint();
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    const node = document.getElementById("pdf-page");
-    if (!node) continue;
-
-    const canvas = await html2canvas(node, {
-      scale: 3,
-      useCORS: true,
-    });
+    const canvas = await html2canvas(pageDiv, { scale: 3, useCORS: true });
     const img = canvas.toDataURL("image/jpeg", 0.92);
 
     const width = pdf.internal.pageSize.getWidth();
     const height = (canvas.height * width) / canvas.width;
 
-    if (p > 1) pdf.addPage();
+    if (p > 0) pdf.addPage();
     pdf.addImage(img, "JPEG", 0, 0, width, height);
+
+    if (p + 1 !== currentPage) {
+      pageDiv.classList.remove("opacity-100", "z-10");
+      pageDiv.classList.add("opacity-0", "z-0");
+    }
   }
 
   try {
@@ -402,8 +408,25 @@ const {loading} = useSelector((state) => state.waterReport);
         </Button>
         </div>
       </div>
-      <div id="pdf-page" className="aspect-[210/297] w-full max-w-2xl mx-auto rounded-lg overflow-hidden shadow-lg">
-        {renderPage(currentPage)}
+      
+<div id="pdf-pages" className="relative aspect-[210/297] w-full max-w-2xl mx-auto rounded-lg overflow-hidden shadow-lg">
+
+      {/* <div id="pdf-page" className="aspect-[210/297] w-full max-w-2xl mx-auto rounded-lg overflow-hidden shadow-lg"> */}
+        {/* {renderPage(currentPage)} */}
+        
+       {[...Array(totalPages)].map((_, index) => {
+       const pageNum = index + 1;
+        return (
+       <div
+        key={pageNum}
+        className={`absolute inset-0 transition-opacity duration-300 ${
+          currentPage === pageNum ? "opacity-100 z-10" : "opacity-0 z-0"
+        }`}
+        >
+        {renderPage(pageNum)}
+      </div>
+      );
+     })}
       </div>
       <div className="flex justify-center items-center gap-4 mt-4">
         <Button
