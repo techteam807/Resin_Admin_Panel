@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import page1 from '../../public/img/wp1.png';
-import page2 from '../../public/img/wp2.png';
-import page3 from '../../public/img/wp3.png';
-import page4 from '../../public/img/wp4.png';
-import page5 from '../../public/img/wp5.png';
-import page6 from '../../public/img/wp6.png';
-import page7 from '../../public/img/wp7.png';
+const page1 = "https://server.betterwater.sbs/upload/wp1.png";
+const page2 = "https://server.betterwater.sbs/upload/wp2.png";
+const page3 = "https://server.betterwater.sbs/upload/wp3.png";
+const page4 = "https://server.betterwater.sbs/upload/wp4.png";
+const page5 = "https://server.betterwater.sbs/upload/wp5.png";
+const page6 = "https://server.betterwater.sbs/upload/wp6.png";
+const page7 = "https://server.betterwater.sbs/upload/wp7.png";
 import { ChevronLeftIcon, ChevronRightIcon, DocumentIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { Button } from '@material-tailwind/react';
 import { generateWaterReports, uploadWaterReport } from '@/feature/waterReports/waterReportsSlice';
