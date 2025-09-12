@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import page1 from '../../public/img/wp1.png';
 import page2 from '../../public/img/wp2.png';
 import page3 from '../../public/img/wp3.png';
@@ -11,6 +11,7 @@ import { Button } from '@material-tailwind/react';
 import { generateWaterReports, uploadWaterReport } from '@/feature/waterReports/waterReportsSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
+import Loader from '@/pages/Loader';
 
 
 const waitForPaint = () =>
@@ -57,14 +58,11 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
     date: formatDate(item.createdAt), // DD/MM/YY
     hardness: Number(item.score),
     id: item.id,
+    rawDate: new Date(item.createdAt), // keep actual Date object
   }))
-  // Sort by day of month (DD)
-  .sort((a, b) => {
-    const dayA = Number(a.date.split("/")[0]);
-    const dayB = Number(b.date.split("/")[0]);
-    return dayA - dayB;
-  })
-  .slice(0, 4); // or remove slice to show all
+  // Sort by actual date
+  .sort((a, b) => a.rawDate - b.rawDate)
+  .slice(0, 4);// or remove slice to show all
 
 console.log("water sorted", waterQualityData);
 
@@ -73,6 +71,35 @@ const avgHardness = waterQualityData.length
   : 0;
 
   console.log("avg hardness", avgHardness);
+
+  function BackgroundWithLoader({ src, className, children }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => setLoaded(true);
+    img.onerror = () => setLoaded(true); // stop loader even if error
+  }, [src]);
+
+  return (
+    <div className={`${className} relative`}>
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center animate-pulse">
+          <Loader/>
+        </div>
+      )}
+      {loaded && (
+        <div
+          className="absolute inset-0"
+          style={{ backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center" }}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
       
   
   const customerId = customer?.user?._id;
@@ -81,11 +108,12 @@ const avgHardness = waterQualityData.length
   const totalPages = 7
   const [currentPage, setCurrentPage] = useState(1);
   const base = "w-full h-full relative bg-cover bg-center bg-no-repeat"
+
   function renderPage(page) {
     switch (page) {
       case 1:
         return (
-         <div className={base} style={{ backgroundImage: `url(${page1})` }}>
+<BackgroundWithLoader src={page1} className={base}>
             <div className="absolute top-[15px] left-[15px] right-[80px]">
               <h1 className="text-[40px] font-bold text-white leading-[1.1]">
                 Hey, <span>{userName}</span>
@@ -93,11 +121,11 @@ const avgHardness = waterQualityData.length
               <h2 className="text-[40px] font-bold text-[#f2daa5] leading-[1.1] mt-2">Your 30 Day</h2>
               <h2 className="text-[40px] font-bold text-[#f2daa5] leading-[1.1] mt-2">Report is here</h2>
             </div>
-          </div>
+          </BackgroundWithLoader>
         )
       case 2:
         return (
-          <div className={base} style={{ backgroundImage: `url(${page2})` }}>
+          <BackgroundWithLoader src={page2} className={base}>
             {/* <div className='absolute right-[125px] text-[#f3daa5] space-y-4 text-[25px] top-[340px]'>
               <div>2025-01-01</div>
               <div>2025-01-01</div>
@@ -112,11 +140,11 @@ const avgHardness = waterQualityData.length
   </div>
 )}
 
-          </div>
+          </BackgroundWithLoader>
         )
       case 3:
         return (
-          <div className={base} style={{ backgroundImage: `url(${page3})` }}>
+          <BackgroundWithLoader src={page3} className={base}>
             {/* <div className='absolute bottom-[240px] flex left-[200px] gap-[40px]'>
               <div>10 mg/L</div>
               <div>10 mg/L</div>
@@ -166,16 +194,16 @@ const avgHardness = waterQualityData.length
 </div>
 
 
-          </div>
+          </BackgroundWithLoader>
         )
       case 4:
-        return <div className={base} style={{ backgroundImage: `url(${page4})` }} />
+        return <BackgroundWithLoader src={page4} className={base}/>
       case 5:
-        return <div className={base} style={{ backgroundImage: `url(${page5})` }} />
+        return <BackgroundWithLoader src={page5} className={base}/>
       case 6:
-        return <div className={base} style={{ backgroundImage:`url(${page6})` }} />
+        return <BackgroundWithLoader src={page6} className={base}/>
       case 7:
-        return <div className={base} style={{ backgroundImage:`url(${page7})` }}>
+        return <BackgroundWithLoader src={page7} className={base}>
           <h1 className='absolute top-[120px] left-[80px] text-[20px] font-bold'>Citations</h1>
           <div className='absolute top-[150px] left-[80px]'>
             <ol>
@@ -265,7 +293,7 @@ const avgHardness = waterQualityData.length
               </li>
             </ol>
           </div>
-          </div>
+          </BackgroundWithLoader>
       default:
         return null
     }
