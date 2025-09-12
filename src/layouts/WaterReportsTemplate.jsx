@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-const page1 = "https://res.cloudinary.com/dwejyapuh/image/upload/v1757655355/wp1_mpcet6.png";
-const page2 = "https://res.cloudinary.com/dwejyapuh/image/upload/v1757655355/wp2_b5gw8v.png";
-const page3 = "https://res.cloudinary.com/dwejyapuh/image/upload/v1757655355/wp3_kp7eom.png";
-const page4 = "https://res.cloudinary.com/dwejyapuh/image/upload/v1757655360/wp4_s4hqlh.png";
-const page5 = "https://res.cloudinary.com/dwejyapuh/image/upload/v1757655359/wp5_xhzbzd.png";
-const page6 = "https://res.cloudinary.com/dwejyapuh/image/upload/v1757655361/wp6_j50fme.png";
-const page7 = "https://res.cloudinary.com/dwejyapuh/image/upload/v1757655359/wp7_szwngm.png";
+import page1 from '../../public/img/wp1.png';
+import page2 from '../../public/img/wp2.png';
+import page3 from '../../public/img/wp3.png';
+import page4 from '../../public/img/wp4.png';
+import page5 from '../../public/img/wp5.png';
+import page6 from '../../public/img/wp6.png';
+import page7 from '../../public/img/wp7.png';
 import { ChevronLeftIcon, ChevronRightIcon, DocumentIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { Button } from '@material-tailwind/react';
 import { generateWaterReports, uploadWaterReport } from '@/feature/waterReports/waterReportsSlice';
@@ -58,14 +58,11 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
     date: formatDate(item.createdAt), // DD/MM/YY
     hardness: Number(item.score),
     id: item.id,
+    rawDate: new Date(item.createdAt), // keep actual Date object
   }))
-  // Sort by day of month (DD)
-  .sort((a, b) => {
-    const dayA = Number(a.date.split("/")[0]);
-    const dayB = Number(b.date.split("/")[0]);
-    return dayA - dayB;
-  })
-  .slice(0, 4); // or remove slice to show all
+  // Sort by actual date
+  .sort((a, b) => a.rawDate - b.rawDate)
+  .slice(0, 4);// or remove slice to show all
 
 console.log("water sorted", waterQualityData);
 
@@ -88,7 +85,7 @@ const avgHardness = waterQualityData.length
   return (
     <div className={`${className} relative`}>
       {!loaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse">
+        <div className="absolute inset-0 flex items-center justify-center animate-pulse">
           <Loader/>
         </div>
       )}
