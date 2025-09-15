@@ -14,7 +14,8 @@ const AddProduct = ({open, setOpen, data, setData}) => {
         distributorType: '',
         resinType: '',
         vesselSize: '',
-        adapterSize: ''
+        adapterSize: '',
+        productBatchNo: '',
         // connectorType: '',
         // size: '',
         // productStatus: 'new',
@@ -28,6 +29,7 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                 resinType: data.resinType || '',
                 vesselSize: data.vesselSize || '',
                 adapterSize: data.adapterSize || '',
+                productBatchNo: data.productBatchNo || '',
                 // connectorType: data.connectorType || '',
                 // size: data.size || '',
                 // productStatus: data.productStatus || '',
@@ -127,6 +129,12 @@ const AddProduct = ({open, setOpen, data, setData}) => {
                     <Option value="3/4">3/4</Option>
                     <Option value="1/2">1/2</Option>
                 </Select>
+
+                <Input variant='standard' label='Product Batch No' 
+                    name="productBatchNo"
+                    value={productData.productBatchNo}
+                    onChange={handleChange}
+                />
 
                 {/* <Select variant='standard' label="Product Status"
                     value={productData.productStatus}

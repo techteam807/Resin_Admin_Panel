@@ -37,6 +37,10 @@ const ProductDetails = ({details, setDetails, handleEditProduct, data, setData})
                     <span>{data?.adapterSize}</span>
                 </div>
                 <div className="flex justify-between border-b border-blue-gray-100 py-2.5 px-4">
+                    <span className="font-semibold">Product Batch No:</span>
+                    <span>{data?.productBatchNo}</span>
+                </div>
+                <div className="flex justify-between border-b border-blue-gray-100 py-2.5 px-4">
                     <span className="font-semibold">Product Status:</span>
                     <span>{data?.productStatus}</span>
                 </div>

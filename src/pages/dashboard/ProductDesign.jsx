@@ -394,6 +394,10 @@ const ProductDesign = () => {
                                   <p className="pt-1 text-gray-600">
                                     {formatUTCDate(product?.updatedAt)}
                                   </p>
+                                  <p className="pt-3 text-gray-600">
+                                    <span className="block">Created : </span>
+                                    {formatUTCDate(product?.createdAt)}
+                                  </p>
                                 </div>
                               </div>
                               {/* Individual Delete Button */}
@@ -496,6 +500,10 @@ const ProductDesign = () => {
                                   </p>
                                   <p className="pt-1 text-gray-600">
                                     {formatUTCDate(product?.updatedAt)}
+                                  </p>
+                                   <p className="pt-3 text-gray-600">
+                                    <span className="block">Created : </span>
+                                    {formatUTCDate(product?.createdAt)}
                                   </p>
                                 </div>
                               </div>
@@ -614,6 +622,10 @@ const ProductDesign = () => {
                               <p className="pt-1 text-gray-600">
                                   {formatUTCDate(product?.updatedAt)}
                                 </p>
+                                 <p className="pt-3 text-gray-600">
+                                    <span className="block">Created : </span>
+                                    {formatUTCDate(product?.createdAt)}
+                                  </p>
                                 {active === false && product?.productNotes &&
                                   <p className="pt-2">
                                     Note : <span className="text-gray-600">{product?.productNotes}</span>
