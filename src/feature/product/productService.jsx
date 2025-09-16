@@ -71,3 +71,14 @@ export const fetchProducts = async (search = '', active = true, productStatus= '
       throw error;
     }
   };
+
+export const createProdFlag = async (productData) => {
+  try {
+    const { productId, ...data } = productData; 
+    const response = await axiosConfig.post(`products/flagProduct/${productId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error("Error creating product flag:", error);
+    throw error;
+  }
+};
