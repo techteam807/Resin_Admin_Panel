@@ -99,6 +99,7 @@ const productSlice = createSlice({
     create: null,
     update: null,
     loading: false,
+    Flagloading: false,
     delLoading: false,
     addloading: false,
     error: null,
@@ -247,10 +248,10 @@ const productSlice = createSlice({
         toast.error(state.error);
       })
       .addCase(createProductFlag.pending, (state) => {
-        state.loading = true;
+        state.Flagloading = true;
       })
       .addCase(createProductFlag.fulfilled, (state, action) => {
-        state.loading = false;
+        state.Flagloading = false;
         const flaggedProduct = action.payload.data;
         state.message = action.payload.message;
 
@@ -275,7 +276,7 @@ const productSlice = createSlice({
         toast.success(state.message);
       })
       .addCase(createProductFlag.rejected, (state, action) => {
-        state.loading = false;
+        state.Flagloading = false;
         state.error = action.error.message;
         toast.error(action.error.message || "Failed to flag product");
       });

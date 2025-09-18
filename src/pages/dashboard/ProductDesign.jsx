@@ -207,7 +207,7 @@ const ProductDesign = () => {
           setInspectionDueDialogOpen(true);
         }
 
-        dispatch(getProducts({ active }));
+        // dispatch(getProducts({ active }));
         setFlaggingProductId(null);
       })
       .catch((error) => {
@@ -385,10 +385,10 @@ const ProductDesign = () => {
                                     </Tooltip>
                                   </p>
                                   <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
-                                  <p className="pt-3 text-gray-600">
+                                  {/* <p className="pt-3 text-gray-600">
                                     <span className="block">Created : </span>
                                     {formatUTCDate(product?.createdAt)}
-                                  </p>
+                                  </p> */}
                                 </div>
                               </div>
                               {active ? (
@@ -488,10 +488,10 @@ const ProductDesign = () => {
                                     </Tooltip>
                                   </p>
                                   <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
-                                  <p className="pt-3 text-gray-600">
+                                  {/* <p className="pt-3 text-gray-600">
                                     <span className="block">Created : </span>
                                     {formatUTCDate(product?.createdAt)}
-                                  </p>
+                                  </p> */}
                                 </div>
                               </div>
                               {active ? (
@@ -606,10 +606,10 @@ const ProductDesign = () => {
                                   </Tooltip>
                                 </p>
                                 <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
-                                <p className="pt-3 text-gray-600">
+                                {/* <p className="pt-3 text-gray-600">
                                   <span className="block">Created :</span>
                                   {formatUTCDate(product?.createdAt)}
-                                </p>
+                                </p> */}
                                 {active === false && product?.productNotes && (
                                   <p className="pt-2">
                                     Note : <span className="text-gray-600">{product?.productNotes}</span>
@@ -766,10 +766,10 @@ const ProductDesign = () => {
                                   </Tooltip>
                                 </p>
                                 <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
-                                <p className="pt-3 text-gray-600">
+                                {/* <p className="pt-3 text-gray-600">
                                   <span className="block">Created :</span>
                                   {formatUTCDate(product?.createdAt)}
-                                </p>
+                                </p> */}
                                 <div className="flex flex-col gap-2 mt-2">
                                   <div className="flex gap-1">
                                     {Array.from({ length: product.productFlagCount || 0 }).map((_, i) => (

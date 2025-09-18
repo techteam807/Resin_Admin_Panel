@@ -92,27 +92,26 @@ const ClusterList = ({
   }, [data]);
 
   const handleSearch = () => {
-  setAppliedSearch(searchValue);
-};
+    setAppliedSearch(searchValue);
+  };
 
-const searchClear = () => {
-  setSearchValue("");
-  setAppliedSearch("");
-};
+  const searchClear = () => {
+    setSearchValue("");
+    setAppliedSearch("");
+  };
 
-const filteredData = data
-  .map((cluster) => {
-    const matchedCustomers = cluster.customers.filter((customer) => {
-      if (!appliedSearch) return true;
-      const search = appliedSearch.toLowerCase();
-      return (
-        customer.code.toLowerCase().includes(search) ||
-        customer.displayName.toLowerCase().includes(search)
-      );
-    });
-    return { ...cluster, customers: matchedCustomers };
-  })
-  .filter((cluster) => cluster.customers.length > 0);
+  const filteredData = data
+    .map((cluster) => {
+      const matchedCustomers = cluster.customers.filter((customer) => {
+        if (!appliedSearch) return true;
+        const search = appliedSearch.toLowerCase();
+        return (
+          customer.code.toLowerCase().includes(search) ||
+          customer.displayName.toLowerCase().includes(search)
+        );
+      });
+      return { ...cluster, customers: matchedCustomers };
+    })
 
   return (
     <div>
@@ -162,20 +161,131 @@ const filteredData = data
             </div>
           </div>
           <hr className="mt-2" />
-          <div className="overflow-auto max-h-[60vh] sm:max-h-[65vh] lg:max-h-[70vh] mt-4 "
-            style={{
-              scrollbarWidth: "thin",
-              scrollbarColor: "#4a5568 #f1f1f1",
-            }}>
-            {mapLoading1 || data.length === 0 ? (
-              <div className="flex h-[60vh] sm:h-[65vh] lg:h-[70vh] items-center justify-center">
-                <Typography variant="h5" color="blue-gray">
-                  {mapLoading1 ? <Loader /> : 'No Clusters Available'}
-                </Typography>
-              </div>
-            ) : (
-              <DragDropContext onDragEnd={onDragEnd}>
-                {/* <div className="w-full grid grid-cols-3 gap-4 scrollbar-thin">
+          {isSheetView ? (
+            <div className="overflow-auto max-h-[70vh] mt-4 scrollbar-thin">
+              {filteredData.length > 0 ? (
+                filteredData.map((cluster) => (
+                  <div
+                    key={cluster.clusterId}
+                    className="mb-6 border rounded-lg shadow bg-white"
+                  >
+                    {/* Cluster Header */}
+                    <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white px-4 py-3 flex justify-between items-center rounded-t-lg">
+                      <h3 className="font-semibold text-lg">
+                        {cluster.name} ({cluster.clusterName})
+                      </h3>
+                      <div className="text-sm text-gray-200">
+                        {cluster.customers.length} Customers • {cluster.cartridge_qty} Cartridge Qty
+                      </div>
+                    </div>
+
+                    {/* Cluster Table */}
+                    {cluster.customers.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm border-t border-gray-200">
+                          <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
+                            <tr>
+                              <th className="px-3 py-2 border">#</th>
+                              <th className="px-3 py-2 border">Code</th>
+                              <th className="px-3 py-2 border">Name</th>
+                              <th className="px-3 py-2 border">Qty</th>
+                              <th className="px-3 py-2 border">Size</th>
+                              <th className="px-3 py-2 border">Status</th>
+                              <th className="px-3 py-2 border">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {cluster.customers.map((customer, idx) => (
+                              <tr
+                                key={customer.code}
+                                className={`${customer.isFreezed
+                                  ? "bg-gray-100 text-gray-500"
+                                  : "hover:bg-gray-50"
+                                  }`}
+                              >
+                                <td className="px-3 py-2 border text-center">{idx + 1}</td>
+                                <td
+                                  className={`px-3 py-2 border text-center ${customer.isFreezed
+                                    ? "line-through"
+                                    : "cursor-pointer text-blue-600"
+                                    }`}
+                                  onClick={() => {
+                                    if (!customer.isFreezed) {
+                                      navigator.clipboard.writeText(customer.code);
+                                    }
+                                  }}
+                                  title={customer.isFreezed ? "Frozen" : "Click to copy"}
+                                >
+                                  {customer.code}
+                                </td>
+                                <td className="px-3 py-2 border text-center">
+                                  {customer.displayName}
+                                </td>
+                                <td className="px-3 py-2 border text-center">
+                                  {customer.qty}
+                                </td>
+                                <td className="px-3 py-2 border text-center">
+                                  {customer.size}
+                                </td>
+                                <td className="px-3 py-2 border text-center">
+                                  {customer.status ? (
+                                    <span className="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">
+                                      Active
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 text-xs rounded-full bg-red-100 text-red-700">
+                                      Inactive
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="px-3 py-2 border text-center">
+                                  <EllipsisVerticalIcon
+                                    className="h-5 w-5 text-gray-800 cursor-pointer mx-auto"
+                                    onClick={() => handleOpen(customer, cluster.clusterId)}
+                                  />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="px-4 py-6 text-center text-gray-500">
+                        No customers in this cluster
+                      </div>
+                    )}
+
+                    {/* Cluster Footer */}
+                    <div className="bg-gray-50 px-4 py-2 text-sm text-gray-600 flex justify-end gap-4 border-t rounded-b-lg">
+                      {Object.entries(cluster.size).map(([size, count]) => (
+                        <div key={size}>
+                          {size}: {count}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-10">
+                  No cluster found
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-auto max-h-[60vh] sm:max-h-[65vh] lg:max-h-[70vh] mt-4 "
+              style={{
+                scrollbarWidth: "thin",
+                scrollbarColor: "#4a5568 #f1f1f1",
+              }}>
+              {mapLoading1 || data.length === 0 ? (
+                <div className="flex h-[60vh] sm:h-[65vh] lg:h-[70vh] items-center justify-center">
+                  <Typography variant="h5" color="blue-gray">
+                    {mapLoading1 ? <Loader /> : 'No Clusters Available'}
+                  </Typography>
+                </div>
+              ) : (
+                <DragDropContext onDragEnd={onDragEnd}>
+                  {/* <div className="w-full grid grid-cols-3 gap-4 scrollbar-thin">
               <div className={`${isVisible ? 'col-span-2' : 'col-span-3'} overflow-auto max-h-full`}>
                 <div
                   className={`grid gap-4  ${isVisible ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'
@@ -341,68 +451,68 @@ const filteredData = data
                   })}
               </div>
             </div> */}
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className={`${isVisible ? 'col-span-2 overflow-auto max-h-[65vh] scrollbar-thin' : 'col-span-3'}`}>
-                    <div className={`grid gap-4 ${isVisible
-                      ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-2'
-                      : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-                      {data.slice(0, 7).map((cluster, index) => {
-                        const clusterId = cluster.clusterId
-                        return (
-                          <div
-                            key={index}
-                            className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
-                          >
-                            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
-                              {cluster.name} ({cluster.clusterName})
-                            </div>
-                            <Droppable droppableId={`${index}`}>
-                              {(provided) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.droppableProps}
-                                  className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
-                                  style={{
-                                    scrollbarWidth: "thin",
-                                    scrollbarColor: `${clusterColors[index % clusterColors.length]} #e5e7eb`,
-                                  }}
-                                >
-                                  {cluster.customers.map((customer, idx) => {
-                                    const clusterColor = clusterColors[index % clusterColors.length];
-                                    return (
-                                      <Draggable key={customer.code} draggableId={customer.code} index={idx}>
-                                        {(provided, snapshot) => {
-                                          const isFreezed = customer.isFreezed;
-                                          return (
-                                            <div
-                                              ref={provided.innerRef}
-                                              {...provided.draggableProps}
-                                              {...provided.dragHandleProps}
-                                              className={`flex items-center rounded-lg shadow-lg text-sm w-full text-start p-4 border-l-2 transition
+                  <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className={`${isVisible ? 'col-span-2 overflow-auto max-h-[65vh] scrollbar-thin' : 'col-span-3'}`}>
+                      <div className={`grid gap-4 ${isVisible
+                        ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-2'
+                        : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+                        {data.slice(0, 7).map((cluster, index) => {
+                          const clusterId = cluster.clusterId
+                          return (
+                            <div
+                              key={index}
+                              className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
+                            >
+                              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
+                                {cluster.name} ({cluster.clusterName})
+                              </div>
+                              <Droppable droppableId={`${index}`}>
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    className="flex-1 overflow-y-auto max-h-[45vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                                    style={{
+                                      scrollbarWidth: "thin",
+                                      scrollbarColor: `${clusterColors[index % clusterColors.length]} #e5e7eb`,
+                                    }}
+                                  >
+                                    {cluster.customers.map((customer, idx) => {
+                                      const clusterColor = clusterColors[index % clusterColors.length];
+                                      return (
+                                        <Draggable key={customer.code} draggableId={customer.code} index={idx}>
+                                          {(provided, snapshot) => {
+                                            const isFreezed = customer.isFreezed;
+                                            return (
+                                              <div
+                                                ref={provided.innerRef}
+                                                {...provided.draggableProps}
+                                                {...provided.dragHandleProps}
+                                                className={`flex items-center rounded-lg shadow-lg text-sm w-full text-start p-4 border-l-2 transition
                                                   ${snapshot.isDragging ? "bg-blue-50 shadow-md" : ""}
                                                   ${isFreezed
-                                                  ? "bg-gray-200 text-gray-500 opacity-70 cursor-not-allowed"
-                                                  : "bg-white hover:cursor-pointer"}`
-                                              }
-                                              style={{
-                                                ...provided.draggableProps.style,
-                                                borderLeftColor: clusterColor,
-                                                color: isFreezed ? "gray" : clusterColor,
-                                              }}
-                                            >
-                                              <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
-                                              <div className="flex-1">
-                                                <div
-                                                  onClick={() => {
-                                                    if (!isFreezed) navigator.clipboard.writeText(customer.code);
-                                                  }}
-                                                  title={isFreezed ? "Frozen - cannot copy" : "Click to copy"}
-                                                  className={`transition ${isFreezed ? "line-through cursor-not-allowed" : "cursor-pointer hover:underline"}`}
-                                                >
-                                                  {customer.code}
+                                                    ? "bg-gray-200 text-gray-500 opacity-70 cursor-not-allowed"
+                                                    : "bg-white hover:cursor-pointer"}`
+                                                }
+                                                style={{
+                                                  ...provided.draggableProps.style,
+                                                  borderLeftColor: clusterColor,
+                                                  color: isFreezed ? "gray" : clusterColor,
+                                                }}
+                                              >
+                                                <div className="pr-2 text-lg font-semibold">{idx + 1}.</div>
+                                                <div className="flex-1">
+                                                  <div
+                                                    onClick={() => {
+                                                      if (!isFreezed) navigator.clipboard.writeText(customer.code);
+                                                    }}
+                                                    title={isFreezed ? "Frozen - cannot copy" : "Click to copy"}
+                                                    className={`transition ${isFreezed ? "line-through cursor-not-allowed" : "cursor-pointer hover:underline"}`}
+                                                  >
+                                                    {customer.code}
+                                                  </div>
+                                                  <div className="">{customer.displayName}</div>
                                                 </div>
-                                                <div className="">{customer.displayName}</div>
-                                              </div>
 
                                                 <div className="ml-auto flex flex-col justify-end items-end text-right">
                                                   <div>Qty: {customer.qty}</div>
@@ -443,88 +553,88 @@ const filteredData = data
                       </div>
                     </div>
 
-                  {isVisible && (
-                    <div className={`col-span-1 ${isVisible ? 'block' : 'hidden'} md:block`}>
-                      <div className="flex flex-col gap-4">
-                        {data.slice(7).map((cluster, index) => {
-                          const actualIndex = index + 7;
-                          const clusterColor = clusterColors[actualIndex % clusterColors.length];
-                          return (
-                            <div
-                              key={actualIndex}
-                              className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
-                            >
-                              <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
-                                {cluster.name} ({cluster.clusterName})
-                              </div>
-                              <Droppable droppableId={`${actualIndex}`}>
-                                {(provided) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.droppableProps}
-                                    className="flex-1 overflow-y-auto max-h-[50vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
-                                  >
-                                    {cluster.customers.map((customer, idx) => (
-                                      <Draggable key={customer.code} draggableId={customer.code} index={idx}>
-                                        {(provided, snapshot) => (
-                                          <div
-                                            ref={provided.innerRef}
-                                            {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
-                                            className={`bg-white flex flex-col sm:flex-row sm:items-center rounded-lg shadow-lg text-sm hover:cursor-pointer w-full text-start p-3 sm:p-4 border-l-2 ${snapshot.isDragging ? 'bg-blue-50 shadow-md' : ''
-                                              }`}
-                                            style={{
-                                              ...provided.draggableProps.style,
-                                              borderLeftColor: clusterColor,
-                                              color: clusterColor,
-                                            }}
-                                          >
-                                            <div className="flex items-center gap-2 mb-2 sm:mb-0">
-                                              <div className="text-lg font-semibold">{idx + 1}.</div>
-                                              <div className="flex-1">
-                                                <div
-                                                  onClick={() => {
-                                                    navigator.clipboard.writeText(customer.code);
-                                                  }}
-                                                  title="Click to copy"
-                                                  className="cursor-pointer hover:underline transition font-medium"
-                                                >
-                                                  {customer.code}
+                    {isVisible && (
+                      <div className={`col-span-1 ${isVisible ? 'block' : 'hidden'} md:block`}>
+                        <div className="flex flex-col gap-4">
+                          {data.slice(7).map((cluster, index) => {
+                            const actualIndex = index + 7;
+                            const clusterColor = clusterColors[actualIndex % clusterColors.length];
+                            return (
+                              <div
+                                key={actualIndex}
+                                className="bg-white rounded-lg shadow-md w-full flex flex-col overflow-hidden"
+                              >
+                                <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white text-center text-lg font-semibold py-3 px-4">
+                                  {cluster.name} ({cluster.clusterName})
+                                </div>
+                                <Droppable droppableId={`${actualIndex}`}>
+                                  {(provided) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.droppableProps}
+                                      className="flex-1 overflow-y-auto max-h-[50vh] scrollbar-thin p-3 space-y-3 bg-gray-50"
+                                    >
+                                      {cluster.customers.map((customer, idx) => (
+                                        <Draggable key={customer.code} draggableId={customer.code} index={idx}>
+                                          {(provided, snapshot) => (
+                                            <div
+                                              ref={provided.innerRef}
+                                              {...provided.draggableProps}
+                                              {...provided.dragHandleProps}
+                                              className={`bg-white flex flex-col sm:flex-row sm:items-center rounded-lg shadow-lg text-sm hover:cursor-pointer w-full text-start p-3 sm:p-4 border-l-2 ${snapshot.isDragging ? 'bg-blue-50 shadow-md' : ''
+                                                }`}
+                                              style={{
+                                                ...provided.draggableProps.style,
+                                                borderLeftColor: clusterColor,
+                                                color: clusterColor,
+                                              }}
+                                            >
+                                              <div className="flex items-center gap-2 mb-2 sm:mb-0">
+                                                <div className="text-lg font-semibold">{idx + 1}.</div>
+                                                <div className="flex-1">
+                                                  <div
+                                                    onClick={() => {
+                                                      navigator.clipboard.writeText(customer.code);
+                                                    }}
+                                                    title="Click to copy"
+                                                    className="cursor-pointer hover:underline transition font-medium"
+                                                  >
+                                                    {customer.code}
+                                                  </div>
+                                                  <div className="">{customer.displayName}</div>
                                                 </div>
-                                                <div className="">{customer.displayName}</div>
+                                              </div>
+                                              <div className="flex justify-between sm:ml-auto sm:flex-col sm:justify-end sm:items-end sm:text-right">
+                                                <div className="text-sm">Qty: {customer.qty}</div>
+                                                <div className="text-sm">Size: {customer.size}</div>
                                               </div>
                                             </div>
-                                            <div className="flex justify-between sm:ml-auto sm:flex-col sm:justify-end sm:items-end sm:text-right">
-                                              <div className="text-sm">Qty: {customer.qty}</div>
-                                              <div className="text-sm">Size: {customer.size}</div>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                  </div>
-                                )}
-                              </Droppable>
-                              <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
-                                <div className="text-left">
-                                  {cluster.customers.length} Customers <br />
-                                  {cluster.cartridge_qty} Cartridge Quantity
-                                </div>
-                                <div>
-                                  {Object.entries(cluster.size).map(([size, count]) => (
-                                    <div key={size}>
-                                      {size}: {count}
+                                          )}
+                                        </Draggable>
+                                      ))}
+                                      {provided.placeholder}
                                     </div>
-                                  ))}
+                                  )}
+                                </Droppable>
+                                <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                                  <div className="text-left">
+                                    {cluster.customers.length} Customers <br />
+                                    {cluster.cartridge_qty} Cartridge Quantity
+                                  </div>
+                                  <div>
+                                    {Object.entries(cluster.size).map(([size, count]) => (
+                                      <div key={size}>
+                                        {size}: {count}
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
 
                     <button
@@ -537,102 +647,107 @@ const filteredData = data
                 </DragDropContext>
               )}
             </div>
-          {open && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              {/* Dark overlay */}
-              <div
-                className="absolute inset-0 bg-black bg-opacity-50"
-                onClick={() => setOpen(false)}
-              />
-
-              {/* Modal box */}
-              <div className="relative bg-white rounded-lg shadow-lg w-[95%] sm:w-[80%] md:w-[60%] lg:w-[40%] p-6 z-10 max-h-[90vh] overflow-y-auto">
-                {/* Close button (X) */}
-                <button
+          )
+          }
+          {
+            open && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center">
+                {/* Dark overlay */}
+                <div
+                  className="absolute inset-0 bg-black bg-opacity-50"
                   onClick={() => setOpen(false)}
-                  className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
+                />
 
-                <h2 className="text-lg font-semibold mb-4">Customer Details</h2>
+                {/* Modal box */}
+                <div className="relative bg-white rounded-lg shadow-lg w-[95%] sm:w-[80%] md:w-[60%] lg:w-[40%] p-6 z-10 max-h-[90vh] overflow-y-auto">
+                  {/* Close button (X) */}
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
 
-                {selectedCustomer && (
-                  <div className="space-y-2">
-                    <p className="font-semibold">Do you want to freeze this customer?</p>
-                    <p><span className="font-medium">Code:</span> {selectedCustomer.code}</p>
-                    <p><span className="font-medium">Name:</span> {selectedCustomer.displayName}</p>
-                    <p><span className="font-medium">Qty:</span> {selectedCustomer.qty}</p>
-                    <p><span className="font-medium">Size:</span> {selectedCustomer.size}</p>
-                    {/* Toggle Switch */}
-                    <div className="flex items-center gap-3 mt-4">
-                      <span className="font-medium">Freeze:</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedCustomer?.isFreezed || false}
-                          onChange={() =>
-                            setSelectedCustomer((prev) =>
-                              prev ? { ...prev, isFreezed: !prev.isFreezed } : prev
-                            )
-                          }
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none 
+                  <h2 className="text-lg font-semibold mb-4">Customer Details</h2>
+
+                  {selectedCustomer && (
+                    <div className="space-y-2">
+                      <p className="font-semibold">Do you want to freeze this customer?</p>
+                      <p><span className="font-medium">Code:</span> {selectedCustomer.code}</p>
+                      <p><span className="font-medium">Name:</span> {selectedCustomer.displayName}</p>
+                      <p><span className="font-medium">Qty:</span> {selectedCustomer.qty}</p>
+                      <p><span className="font-medium">Size:</span> {selectedCustomer.size}</p>
+                      {/* Toggle Switch */}
+                      <div className="flex items-center gap-3 mt-4">
+                        <span className="font-medium">Freeze:</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedCustomer?.isFreezed || false}
+                            onChange={() =>
+                              setSelectedCustomer((prev) =>
+                                prev ? { ...prev, isFreezed: !prev.isFreezed } : prev
+                              )
+                            }
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none 
                 rounded-full peer peer-checked:after:translate-x-full 
                 peer-checked:after:border-white after:content-[''] after:absolute 
                 after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 
                 after:border after:rounded-full after:h-5 after:w-5 
                 after:transition-all peer-checked:bg-green-500"></div>
-                      </label>
-                    </div>
-                    <p>
-                      <span className="font-medium">Status:</span>{" "}
-                      {selectedCustomer?.status ? "Active" : "Inactive"}
-                    </p>
-                    <div className="mt-4">
-                      <label className="block text-sm font-semibold text-black">
-                        Replacement Notes:
-                      </label>
-                      <textarea
-                        value={selectedCustomer?.replaceMentNotes || ""}
-                        onChange={(e) =>
-                          setSelectedCustomer((prev) =>
-                            prev ? { ...prev, replaceMentNotes: e.target.value } : prev
-                          )
-                        }
-                        placeholder="Enter replacement notes"
-                        className="mt-1 block w-full rounded-md border-black shadow-sm 
-                   focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                        rows={3}
-                      />
-                    </div>
+                        </label>
+                      </div>
+                      <p>
+                        <span className="font-medium">Status:</span>{" "}
+                        {selectedCustomer?.status ? "Active" : "Inactive"}
+                      </p>
+                      <div className="mt-4">
+                        <label className="block text-sm font-semibold text-black">
+                          Replacement Notes:
+                        </label>
+                        <textarea
+                          value={selectedCustomer?.replaceMentNotes || ""}
+                          onChange={(e) =>
+                            setSelectedCustomer((prev) =>
+                              prev ? { ...prev, replaceMentNotes: e.target.value } : prev
+                            )
+                          }
+                          placeholder="Enter replacement notes"
+                          className="mt-2 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm 
+             text-gray-700 shadow-sm transition"
+                          rows={3}
+                        />
+                      </div>
 
+                    </div>
+                  )}
+
+                  <div className="mt-6 flex justify-end gap-3">
+                    <Button
+                      variant="outlined"
+                      color="red"
+                      onClick={() => setOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="gradient"
+                      color="green"
+                      onClick={handleConfirm}
+                    >
+                      {customerLoading ? "Saving..." : "Confirm"}
+                    </Button>
                   </div>
-                )}
-
-                <div className="mt-6 flex justify-end gap-3">
-                  <Button
-                    variant="outlined"
-                    color="red"
-                    onClick={() => setOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="gradient"
-                    color="green"
-                    onClick={handleConfirm}
-                  >
-                    {customerLoading ? "Saving..." : "Confirm"}
-                  </Button>
                 </div>
               </div>
-            </div>
-          )}
+            )
+          }
         </>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 };
 
