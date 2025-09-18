@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import page1 from '../../public/img/wp1.png';
 import page2 from '../../public/img/wp2.png';
 import page3 from '../../public/img/wp3.png';
@@ -11,6 +11,7 @@ import { Button } from '@material-tailwind/react';
 import { generateWaterReports, uploadWaterReport } from '@/feature/waterReports/waterReportsSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
+import Loader from '@/pages/Loader';
 
 
 const waitForPaint = () =>
@@ -39,16 +40,66 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
     return `${d}/${m}/${y}`;
   };
 
+  // const waterQualityData = Object.values(customer.scores)
+  //     .flat()
+  //     .filter(item => !item.status)
+  //     .map(item => ({
+  //       date: formatDate(item.createdAt),
+  //       hardness: Number(item.score),
+  //       id: item.id,
+  //     }))
+  //     .slice(0, 4);
+  // console.log("water",waterQualityData);
+
   const waterQualityData = Object.values(customer.scores)
-      .flat()
-      .filter(item => !item.status)
-      .map(item => ({
-        date: formatDate(item.createdAt),
-        hardness: Number(item.score),
-        id: item.id,
-      }))
-      .slice(0, 4);
-  console.log("water",waterQualityData);
+  .flat()
+  .filter(item => !item.status)
+  .map(item => ({
+    date: formatDate(item.createdAt), // DD/MM/YY
+    hardness: Number(item.score),
+    id: item.id,
+    rawDate: new Date(item.createdAt), // keep actual Date object
+  }))
+  // Sort by actual date
+  .sort((a, b) => a.rawDate - b.rawDate)
+  .slice(0, 4);// or remove slice to show all
+
+console.log("water sorted", waterQualityData);
+
+const avgHardness = waterQualityData.length
+  ? waterQualityData.reduce((sum, item) => sum + item.hardness, 0) / waterQualityData.length
+  : 0;
+
+  console.log("avg hardness", avgHardness);
+
+  function BackgroundWithLoader({ src, className, children }) {
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = src;
+    img.onload = () => setLoaded(true);
+    img.onerror = () => setLoaded(true); // stop loader even if error
+  }, [src]);
+
+  return (
+    <div className={`${className} relative`}>
+      {!loaded && (
+        <div className="absolute inset-0 flex items-center justify-center animate-pulse">
+          <Loader/>
+        </div>
+      )}
+      {loaded && (
+        <div
+          className="absolute inset-0"
+          style={{ backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center" }}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
       
   
   const customerId = customer?.user?._id;
@@ -57,11 +108,12 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
   const totalPages = 7
   const [currentPage, setCurrentPage] = useState(1);
   const base = "w-full h-full relative bg-cover bg-center bg-no-repeat"
+
   function renderPage(page) {
     switch (page) {
       case 1:
         return (
-         <div className={base} style={{ backgroundImage: `url(${page1})` }}>
+<BackgroundWithLoader src={page1} className={base}>
             <div className="absolute top-[15px] left-[15px] right-[80px]">
               <h1 className="text-[40px] font-bold text-white leading-[1.1]">
                 Hey, <span>{userName}</span>
@@ -69,11 +121,11 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
               <h2 className="text-[40px] font-bold text-[#f2daa5] leading-[1.1] mt-2">Your 30 Day</h2>
               <h2 className="text-[40px] font-bold text-[#f2daa5] leading-[1.1] mt-2">Report is here</h2>
             </div>
-          </div>
+          </BackgroundWithLoader>
         )
       case 2:
         return (
-          <div className={base} style={{ backgroundImage: `url(${page2})` }}>
+          <BackgroundWithLoader src={page2} className={base}>
             {/* <div className='absolute right-[125px] text-[#f3daa5] space-y-4 text-[25px] top-[340px]'>
               <div>2025-01-01</div>
               <div>2025-01-01</div>
@@ -81,18 +133,18 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
               <div>2025-01-01</div>
             </div> */}
             {Array.isArray(waterQualityData) && (
-  <div className='absolute right-[140px] text-[#f3daa5] space-y-4 text-[25px] top-[338px]'>
+  <div className='absolute top-[338px] right-[140px] text-[#f3daa5] space-y-4 text-[25px] '>
     {waterQualityData.map((entry) => (
       <div key={entry.id}>{entry.date}</div>
     ))}
   </div>
 )}
 
-          </div>
+          </BackgroundWithLoader>
         )
       case 3:
         return (
-          <div className={base} style={{ backgroundImage: `url(${page3})` }}>
+          <BackgroundWithLoader src={page3} className={base}>
             {/* <div className='absolute bottom-[240px] flex left-[200px] gap-[40px]'>
               <div>10 mg/L</div>
               <div>10 mg/L</div>
@@ -124,17 +176,34 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
     </div>
   </>
 )}
+                <div className="absolute inset-0">
+  <div className="relative w-full h-full">
+    {/* Big Number */}
+<div className="absolute top-[150px] text-4xl font-extrabold text-[#a4551b] pl-16">
+  <div className="whitespace-normal break-words">
+    On an Average your water quality maintained at ~ {avgHardness} mg/L of hardness
+  </div>
+</div>
 
-          </div>
+    {/* Label */}
+    <div className="absolute top-[350px] left-[50px] text-[#a4551b] font-bold">
+      <div>{customer?.user?.waterHardness} mg/L</div>
+      <div>(very Hard)</div>
+    </div>
+  </div>
+</div>
+
+
+          </BackgroundWithLoader>
         )
       case 4:
-        return <div className={base} style={{ backgroundImage: `url(${page4})` }} />
+        return <BackgroundWithLoader src={page4} className={base}/>
       case 5:
-        return <div className={base} style={{ backgroundImage: `url(${page5})` }} />
+        return <BackgroundWithLoader src={page5} className={base}/>
       case 6:
-        return <div className={base} style={{ backgroundImage:`url(${page6})` }} />
+        return <BackgroundWithLoader src={page6} className={base}/>
       case 7:
-        return <div className={base} style={{ backgroundImage:`url(${page7})` }}>
+        return <BackgroundWithLoader src={page7} className={base}>
           <h1 className='absolute top-[120px] left-[80px] text-[20px] font-bold'>Citations</h1>
           <div className='absolute top-[150px] left-[80px]'>
             <ol>
@@ -224,7 +293,7 @@ const userName = `${customer?.user?.first_name || ''} ${customer?.user?.last_nam
               </li>
             </ol>
           </div>
-          </div>
+          </BackgroundWithLoader>
       default:
         return null
     }

@@ -19,8 +19,8 @@ const ClusterList = ({
   setIsVisible,
   vehicles,
   handleVehicleSelect,
-  handleSearch,
-  searchClear,
+  // handleSearch,
+  // searchClear,
   handleSave,
   onDragEnd,
   onFreezeUpdate,
@@ -29,15 +29,23 @@ const ClusterList = ({
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [isSheetView, setIsSheetView] = useState(false);
+  const [appliedSearch, setAppliedSearch] = useState("");
   console.log("selectedCustomer", selectedCustomer)
   const { customerLoading } = useSelector((state) => state.customer);
 
 
   const handleOpen = (customer, clusterId) => {
-    console.log("customer", customer)
-    setSelectedCustomer({ ...customer, clusterId, isFreezed: customer.isFreezed });
+    setSelectedCustomer({
+      ...customer, clusterId, isFreezed: customer.isFreezed, originalIsFreezed: customer.isFreezed,
+      originalReplaceMentNotes: customer.replaceMentNotes,
+    });
     setOpen(true);
   };
+  // 🔄 Refresh data on mount
+  useEffect(() => {
+    dispatch(getCustomersClusterMap());
+  }, [dispatch]);
 
   const handleConfirm = async () => {
     if (!selectedCustomer) return;
@@ -45,12 +53,23 @@ const ClusterList = ({
     const payload = {
       clusterId: selectedCustomer.clusterId,
       customerId: selectedCustomer.customerId,
-      isFreezed: selectedCustomer.isFreezed,
     };
+
+    if (selectedCustomer.isFreezed !== selectedCustomer.originalIsFreezed) {
+      payload.isFreezed = selectedCustomer.isFreezed;
+    }
+
+    if (
+      (selectedCustomer.replaceMentNotes || "") !==
+      (selectedCustomer.originalReplaceMentNotes || "")
+    ) {
+      payload.replaceMentNotes = selectedCustomer.replaceMentNotes;
+    }
+
 
     try {
       const res = await dispatch(editCustomerFreeze(payload)).unwrap();
-      console.log("Freeze updated:", res);
+      await dispatch(getCustomersClusterMap());
       setOpen(false);
 
     } catch (err) {
@@ -72,9 +91,32 @@ const ClusterList = ({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [data]);
 
+  const handleSearch = () => {
+  setAppliedSearch(searchValue);
+};
+
+const searchClear = () => {
+  setSearchValue("");
+  setAppliedSearch("");
+};
+
+const filteredData = data
+  .map((cluster) => {
+    const matchedCustomers = cluster.customers.filter((customer) => {
+      if (!appliedSearch) return true;
+      const search = appliedSearch.toLowerCase();
+      return (
+        customer.code.toLowerCase().includes(search) ||
+        customer.displayName.toLowerCase().includes(search)
+      );
+    });
+    return { ...cluster, customers: matchedCustomers };
+  })
+  .filter((cluster) => cluster.customers.length > 0);
+
   return (
     <div>
-      {saveLoading ? (
+      {saveLoading || data.length === 0 ? (
         <div className="flex items-center justify-center h-[80vh]">
           <Loader />
         </div>
@@ -84,7 +126,7 @@ const ClusterList = ({
             <Typography variant="h5" color="blue-gray" className="text-center lg:text-left">
               Cluster List
             </Typography>
-            <div className="flex flex-col gap-3 sm:gap-2 lg:flex-row lg:flex-wrap lg:items-center">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
               <div className="w-full sm:w-48 lg:w-56">
                 <Select label="Select Vehicle" onChange={handleVehicleSelect} value={selectedVehicle}>
                   {vehicles.map((vehicle) => (
@@ -109,10 +151,16 @@ const ClusterList = ({
                 <Button size="sm" variant="gradient" onClick={handleSave} className='px-4 py-3'>
                   Save
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outlined"
+                  onClick={() => setIsSheetView((prev) => !prev)}
+                >
+                  {isSheetView ? "Card View" : "Sheet View"}
+                </Button>
               </div>
             </div>
           </div>
-
           <hr className="mt-2" />
           <div className="overflow-auto max-h-[60vh] sm:max-h-[65vh] lg:max-h-[70vh] mt-4 "
             style={{
@@ -356,44 +404,44 @@ const ClusterList = ({
                                                 <div className="">{customer.displayName}</div>
                                               </div>
 
-                                              <div className="ml-auto flex flex-col justify-end items-end text-right">
-                                                <div>Qty: {customer.qty}</div>
-                                                <div>Size: {customer.size}</div>
+                                                <div className="ml-auto flex flex-col justify-end items-end text-right">
+                                                  <div>Qty: {customer.qty}</div>
+                                                  <div>Size: {customer.size}</div>
+                                                </div>
+                                                <div>
+                                                  <EllipsisVerticalIcon
+                                                    className="h-5 w-5 text-gray-900 cursor-pointer mx-2"
+                                                    onClick={() => handleOpen(customer, clusterId)}
+                                                  />
+                                                </div>
                                               </div>
-                                              <div>
-                                                <EllipsisVerticalIcon
-                                                  className="h-5 w-5 text-gray-900 cursor-pointer mx-2"
-                                                  onClick={() => handleOpen(customer, clusterId)}
-                                                />
-                                              </div>
-                                            </div>
-                                          );
-                                        }}
-                                      </Draggable>
-                                    );
-                                  })}
-                                  {provided.placeholder}
-                                </div>
-                              )}
-                            </Droppable>
-                            <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
-                              <div className="text-left">
-                                {cluster.customers.length} Customers <br />
-                                {cluster.cartridge_qty} Cartridge Quantity
-                              </div>
-                              <div>
-                                {Object.entries(cluster.size).map(([size, count]) => (
-                                  <div key={size}>
-                                    {size}: {count}
+                                            );
+                                          }}
+                                        </Draggable>
+                                      );
+                                    })}
+                                    {provided.placeholder}
                                   </div>
-                                ))}
+                                )}
+                              </Droppable>
+                              <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                                <div className="text-left">
+                                  {cluster.customers.length} Customers <br />
+                                  {cluster.cartridge_qty} Cartridge Quantity
+                                </div>
+                                <div>
+                                  {Object.entries(cluster.size).map(([size, count]) => (
+                                    <div key={size}>
+                                      {size}: {count}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )
-                      })}
+                          )
+                        })}
+                      </div>
                     </div>
-                  </div>
 
                   {isVisible && (
                     <div className={`col-span-1 ${isVisible ? 'block' : 'hidden'} md:block`}>
@@ -479,16 +527,16 @@ const ClusterList = ({
                   )}
 
 
-                  <button
-                    onClick={() => setIsVisible((prev) => !prev)}
-                    className="fixed md:bottom-2 lg:bottom-0 right-4 lg:absolute lg:top-1/2 lg:right-1 z-30 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white font-semibold rounded-lg p-2 shadow-lg transition text-xs md:text-sm lg:[writing-mode:sideways-lr] lg:[text-orientation:mixed]"
-                  >
-                    {isVisible ? 'Hide' : 'Show'} Unassigned Cluster
-                  </button>
-                </div>
-              </DragDropContext>
-            )}
-          </div>
+                    <button
+                      onClick={() => setIsVisible((prev) => !prev)}
+                      className="fixed md:bottom-2 lg:bottom-0 right-4 lg:absolute lg:top-1/2 lg:right-1 z-30 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white font-semibold rounded-lg p-2 shadow-lg transition text-xs md:text-sm lg:[writing-mode:sideways-lr] lg:[text-orientation:mixed]"
+                    >
+                      {isVisible ? 'Hide' : 'Show'} Unassigned Cluster
+                    </button>
+                  </div>
+                </DragDropContext>
+              )}
+            </div>
           {open && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
               {/* Dark overlay */}
@@ -498,7 +546,7 @@ const ClusterList = ({
               />
 
               {/* Modal box */}
-              <div className="relative bg-white rounded-lg shadow-lg w-[90%] max-w-md p-6 z-10">
+              <div className="relative bg-white rounded-lg shadow-lg w-[95%] sm:w-[80%] md:w-[60%] lg:w-[40%] p-6 z-10 max-h-[90vh] overflow-y-auto">
                 {/* Close button (X) */}
                 <button
                   onClick={() => setOpen(false)}
@@ -516,7 +564,6 @@ const ClusterList = ({
                     <p><span className="font-medium">Name:</span> {selectedCustomer.displayName}</p>
                     <p><span className="font-medium">Qty:</span> {selectedCustomer.qty}</p>
                     <p><span className="font-medium">Size:</span> {selectedCustomer.size}</p>
-
                     {/* Toggle Switch */}
                     <div className="flex items-center gap-3 mt-4">
                       <span className="font-medium">Freeze:</span>
@@ -539,6 +586,28 @@ const ClusterList = ({
                 after:transition-all peer-checked:bg-green-500"></div>
                       </label>
                     </div>
+                    <p>
+                      <span className="font-medium">Status:</span>{" "}
+                      {selectedCustomer?.status ? "Active" : "Inactive"}
+                    </p>
+                    <div className="mt-4">
+                      <label className="block text-sm font-semibold text-black">
+                        Replacement Notes:
+                      </label>
+                      <textarea
+                        value={selectedCustomer?.replaceMentNotes || ""}
+                        onChange={(e) =>
+                          setSelectedCustomer((prev) =>
+                            prev ? { ...prev, replaceMentNotes: e.target.value } : prev
+                          )
+                        }
+                        placeholder="Enter replacement notes"
+                        className="mt-1 block w-full rounded-md border-black shadow-sm 
+                   focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        rows={3}
+                      />
+                    </div>
+
                   </div>
                 )}
 
@@ -561,7 +630,6 @@ const ClusterList = ({
               </div>
             </div>
           )}
-
         </>
       )}
     </div>
