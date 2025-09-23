@@ -174,9 +174,9 @@ const ClusterList = ({
                       <h3 className="font-semibold text-lg">
                         {cluster.name} ({cluster.clusterName})
                       </h3>
-                      <div className="text-sm text-gray-200">
+                      {/* <div className="text-sm text-gray-200">
                         {cluster.customers.length} Customers • {cluster.cartridge_qty} Cartridge Qty
-                      </div>
+                      </div> */}
                     </div>
 
                     {/* Cluster Table */}
@@ -256,13 +256,19 @@ const ClusterList = ({
                     )}
 
                     {/* Cluster Footer */}
-                    <div className="bg-gray-50 px-4 py-2 text-sm text-gray-600 flex justify-end gap-4 border-t rounded-b-lg">
-                      {Object.entries(cluster.size).map(([size, count]) => (
-                        <div key={size}>
-                          {size}: {count}
-                        </div>
-                      ))}
-                    </div>
+                                <div className="p-3 border-t border-gray-200 bg-gray-200 text-center text-sm text-gray-700 flex justify-between">
+                                  <div className="text-left">
+                                    {cluster.customers.length} Customers <br />
+                                    {cluster.cartridge_qty} Cartridge Quantity
+                                  </div>
+                                  <div>
+                                    {Object.entries(cluster.size).map(([size, count]) => (
+                                      <div key={size}>
+                                        {size}: {count}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
                   </div>
                 ))
               ) : (
