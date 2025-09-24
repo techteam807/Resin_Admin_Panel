@@ -99,6 +99,7 @@ const productSlice = createSlice({
     create: null,
     update: null,
     loading: false,
+    Flagloading: false,
     delLoading: false,
     addloading: false,
     error: null,
@@ -247,35 +248,43 @@ const productSlice = createSlice({
         toast.error(state.error);
       })
       .addCase(createProductFlag.pending, (state) => {
-        state.loading = true;
+        state.Flagloading = true;
       })
       .addCase(createProductFlag.fulfilled, (state, action) => {
-        state.loading = false;
+        state.Flagloading = false;
         const flaggedProduct = action.payload.data;
         state.message = action.payload.message;
 
-        // Remove from other product arrays
-        Object.keys(state.products).forEach((key) => {
-          if (key !== "inspectionDueProducts") {
+        if (flaggedProduct.productFlagCount >= 3) {
+          Object.keys(state.products).forEach((key) => {
             state.products[key] = state.products[key].filter(
               (p) => p._id !== flaggedProduct._id
             );
-          }
-        });
+          });
 
-        // Update inspectionDueProducts
-        if (!state.products.InspectionDueProducts.find((p) => p._id === flaggedProduct._id)) {
-          state.products.InspectionDueProducts.push(flaggedProduct);
-        } else {
-          state.products.InspectionDueProducts = state.products.InspectionDueProducts.map((p) =>
-            p._id === flaggedProduct._id ? flaggedProduct : p
+          const exists = state.products.InspectionDueProducts.find(
+            (p) => p._id === flaggedProduct._id
           );
+          if (!exists) {
+            state.products.InspectionDueProducts.push(flaggedProduct);
+          } else {
+            state.products.InspectionDueProducts = state.products.InspectionDueProducts.map((p) =>
+              p._id === flaggedProduct._id ? flaggedProduct : p
+            );
+          }
+        } else {
+          Object.keys(state.products).forEach((key) => {
+            state.products[key] = state.products[key].map((p) =>
+              p._id === flaggedProduct._id ? flaggedProduct : p
+            );
+          });
         }
 
         toast.success(state.message);
       })
+
       .addCase(createProductFlag.rejected, (state, action) => {
-        state.loading = false;
+        state.Flagloading = false;
         state.error = action.error.message;
         toast.error(action.error.message || "Failed to flag product");
       });
