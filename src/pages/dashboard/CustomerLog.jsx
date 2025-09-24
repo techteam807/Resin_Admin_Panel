@@ -250,48 +250,50 @@ const CustomerLog = () => {
                                                     </p>
 
                                                     {log.customerId && (
-                                                        <div className="mb-3 text-xs text-gray-800 space-y-1 border-b pb-3 rounded-md bg-green-50 border-green-300 px-3 py-2 shadow-sm">
-                                                            <div className="flex items-center gap-1 text-base pb-1 font-semibold text-green-500">
-                                                                <UserIcon className="h-4 w-4" />
-                                                                Customer Info
+                                                        <div className="mb-3 text-xs text-gray-800 space-y-1 border-b pb-3 rounded-md bg-green-50 border-green-300 px-3 py-2 shadow-sm flex justify-between items-start">
+                                                            <div className="space-y-1">
+                                                                <div className="flex items-center gap-1 text-base pb-1 font-semibold text-green-500">
+                                                                    <UserIcon className="h-4 w-4" />
+                                                                    Customer Info
+                                                                </div>
+                                                                <p className='text-sm'>
+                                                                    <span className="font-medium">Customer:</span> {log.customerId.first_name || 'N/A'}{" "} {log.customerId.last_name || 'N/A'}
+                                                                </p>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-medium text-sm">Customer Code:</span>
+                                                                    <span className="text-xs font-medium text-gray-700 flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-green-300 shadow-sm">
+                                                                        {log.customerId.contact_number || 'N/A'}
+                                                                    </span>
+                                                                    {log.customerId.contact_number && (
+                                                                        <Tooltip content={copiedId === log._id ? 'Copied' : 'Copy'}>
+                                                                            <IconButton
+                                                                                variant="text"
+                                                                                size="sm"
+                                                                                onClick={() => handleCopy(log._id, log.customerId.contact_number)}
+                                                                            >
+                                                                                {copiedId === log._id ? (
+                                                                                    <CheckIcon className="h-4 w-4 text-green-600" />
+                                                                                ) : (
+                                                                                    <ClipboardIcon className="h-4 w-4 text-gray-600" />
+                                                                                )}
+                                                                            </IconButton>
+                                                                        </Tooltip>
+                                                                    )}
+                                                                </div>
+                                                                <p className='text-sm'><span className="font-medium">Mobile:</span> {log.customerId.mobile || 'N/A'}</p>
+                                                                <p className='text-sm'><span className="font-medium">Email:</span> {log.customerId.email || 'N/A'}</p>
                                                             </div>
-                                                            <p className='text-sm'><span className="font-medium">Customer:</span>
-                                                                {log.customerId.first_name || 'N/A'}{" "}
-                                                                {log.customerId.last_name || 'N/A'}
-                                                            </p>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="font-medium text-sm">Customer Code:</span>
-                                                                <span className="text-xs font-medium text-gray-700 flex items-center gap-1 bg-white px-2 py-1 rounded-md border border-green-300 shadow-sm">
-                                                                    {log.customerId.contact_number || 'N/A'}
-                                                                </span>
-                                                                {log.customerId.contact_number && (
-                                                                    <Tooltip content={copiedId === log._id ? 'Copied' : 'Copy'}>
-                                                                        <IconButton
-                                                                            variant="text"
-                                                                            size="sm"
-                                                                            onClick={() => handleCopy(log._id, log.customerId.contact_number)}
-                                                                        >
-                                                                            {copiedId === log._id ? (
-                                                                                <CheckIcon className="h-4 w-4 text-green-600" />
-                                                                            ) : (
-                                                                                <ClipboardIcon className="h-4 w-4 text-gray-600" />
-                                                                            )}
-                                                                        </IconButton>
-                                                                    </Tooltip>
-                                                                )}
-                                                            </div>
-                                                            <p className='text-sm'><span className="font-medium">Mobile:</span> {log.customerId.mobile || 'N/A'}</p>
-                                                            <p className='text-sm'><span className="font-medium">Email:</span> {log.customerId.email || 'N/A'}</p>
 
+                                                            {/* Thumbnail on the right */}
                                                             {log.fiterImgUrl && (
-                                                                <Button
-                                                                    variant="outlined"
-                                                                    size="sm"
-                                                                    className="mt-2"
-                                                                    onClick={() => handleOpenImage(log.fiterImgUrl)}
-                                                                >
-                                                                    View Image
-                                                                </Button>
+                                                                <div className="ml-4 flex-shrink-0">
+                                                                    <img
+                                                                        src={log.fiterImgUrl}
+                                                                        alt="Customer Thumbnail"
+                                                                        className="w-32 h-32 object-cover rounded-md cursor-pointer border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                                                                        onClick={() => handleOpenImage(log.fiterImgUrl)}
+                                                                    />
+                                                                </div>
                                                             )}
                                                         </div>
                                                     )}
