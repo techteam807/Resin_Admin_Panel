@@ -3,6 +3,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import {
   ArrowPathIcon,
   ArrowPathRoundedSquareIcon,
+  BellIcon,
   CheckIcon,
   ClipboardIcon,
   FlagIcon,
@@ -33,12 +34,14 @@ import {
   getProducts,
   restoreProduct,
   createProductFlag,
+  moveToInspectionDue,
 } from "@/feature/product/productSlice";
 import Loader from "../Loader";
 import AddProduct from "./AddProduct";
 import ProductDetails from "./ProductDetails";
 import AddXL from "./AddXL";
 import "./Home.css";
+import { toast } from "react-toastify";
 
 // Format UTC date to IST
 const formatUTCDate = (dateString) => {
@@ -65,7 +68,7 @@ const formatUTCDate = (dateString) => {
 
 const ProductDesign = () => {
   const dispatch = useDispatch();
-  const { products, loading, delLoading } = useSelector((state) => state.product);
+  const { products, loading, delLoading, Flagloading } = useSelector((state) => state.product);
   const [searchValue, setSearchValue] = useState("");
   const [active, setActive] = useState(true);
   const [open, setOpen] = useState(false);
@@ -82,11 +85,10 @@ const ProductDesign = () => {
   const [error, setError] = useState("");
   const [productFlags, setProductFlags] = useState({});
   const [flaggingProductId, setFlaggingProductId] = useState(null);
-  const [flagErrorOpen, setFlagErrorOpen] = useState(false);
-  const [flagError, setFlagError] = useState("");
   const [restoreErrorOpen, setRestoreErrorOpen] = useState(false);
   const [restoreError, setRestoreError] = useState("");
-  const [inspectionDueDialogOpen, setInspectionDueDialogOpen] = useState(false);
+  const [moveToInspectionDueDialogOpen, setMoveToInspectionDueDialogOpen] = useState(false);
+  const [productToMove, setProductToMove] = useState(null);
 
   useEffect(() => {
     const initialFlags = {};
@@ -161,6 +163,7 @@ const ProductDesign = () => {
           setRestoreError(error.message || "Failed to restore product");
           setRestoreErrorOpen(true);
           setDeletingProductId(null);
+          setRestoreOpen(false);
         });
     }
   };
@@ -188,32 +191,53 @@ const ProductDesign = () => {
     }
   };
 
-  const handleAddFlag = (product) => {
+  const handleAddFlag = (product, category) => {
     setFlaggingProductId(product._id);
-    setFlagError("");
 
     const currentFlagCount = productFlags[product._id] || product.productFlagCount || 0;
 
     dispatch(createProductFlag({ productId: product._id }))
       .unwrap()
       .then(() => {
+        const newFlagCount = currentFlagCount + 1;
         setProductFlags((prev) => ({
           ...prev,
-          [product._id]: currentFlagCount + 1,
+          [product._id]: newFlagCount,
         }));
-
-        if (currentFlagCount + 1 === 3) {
-          setInspectionDueDialogOpen(true);
+        if (newFlagCount >= 3 && category === "inuse") {
+          dispatch(getProducts({ active: active }));
+        } else if (newFlagCount >= 3 && category === "exhausted") {
+          confirmMoveToInspectionDue(product._id);
         }
-
         setFlaggingProductId(null);
       })
       .catch((error) => {
         console.error("Failed to flag product:", error);
-        setFlagError(error.message || "Failed to flag product");
-        setFlagErrorOpen(true);
         setFlaggingProductId(null);
       });
+  };
+
+  const confirmMoveToInspectionDue = (productId) => {
+    setProductToMove(productId);
+    setMoveToInspectionDueDialogOpen(true);
+  };
+
+  const handleMoveToInspectionDue = () => {
+    if (productToMove) {
+      setDeletingProductId(productToMove);
+      dispatch(moveToInspectionDue(productToMove))
+        .unwrap()
+        .then(() => {
+          setDeletingProductId(null);
+          setMoveToInspectionDueDialogOpen(false);
+          dispatch(getProducts({ active: active }));
+        })
+        .catch((error) => {
+          console.error("Failed to move product to Inspection Due:", error);
+          setDeletingProductId(null);
+          setMoveToInspectionDueDialogOpen(false);
+        });
+    }
   };
 
   const groupedProducts = products.inuseProducts?.reduce((acc, product) => {
@@ -449,41 +473,41 @@ const ProductDesign = () => {
                           {products.map((product, index) => (
                             <div
                               key={product._id}
-                              className={`flex group items-center justify-between p-2 ${index !== products.length - 1 ? "border-b border-gray-200" : ""}`}
+                              className={`flex group flex-col gap-3 p-2 ${index !== products.length - 1 ? "border-b border-gray-200" : ""}`}
                             >
                               <div
-                                className="flex items-center"
+                                className="flex items-center justify-between"
                                 onClick={() => {
                                   setData(product);
                                   setDetails(true);
                                 }}
                               >
-                                <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{InUSEindexCounter++}</div>
-                                <div className="ps-2">
-                                  <p className="font-semibold text-base text-black flex items-center gap-0.5">
-                                    {product.productCode}
-                                    <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
-                                      <IconButton
-                                        variant="text"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleCopy(product._id, product.productCode);
-                                        }}
-                                        size="sm"
-                                        color="green"
-                                      >
-                                        {copiedStates[product._id] ? (
-                                          <CheckIcon className="h-4 w-4 text-green-600" />
-                                        ) : (
-                                          <ClipboardIcon className="h-3.5 w-3.5 text-gray-600" />
-                                        )}
-                                      </IconButton>
-                                    </Tooltip>
-                                  </p>
-                                  <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
+                                <div className="flex items-center">
+                                  <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{InUSEindexCounter++}</div>
+                                  <div className="ps-2">
+                                    <p className="font-semibold text-base text-black flex items-center gap-0.5">
+                                      {product.productCode}
+                                      <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
+                                        <IconButton
+                                          variant="text"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCopy(product._id, product.productCode);
+                                          }}
+                                          size="sm"
+                                          color="green"
+                                        >
+                                          {copiedStates[product._id] ? (
+                                            <CheckIcon className="h-4 w-4 text-green-600" />
+                                          ) : (
+                                            <ClipboardIcon className="h-3.5 w-3.5 text-gray-600" />
+                                          )}
+                                        </IconButton>
+                                      </Tooltip>
+                                    </p>
+                                    <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
+                                  </div>
                                 </div>
-                              </div>
-                              {active ? (
                                 <Tooltip content="Delete">
                                   <IconButton
                                     onClick={(e) => {
@@ -501,23 +525,48 @@ const ProductDesign = () => {
                                     )}
                                   </IconButton>
                                 </Tooltip>
-                              ) : (
-                                <Tooltip content="Restore">
-                                  <IconButton
+                              </div>
+                              {(productFlags[product._id] || product.productFlagCount || 0) < 3 && (
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-2 p-3 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow transition-all gap-3">
+                                  <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      confirmRestore(product._id);
+                                      handleAddFlag(product, "inuse");
                                     }}
-                                    color="green"
-                                    variant="text"
+                                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto
+                                      ${flaggingProductId === product._id
+                                        ? "bg-green-100 text-green-600 cursor-wait"
+                                        : "bg-green-400 text-white hover:bg-green-500 hover:scale-105"
+                                      }`}
+                                    disabled={flaggingProductId === product._id}
                                   >
-                                    {delLoading && deletingProductId === product._id ? (
+                                    {flaggingProductId === product._id ? (
                                       <ArrowPathIcon className="h-4 w-4 animate-spin" />
                                     ) : (
-                                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                                      <FlagIcon className="h-4 w-4" />
                                     )}
-                                  </IconButton>
-                                </Tooltip>
+                                    <span>{flaggingProductId === product._id ? "Flagging..." : "Flag"}</span>
+                                  </button>
+                                  <div className="flex flex-col sm:flex-row items-center justify-between md:justify-end gap-2 w-full md:w-auto">
+                                    <span className="text-sm text-gray-600 font-medium">Flags:</span>
+                                    <div className="flex gap-1">
+                                      {Array.from({
+                                        length: productFlags[product._id] || product.productFlagCount || 0,
+                                      }).map((_, i) => (
+                                        <FlagIcon key={i} className="h-5 w-5 text-green-600" />
+                                      ))}
+                                    </div>
+                                    <span
+                                      className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                        (productFlags[product._id] || product.productFlagCount || 0) >= 3
+                                          ? "bg-green-100 text-green-600"
+                                          : "bg-gray-100 text-gray-600"
+                                      }`}
+                                    >
+                                      {(productFlags[product._id] || product.productFlagCount || 0) || 0}/3
+                                    </span>
+                                  </div>
+                                </div>
                               )}
                             </div>
                           ))}
@@ -554,14 +603,11 @@ const ProductDesign = () => {
               {/* EXHAUSTED PRODUCTS */}
               {(active === true || active === false) && (
                 <div
-                  className={`border border-blue-gray-100 bg-[#f4f5f7] rounded-md ${active === false ? "md:col-span-2 lg:col-span-3" : ""
-                    }`}
+                  className={`border border-blue-gray-100 bg-[#f4f5f7] rounded-md ${active === false ? "md:col-span-2 lg:col-span-3" : ""}`}
                 >
                   <div className="border-b border-blue-gray-100 p-4 text-center text-red-600 font-semibold">
-                    {active === false ? "DELETED PRODUCTS" : "EXHAUSTED"} (
-                    {products.exhaustedProducts?.length || 0})
+                    {active === false ? "DELETED PRODUCTS" : "EXHAUSTED"} ({products.exhaustedProducts?.length || 0})
                   </div>
-
                   <div className="space-y-3 p-3 h-[60vh] sm:h-[70vh] lg:h-[74vh] overflow-y-auto scrollbar-custom-red">
                     {products.exhaustedProducts?.length > 0 ? (
                       products.exhaustedProducts.map((product, index) => (
@@ -578,18 +624,11 @@ const ProductDesign = () => {
                               setDetails(true);
                             }}
                           >
-                            {/* Index */}
-                            <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">
-                              {index + 1}
-                            </div>
-
-                            {/* Product Info */}
+                            <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
                             <div className="flex-1 ps-2">
                               <p className="font-semibold text-base text-black flex items-center gap-0.5">
                                 {product.productCode}
-                                <Tooltip
-                                  content={copiedStates[product._id] ? "Copied!" : "Copy"}
-                                >
+                                <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
                                   <IconButton
                                     variant="text"
                                     onClick={(e) => {
@@ -607,17 +646,11 @@ const ProductDesign = () => {
                                   </IconButton>
                                 </Tooltip>
                               </p>
-                              <p className="pt-1 text-gray-600">
-                                {formatUTCDate(product?.updatedAt)}
-                              </p>
+                              <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
                               {product?.productNotes && (
-                                <p className="pt-2 text-sm text-gray-700">
-                                  Note: {product?.productNotes}
-                                </p>
+                                <p className="pt-2 text-sm text-gray-700">Note: {product?.productNotes}</p>
                               )}
                             </div>
-
-                            {/* Right Action */}
                             <div className="flex items-center gap-2">
                               {active === true ? (
                                 <Tooltip content="Delete Product">
@@ -659,64 +692,63 @@ const ProductDesign = () => {
                               )}
                             </div>
                           </div>
-
-                          {/* Flagging Section (EXHAUSTED specific) */}
                           {active === true && (
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-3 p-3 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow transition-all gap-3">
-                              {/* Flagging Button */}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAddFlag(product);
-                                }}
-                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto
-                                ${flaggingProductId === product._id
-                                    ? "bg-red-100 text-red-600 cursor-wait"
-                                    : "bg-red-400 text-white hover:bg-red-500 hover:scale-105"
-                                  }`}
-                                disabled={
-                                  flaggingProductId === product._id ||
-                                  productFlags[product._id] >= 3 ||
-                                  product.productFlagCount >= 3
-                                }
-                              >
-                                {flaggingProductId === product._id ? (
-                                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <FlagIcon className="h-4 w-4" />
-                                )}
-                                <span>
-                                  {flaggingProductId === product._id ? "Flagging..." : "Flag"}
-                                </span>
-                              </button>
-
-                              {/* Flags Counter */}
+                              {(productFlags[product._id] || product.productFlagCount || 0) < 3 ? (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddFlag(product, "exhausted");
+                                  }}
+                                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto
+                                    ${flaggingProductId === product._id
+                                      ? "bg-red-100 text-red-600 cursor-wait"
+                                      : "bg-red-400 text-white hover:bg-red-500 hover:scale-105"
+                                    }`}
+                                  disabled={flaggingProductId === product._id}
+                                >
+                                  {flaggingProductId === product._id ? (
+                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <FlagIcon className="h-4 w-4" />
+                                  )}
+                                  <span>{flaggingProductId === product._id ? "Flagging..." : "Flag"}</span>
+                                </button>
+                              ) : (
+                                <Tooltip content="Inspection Due">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      confirmMoveToInspectionDue(product._id);
+                                    }}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto bg-orange-100 text-orange-600 hover:bg-orange-200 hover:scale-105"
+                                  >
+                                    <BellIcon className="h-4 w-4 text-orange-600" />
+                                    <span>Inspection Due</span>
+                                  </button>
+                                </Tooltip>
+                              )}
                               <div className="flex flex-col sm:flex-row items-center justify-between md:justify-end gap-2 w-full md:w-auto">
                                 <span className="text-sm text-gray-600 font-medium">Flags:</span>
                                 <div className="flex gap-1">
                                   {Array.from({
-                                    length:
-                                      productFlags[product._id] || product.productFlagCount || 0,
+                                    length: productFlags[product._id] || product.productFlagCount || 0,
                                   }).map((_, i) => (
                                     <FlagIcon key={i} className="h-5 w-5 text-red-500" />
                                   ))}
                                 </div>
                                 <span
-                                  className={`px-2 py-0.5 text-xs font-semibold rounded-full ${(productFlags[product._id] || product.productFlagCount || 0) >= 3
-                                    ? "bg-red-100 text-red-600"
-                                    : "bg-gray-100 text-gray-600"
-                                    }`}
+                                  className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                    (productFlags[product._id] || product.productFlagCount || 0) >= 3
+                                      ? "bg-red-100 text-red-600"
+                                      : "bg-gray-100 text-gray-600"
+                                  }`}
                                 >
-                                  {(productFlags[product._id] ||
-                                    product.productFlagCount ||
-                                    0) || 0}
-                                  /3
+                                  {(productFlags[product._id] || product.productFlagCount || 0) || 0}/3
                                 </span>
                               </div>
                             </div>
                           )}
-
-                          {/* Customer Info */}
                           {product?.Customer && (
                             <div className="m-1.5 p-2.5 rounded-lg bg-red-50 text-xs text-gray-700 font-medium grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                               <div className="flex justify-between sm:justify-start sm:gap-2">
@@ -726,8 +758,7 @@ const ProductDesign = () => {
                               <div className="flex justify-between sm:justify-start sm:gap-2">
                                 <span className="text-gray-600">Name:</span>
                                 <span>
-                                  {product?.Customer?.first_name || "N/A"}{" "}
-                                  {product?.Customer?.last_name || "N/A"}
+                                  {product?.Customer?.first_name || "N/A"} {product?.Customer?.last_name || "N/A"}
                                 </span>
                               </div>
                               <div className="flex justify-between sm:justify-start sm:gap-2">
@@ -740,20 +771,16 @@ const ProductDesign = () => {
                               </div>
                             </div>
                           )}
-
                         </Button>
                       ))
                     ) : (
                       <div className="text-center text-gray-500">
-                        {active === false
-                          ? "NO DELETED PRODUCTS"
-                          : "NO EXHAUSTED PRODUCTS"}
+                        {active === false ? "NO DELETED PRODUCTS" : "NO EXHAUSTED PRODUCTS"}
                       </div>
                     )}
                   </div>
                 </div>
               )}
-
               {/* INSPECTION DUE PRODUCTS */}
               {active === "inspectionDue" && (
                 <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md md:col-span-2 lg:col-span-3">
@@ -906,26 +933,6 @@ const ProductDesign = () => {
           </Button>
         </DialogFooter>
       </Dialog>
-      <Dialog size="xs" open={flagErrorOpen} handler={() => setFlagErrorOpen(false)}>
-        <DialogHeader className="flex items-center gap-2">
-          <div className="bg-red-100 p-2 rounded-full">
-            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M4.293 4.293a1 1 0 011.414 0l14 14a1 1 0 01-1.414 1.414l-14-14a1 1 0 010-1.414z"></path>
-            </svg>
-          </div>
-          <Typography variant="h6" className="text-red-600 font-semibold">
-            Flagging Error
-          </Typography>
-        </DialogHeader>
-        <DialogBody>
-          <Typography variant="small" className="text-gray-700">{flagError}</Typography>
-        </DialogBody>
-        <DialogFooter>
-          <Button variant="outlined" color="gray" onClick={() => setFlagErrorOpen(false)}>
-            Close
-          </Button>
-        </DialogFooter>
-      </Dialog>
       <Dialog size="xs" open={restoreErrorOpen} handler={() => setRestoreErrorOpen(false)}>
         <DialogHeader className="flex items-center gap-2">
           <div className="bg-red-100 p-2 rounded-full">
@@ -946,23 +953,36 @@ const ProductDesign = () => {
           </Button>
         </DialogFooter>
       </Dialog>
-      <Dialog size="xs" open={inspectionDueDialogOpen} handler={() => setInspectionDueDialogOpen(false)}>
+      <Dialog size="xs" open={moveToInspectionDueDialogOpen} handler={() => setMoveToInspectionDueDialogOpen(false)}>
         <DialogHeader className="flex items-center gap-2">
           <div className="bg-orange-100 p-2 rounded-full">
-            <FlagIcon className="w-6 h-6 text-orange-600" />
+            <BellIcon className="w-6 h-6 text-orange-600" />
           </div>
           <Typography variant="h6" className="text-orange-600 font-semibold">
-            Product Moved to Inspection Due
+            Move to Inspection Due
           </Typography>
         </DialogHeader>
         <DialogBody>
           <Typography variant="small" className="text-gray-700">
-            This product has been flagged three times and has been moved to the Inspection Due category.
+            Do you want to move this product to the Inspection Due category?
           </Typography>
         </DialogBody>
-        <DialogFooter>
-          <Button variant="outlined" color="gray" onClick={() => setInspectionDueDialogOpen(false)}>
-            Close
+        <DialogFooter className="flex justify-end gap-2">
+          <Button variant="outlined" color="gray" onClick={() => setMoveToInspectionDueDialogOpen(false)}>
+            No
+          </Button>
+          <Button
+            color="orange"
+            onClick={handleMoveToInspectionDue}
+            disabled={delLoading && deletingProductId === productToMove}
+          >
+            {delLoading && deletingProductId === productToMove ? (
+              <div className="px-[18px]">
+                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+              </div>
+            ) : (
+              "Yes"
+            )}
           </Button>
         </DialogFooter>
       </Dialog>

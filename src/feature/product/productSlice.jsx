@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { createProd, createProdFlag, delProduct, fetchProducts, fetchProductsMap, resProduct, updateProd } from "./productService";
+import { createProd, createProdFlag, delProduct, fetchProducts, fetchProductsMap, moveToInspectionDuee, resProduct, updateProd } from "./productService";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -85,6 +85,19 @@ export const createProductFlag = createAsyncThunk(
     } catch (error) {
       console.error("Error in create product flag thunk:", error);
       throw error.response?.data?.message || error.message || "Something went wrong";
+    }
+  }
+);
+
+export const moveToInspectionDue = createAsyncThunk(
+  "product/moveToInspectionDue",
+  async (productId, { rejectWithValue }) => {
+    try {
+      const data = await moveToInspectionDuee(productId);
+      return data;
+    } catch (error) {
+      console.error("Error in move to inspection due thunk:", error);
+      return rejectWithValue(error.message || "Failed to move product to Inspection Due");
     }
   }
 );
@@ -287,6 +300,27 @@ const productSlice = createSlice({
         state.Flagloading = false;
         state.error = action.error.message;
         toast.error(action.error.message || "Failed to flag product");
+      })
+      .addCase(moveToInspectionDue.pending, (state) => {
+        state.delLoading = true;
+        state.error = null;
+      })
+      .addCase(moveToInspectionDue.fulfilled, (state, action) => {
+        state.delLoading = false;
+        const movedProduct = action.payload.data;
+        state.message = action.payload.message;
+        Object.keys(state.products).forEach((key) => {
+          state.products[key] = state.products[key].filter(
+            (product) => product._id !== movedProduct._id
+          );
+        });
+        state.products.inspectionDueProducts.unshift(movedProduct);
+        toast.success(state.message);
+      })
+      .addCase(moveToInspectionDue.rejected, (state, action) => {
+        state.delLoading = false;
+        state.error = action.payload;
+        toast.error(action.payload);
       });
   },
 });
