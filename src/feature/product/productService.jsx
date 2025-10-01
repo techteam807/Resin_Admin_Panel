@@ -82,3 +82,13 @@ export const createProdFlag = async (productData) => {
     throw error;
   }
 };
+
+export const moveToInspectionDuee = async (productId) => {
+  try {
+    const response = await axiosConfig.post(`products/InspectionDueProduct/${productId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error moving product to Inspection Due:", error);
+    throw error.response?.data || { message: "Failed to move product to Inspection Due" };
+  }
+};
