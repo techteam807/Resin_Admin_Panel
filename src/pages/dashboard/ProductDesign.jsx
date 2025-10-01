@@ -92,7 +92,7 @@ const ProductDesign = () => {
 
   useEffect(() => {
     const initialFlags = {};
-    ["newProducts", "inuseProducts", "exhaustedProducts", "inspectionDueProducts"].forEach((key) => {
+    ["newProducts", "inuseProducts", "exhaustedProducts", "InspectionDueProducts"].forEach((key) => {
       products[key]?.forEach((product) => {
         if (product.productFlagCount) {
           initialFlags[product._id] = product.productFlagCount;
@@ -191,10 +191,14 @@ const ProductDesign = () => {
     }
   };
 
-  const handleAddFlag = (product, category) => {
-    setFlaggingProductId(product._id);
-
+  const handleAddFlag = (product) => {
     const currentFlagCount = productFlags[product._id] || product.productFlagCount || 0;
+    if (currentFlagCount >= 3) {
+      toast.error("Maximum flags reached (3/3)");
+      return;
+    }
+
+    setFlaggingProductId(product._id);
 
     dispatch(createProductFlag({ productId: product._id }))
       .unwrap()
@@ -204,11 +208,6 @@ const ProductDesign = () => {
           ...prev,
           [product._id]: newFlagCount,
         }));
-        if (newFlagCount >= 3 && category === "inuse") {
-          dispatch(getProducts({ active: active }));
-        } else if (newFlagCount >= 3 && category === "exhausted") {
-          confirmMoveToInspectionDue(product._id);
-        }
         setFlaggingProductId(null);
       })
       .catch((error) => {
@@ -526,12 +525,12 @@ const ProductDesign = () => {
                                   </IconButton>
                                 </Tooltip>
                               </div>
-                              {(productFlags[product._id] || product.productFlagCount || 0) < 3 && (
-                                <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-2 p-3 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow transition-all gap-3">
+                              <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-2 p-3 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow transition-all gap-3">
+                                {(productFlags[product._id] || product.productFlagCount || 0) < 3 && (
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleAddFlag(product, "inuse");
+                                      handleAddFlag(product);
                                     }}
                                     className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto
                                       ${flaggingProductId === product._id
@@ -547,27 +546,27 @@ const ProductDesign = () => {
                                     )}
                                     <span>{flaggingProductId === product._id ? "Flagging..." : "Flag"}</span>
                                   </button>
-                                  <div className="flex flex-col sm:flex-row items-center justify-between md:justify-end gap-2 w-full md:w-auto">
-                                    <span className="text-sm text-gray-600 font-medium">Flags:</span>
-                                    <div className="flex gap-1">
-                                      {Array.from({
-                                        length: productFlags[product._id] || product.productFlagCount || 0,
-                                      }).map((_, i) => (
-                                        <FlagIcon key={i} className="h-5 w-5 text-green-600" />
-                                      ))}
-                                    </div>
-                                    <span
-                                      className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                                        (productFlags[product._id] || product.productFlagCount || 0) >= 3
-                                          ? "bg-green-100 text-green-600"
-                                          : "bg-gray-100 text-gray-600"
-                                      }`}
-                                    >
-                                      {(productFlags[product._id] || product.productFlagCount || 0) || 0}/3
-                                    </span>
+                                )}
+                                <div className="flex flex-col sm:flex-row items-center justify-between md:justify-end gap-2 w-full md:w-auto">
+                                  <span className="text-sm text-gray-600 font-medium">Flags:</span>
+                                  <div className="flex gap-1">
+                                    {Array.from({
+                                      length: productFlags[product._id] || product.productFlagCount || 0,
+                                    }).map((_, i) => (
+                                      <FlagIcon key={i} className="h-5 w-5 text-green-600" />
+                                    ))}
                                   </div>
+                                  <span
+                                    className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                      (productFlags[product._id] || product.productFlagCount || 0) >= 3
+                                        ? "bg-green-100 text-green-600"
+                                        : "bg-gray-100 text-gray-600"
+                                    }`}
+                                  >
+                                    {(productFlags[product._id] || product.productFlagCount || 0) || 0}/3
+                                  </span>
                                 </div>
-                              )}
+                              </div>
                             </div>
                           ))}
                           {products[0]?.Customer && (
@@ -692,63 +691,61 @@ const ProductDesign = () => {
                               )}
                             </div>
                           </div>
-                          {active === true && (
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-3 p-3 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow transition-all gap-3">
-                              {(productFlags[product._id] || product.productFlagCount || 0) < 3 ? (
+                          {/* Flag section for exhausted products */}
+                          <div className="flex flex-col md:flex-row md:items-center md:justify-between mt-3 p-3 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow transition-all gap-3">
+                            {(productFlags[product._id] || product.productFlagCount || 0) < 3 ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddFlag(product);
+                                }}
+                                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto
+                                  ${flaggingProductId === product._id
+                                    ? "bg-red-100 text-red-600 cursor-wait"
+                                    : "bg-red-400 text-white hover:bg-red-500 hover:scale-105"
+                                  }`}
+                                disabled={flaggingProductId === product._id}
+                              >
+                                {flaggingProductId === product._id ? (
+                                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <FlagIcon className="h-4 w-4" />
+                                )}
+                                <span>{flaggingProductId === product._id ? "Flagging..." : "Flag"}</span>
+                              </button>
+                            ) : (
+                              <Tooltip content="Inspection Due">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleAddFlag(product, "exhausted");
+                                    confirmMoveToInspectionDue(product._id);
                                   }}
-                                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto
-                                    ${flaggingProductId === product._id
-                                      ? "bg-red-100 text-red-600 cursor-wait"
-                                      : "bg-red-400 text-white hover:bg-red-500 hover:scale-105"
-                                    }`}
-                                  disabled={flaggingProductId === product._id}
+                                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto bg-orange-100 text-orange-600 hover:bg-orange-200 hover:scale-105"
                                 >
-                                  {flaggingProductId === product._id ? (
-                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <FlagIcon className="h-4 w-4" />
-                                  )}
-                                  <span>{flaggingProductId === product._id ? "Flagging..." : "Flag"}</span>
+                                  <BellIcon className="h-4 w-4 text-orange-600" />
                                 </button>
-                              ) : (
-                                <Tooltip content="Inspection Due">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      confirmMoveToInspectionDue(product._id);
-                                    }}
-                                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 transform w-full md:w-auto bg-orange-100 text-orange-600 hover:bg-orange-200 hover:scale-105"
-                                  >
-                                    <BellIcon className="h-4 w-4 text-orange-600" />
-                                    <span>Inspection Due</span>
-                                  </button>
-                                </Tooltip>
-                              )}
-                              <div className="flex flex-col sm:flex-row items-center justify-between md:justify-end gap-2 w-full md:w-auto">
-                                <span className="text-sm text-gray-600 font-medium">Flags:</span>
-                                <div className="flex gap-1">
-                                  {Array.from({
-                                    length: productFlags[product._id] || product.productFlagCount || 0,
-                                  }).map((_, i) => (
-                                    <FlagIcon key={i} className="h-5 w-5 text-red-500" />
-                                  ))}
-                                </div>
-                                <span
-                                  className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                                    (productFlags[product._id] || product.productFlagCount || 0) >= 3
-                                      ? "bg-red-100 text-red-600"
-                                      : "bg-gray-100 text-gray-600"
-                                  }`}
-                                >
-                                  {(productFlags[product._id] || product.productFlagCount || 0) || 0}/3
-                                </span>
+                              </Tooltip>
+                            )}
+                            <div className="flex flex-col sm:flex-row items-center justify-between md:justify-end gap-2 w-full md:w-auto">
+                              <span className="text-sm text-gray-600 font-medium">Flags:</span>
+                              <div className="flex gap-1">
+                                {Array.from({
+                                  length: productFlags[product._id] || product.productFlagCount || 0,
+                                }).map((_, i) => (
+                                  <FlagIcon key={i} className="h-5 w-5 text-red-500" />
+                                ))}
                               </div>
+                              <span
+                                className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                  (productFlags[product._id] || product.productFlagCount || 0) >= 3
+                                    ? "bg-red-100 text-red-600"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {(productFlags[product._id] || product.productFlagCount || 0) || 0}/3
+                              </span>
                             </div>
-                          )}
+                          </div>
                           {product?.Customer && (
                             <div className="m-1.5 p-2.5 rounded-lg bg-red-50 text-xs text-gray-700 font-medium grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                               <div className="flex justify-between sm:justify-start sm:gap-2">
@@ -782,84 +779,107 @@ const ProductDesign = () => {
                 </div>
               )}
               {/* INSPECTION DUE PRODUCTS */}
-              {active === "inspectionDue" && (
-                <div className="border border-blue-gray-100 bg-[#f4f5f7] rounded-md md:col-span-2 lg:col-span-3">
-                  <div className="border-b border-blue-gray-100 p-4 text-center text-orange-600 font-semibold">
-                    INSPECTION DUE ({products.InspectionDueProducts?.length || 0})
+          {active === "inspectionDue" && (
+  <div className="border border-blue-gray-100 bg-[#f8fafc] rounded-lg md:col-span-2 lg:col-span-3">
+    <div className="border-b border-blue-gray-100 p-3 text-center text-orange-700 font-bold text-lg">
+      INSPECTION DUE ({products.InspectionDueProducts?.length || 0})
+    </div>
+    <div className="space-y-2 p-3 h-[60vh] sm:h-[70vh] lg:h-[74vh] overflow-y-auto scrollbar-custom-orange">
+      {products.InspectionDueProducts?.length > 0 ? (
+        products.InspectionDueProducts.map((product, index) => (
+          <div
+            key={product._id}
+            className="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer border-l-4 border-orange-500"
+            onClick={() => {
+              setData(product);
+              setDetails(true);
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-600">{index + 1}</span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm text-gray-800">{product.productCode}</p>
+                    <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
+                      <IconButton
+                        variant="text"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopy(product._id, product.productCode);
+                        }}
+                        size="sm"
+                        color="orange"
+                      >
+                        {copiedStates[product._id] ? (
+                          <CheckIcon className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <ClipboardIcon className="h-4 w-4 text-gray-600" />
+                        )}
+                      </IconButton>
+                    </Tooltip>
                   </div>
-                  <div className="space-y-3 p-3 h-[60vh] sm:h-[70vh] lg:h-[74vh] overflow-y-auto scrollbar-custom-orange">
-                    {products.InspectionDueProducts?.length > 0 ? (
-                      products.InspectionDueProducts.map((product, index) => (
-                        <Button
-                          variant="text"
-                          key={product._id}
-                          color="orange"
-                          className="bg-white p-2 rounded-md group hover:cursor-pointer w-full text-start relative border-l-2 border-orange-600"
-                          onClick={() => {
-                            setData(product);
-                            setDetails(true);
-                          }}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="p-1.5 flex items-center">
-                              <div className="pe-2 py-2 border-e-2 border-gray-300 text-base">{index + 1}</div>
-                              <div className="ps-2">
-                                <p className="font-semibold text-base text-black flex items-center gap-0.5">
-                                  {product.productCode}
-                                  <Tooltip content={copiedStates[product._id] ? "Copied!" : "Copy"}>
-                                    <IconButton
-                                      variant="text"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleCopy(product._id, product.productCode);
-                                      }}
-                                      size="sm"
-                                      color="orange"
-                                    >
-                                      {copiedStates[product._id] ? (
-                                        <CheckIcon className="h-4 w-4 text-green-600" />
-                                      ) : (
-                                        <ClipboardIcon className="h-3.5 w-3.5 text-gray-600" />
-                                      )}
-                                    </IconButton>
-                                  </Tooltip>
-                                </p>
-                                <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
-                                <div className="flex flex-col gap-2 mt-2">
-                                  <div className="flex gap-1">
-                                    {Array.from({ length: product.productFlagCount || 0 }).map((_, i) => (
-                                      <FlagIcon key={i} className="h-5 w-5 text-red-500" />
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <Tooltip content="Restore Product">
-                              <IconButton
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  confirmRestore(product._id);
-                                }}
-                                color="red"
-                                variant="text"
-                                className="hidden group-hover:block"
-                              >
-                                {delLoading && deletingProductId === product._id ? (
-                                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                ) : (
-                                  <ArrowPathRoundedSquareIcon className="h-4 w-4" />
-                                )}
-                              </IconButton>
-                            </Tooltip>
-                          </div>
-                        </Button>
-                      ))
-                    ) : (
-                      <div className="text-center text-gray-500">NO INSPECTION DUE PRODUCTS</div>
-                    )}
-                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{formatUTCDate(product?.updatedAt)}</p>
                 </div>
-              )}
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {Array.from({ length: product.productFlagCount || 0 }).map((_, i) => (
+                    <FlagIcon key={i} className="h-4 w-4 text-orange-600" />
+                  ))}
+                </div>
+                <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">
+                  {product.productFlagCount || 0}/3
+                </span>
+                <Tooltip content="Restore Product">
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      confirmRestore(product._id);
+                    }}
+                    color="red"
+                    variant="text"
+                    className="hover:bg-red-50"
+                  >
+                    {delLoading && deletingProductId === product._id ? (
+                      <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ArrowPathRoundedSquareIcon className="h-4 w-4" />
+                    )}
+                  </IconButton>
+                </Tooltip>
+              </div>
+            </div>
+            {product?.Customer && (
+              <div className="mt-2 p-2 bg-orange-50 rounded-md text-xs text-gray-700 font-medium grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Customer Code:</span>
+                  <span>{product?.Customer?.contact_number || "N/A"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Name:</span>
+                  <span>
+                    {product?.Customer?.first_name || "N/A"} {product?.Customer?.last_name || "N/A"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Email:</span>
+                  <span>{product?.Customer?.email || "N/A"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Number:</span>
+                  <span>{product?.Customer?.mobile || "N/A"}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <div className="text-center text-gray-500 py-4">NO INSPECTION DUE PRODUCTS</div>
+      )}
+    </div>
+  </div>
+)}
             </div>
           )}
         </Card>
