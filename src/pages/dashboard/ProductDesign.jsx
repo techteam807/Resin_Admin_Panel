@@ -69,6 +69,7 @@ const formatUTCDate = (dateString) => {
 const ProductDesign = () => {
   const dispatch = useDispatch();
   const { products, loading, delLoading, Flagloading } = useSelector((state) => state.product);
+  console.log("products",products)
   const [searchValue, setSearchValue] = useState("");
   const [active, setActive] = useState(true);
   const [open, setOpen] = useState(false);
@@ -405,7 +406,7 @@ const ProductDesign = () => {
                                       </IconButton>
                                     </Tooltip>
                                   </p>
-                                  <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
+                                  <p className="pt-1 text-gray-600">{formatUTCDate(product?.product_UpdateAt || product?.updatedAt)}</p>
                                 </div>
                               </div>
                               {active ? (
@@ -504,7 +505,7 @@ const ProductDesign = () => {
                                         </IconButton>
                                       </Tooltip>
                                     </p>
-                                    <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
+                                    <p className="pt-1 text-gray-600">{formatUTCDate(product?.product_UpdateAt || product?.updatedAt)}</p>
                                   </div>
                                 </div>
                                 <Tooltip content="Delete">
@@ -645,7 +646,7 @@ const ProductDesign = () => {
                                   </IconButton>
                                 </Tooltip>
                               </p>
-                              <p className="pt-1 text-gray-600">{formatUTCDate(product?.updatedAt)}</p>
+                              <p className="pt-1 text-gray-600">{formatUTCDate(product?.product_UpdateAt || product?.updatedAt)}</p>
                               {product?.productNotes && (
                                 <p className="pt-2 text-sm text-gray-700">Note: {product?.productNotes}</p>
                               )}
@@ -819,7 +820,7 @@ const ProductDesign = () => {
                       </IconButton>
                     </Tooltip>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{formatUTCDate(product?.updatedAt)}</p>
+                  <p className="text-xs text-gray-500 mt-1">{formatUTCDate(product?.product_UpdateAt || product?.updatedAt)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
