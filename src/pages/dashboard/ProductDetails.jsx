@@ -2,8 +2,7 @@ import { Button, Dialog, DialogBody, DialogFooter, DialogHeader } from '@materia
 import React from 'react'
 
 const ProductDetails = ({ details, setDetails, handleEditProduct, data, setData }) => {
-    console.log("data", data);
-
+    
     const formatUTCDate = (dateString) => {
         if (!dateString) return "N/A";
         const date = new Date(dateString);
